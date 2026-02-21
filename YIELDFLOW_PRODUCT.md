@@ -233,9 +233,18 @@ Located at the bottom of the page.
 
 ## Backlog
 
+**Improvements**
+
 - [ ] Add Investment form
 - [ ] Edit Investment form
 - [ ] Reintroduce chevron expand affordance on Timeline + Cash Flow cards
+
+**Bugs**
+
+- [ ] Fix sticky column in Timeline table wherein it is not applying the border on scroll
+
+**New Features**
+
 - [ ] Maturity timeline visualization (Gantt-style, placement → maturity date)
 - [ ] Philippine instrument presets (MP2, T-bill discount math)
 - [ ] Database / persistent storage (replace localStorage)

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { DepositSummary } from "@/lib/types";
 import { differenceInCalendarDays, formatDate } from "@/lib/domain/date";
 import { Button } from "@/components/ui/button";
@@ -51,8 +51,6 @@ export default function LadderTable({
   >("maturity");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
-  const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   function getDaysToMaturity(dateISO: string) {
     const days = differenceInCalendarDays(new Date(dateISO), today);
@@ -61,6 +59,7 @@ export default function LadderTable({
 
   function formatDaysToMaturity(days: number) {
     if (days < 0) return `Overdue ${Math.abs(days)} days`;
+    if (days === 0) return "Due today";
     return `${days} days`;
   }
 
@@ -105,45 +104,18 @@ export default function LadderTable({
     setSortDir("asc");
   }
 
-  useEffect(() => {
-    function updateScrollState() {
-      const node = scrollRef.current;
-      if (!node) return;
-      setHasHorizontalScroll(node.scrollWidth > node.clientWidth && node.scrollLeft > 0);
-    }
-    updateScrollState();
-    window.addEventListener("resize", updateScrollState);
-    return () => window.removeEventListener("resize", updateScrollState);
-  }, []);
-
   return (
     <div>
       <div className="hidden md:block">
         <div className="relative">
           <div className="from-surface pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r to-transparent" />
           <div className="from-surface pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l to-transparent" />
-          <div
-            ref={scrollRef}
-            className="w-full overflow-x-auto"
-            onScroll={() => {
-              const node = scrollRef.current;
-              if (!node) return;
-              setHasHorizontalScroll(
-                node.scrollWidth > node.clientWidth && node.scrollLeft > 0,
-              );
-            }}
-          >
+          <div className="border-subtle bg-surface w-full overflow-x-auto overflow-y-hidden rounded-2xl border">
             <div className="min-w-[900px]">
-              <Table wrapperClassName="overflow-visible">
+              <Table wrapperClassName="overflow-visible rounded-none border-0">
                 <TableHeader>
                   <TableRow>
-                    <TableHead
-                      className={`bg-surface-soft sticky left-0 z-20 ${
-                        hasHorizontalScroll
-                          ? "border-subtle shadow-border border-r shadow-[1px_0_0_0]"
-                          : "border-r border-transparent"
-                      }`}
-                    >
+                    <TableHead className="bg-surface-soft sticky left-0 z-20">
                       <span className="text-muted-foreground inline-flex items-center gap-1 text-sm font-semibold">
                         Investment
                       </span>
@@ -245,27 +217,22 @@ export default function LadderTable({
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="[&>tr:last-child>td:first-child]:rounded-bl-2xl">
                   {sorted.map((summary) => {
                     const days = getDaysToMaturity(summary.maturityDate);
                     const isSettled = summary.deposit.status === "settled";
                     const isDue = days <= 0 && !summary.deposit.isOpenEnded && !isSettled;
                     const isMatured = summary.deposit.status === "matured";
-                    const isOverdue = isDue && days < 0;
                     return (
                       <TableRow
                         key={summary.deposit.id}
                         className={`${
-                          isDue ? "bg-amber-50/60 dark:bg-amber-500/10" : ""
-                        } ${isSettled ? "opacity-50" : ""}`}
+                          isDue ? "bg-overdue [&>td]:bg-overdue" : ""
+                        } ${isSettled ? "opacity-50" : ""} last:[&>td:first-child]:rounded-bl-2xl`}
                       >
                         <TableCell
                           className={`sticky left-0 z-10 font-semibold ${
-                            isDue ? "bg-amber-50/80 dark:bg-amber-500/20" : "bg-surface"
-                          } ${
-                            hasHorizontalScroll
-                              ? "border-subtle shadow-border border-r shadow-[1px_0_0_0]"
-                              : "border-r border-transparent"
+                            isDue ? "bg-overdue-sticky" : "bg-surface"
                           }`}
                         >
                           {summary.deposit.name}
@@ -296,8 +263,8 @@ export default function LadderTable({
                             <TimelineBadge
                               label={formatDaysToMaturity(days)}
                               className={
-                                isOverdue
-                                  ? "border-amber-200 bg-amber-100/70 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/20 dark:text-amber-200"
+                                isDue
+                                  ? "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-100"
                                   : undefined
                               }
                             />
@@ -371,7 +338,6 @@ export default function LadderTable({
           const isSettled = summary.deposit.status === "settled";
           const isDue = days <= 0 && !summary.deposit.isOpenEnded && !isSettled;
           const isMatured = summary.deposit.status === "matured";
-          const isOverdue = isDue && days < 0;
           const isOpen = openIds.has(summary.deposit.id);
           return (
             <Collapsible
@@ -388,8 +354,8 @@ export default function LadderTable({
                   return next;
                 })
               }
-              className={`group border-subtle bg-surface-soft rounded-xl border p-4 transition-colors duration-200 ease-out ${
-                isDue ? "bg-amber-50/60 dark:bg-amber-500/10" : ""
+              className={`group border-subtle bg-item-card rounded-xl border p-4 transition-colors duration-200 ease-out ${
+                isDue ? "bg-overdue" : ""
               } ${isSettled ? "opacity-50" : ""}`}
             >
               <div
@@ -518,8 +484,8 @@ export default function LadderTable({
                     <TimelineBadge
                       label={formatDaysToMaturity(days)}
                       className={
-                        isOverdue
-                          ? "border-amber-200 bg-amber-100/70 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/20 dark:text-amber-200"
+                        isDue
+                          ? "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-100"
                           : undefined
                       }
                     />

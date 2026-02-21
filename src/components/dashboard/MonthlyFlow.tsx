@@ -61,7 +61,7 @@ export default function MonthlyFlow({
         return (
           <div key={item.monthKey}>
             {hasEntries ? (
-              <div className="border-subtle bg-surface-soft overflow-hidden rounded-xl border">
+              <div className="border-subtle bg-item-card overflow-hidden rounded-xl border">
                 <button
                   type="button"
                   onClick={() =>
@@ -163,7 +163,7 @@ export default function MonthlyFlow({
                 ) : null}
               </div>
             ) : (
-              <div className="border-subtle bg-surface-soft text-muted rounded-xl border px-4 py-3 text-sm">
+              <div className="border-subtle bg-item-card text-muted rounded-xl border px-4 py-3 text-sm">
                 No payouts in {item.label}
               </div>
             )}

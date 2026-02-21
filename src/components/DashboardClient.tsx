@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { BellRing } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BellRing, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,6 +75,16 @@ export default function DashboardClient() {
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [showMatured, setShowMatured] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const [sampleBannerDismissed, setSampleBannerDismissed] = useState(false);
+
+  const { value: sampleDataLoaded, setValue: setSampleDataLoaded } =
+    useLocalStorage<boolean>("yieldflow-sample-loaded", false);
+  const { value: sampleDataActive, setValue: setSampleDataActive } =
+    useLocalStorage<boolean>("yieldflow-sample-active", false);
+  const { value: hasCustomData, setValue: setHasCustomData } = useLocalStorage<boolean>(
+    "yieldflow-has-custom-data",
+    false,
+  );
 
   const activeDeposits = useMemo(
     () => deposits.filter((deposit) => deposit.status !== "settled"),
@@ -225,6 +235,8 @@ export default function DashboardClient() {
       }
       return [newDeposit, ...current];
     });
+    setHasCustomData(true);
+    setSampleDataActive(false);
 
     resetForm();
     setDialogOpen(false);
@@ -232,6 +244,8 @@ export default function DashboardClient() {
 
   function seedDemoData() {
     setDeposits(demoDeposits);
+    setSampleDataLoaded(true);
+    setSampleDataActive(true);
   }
 
   function downloadBackup() {
@@ -279,6 +293,8 @@ export default function DashboardClient() {
         }
 
         setDeposits(nextDeposits);
+        setHasCustomData(true);
+        setSampleDataActive(false);
         setImportMessage(`Imported ${nextDeposits.length} deposits.`);
       } catch {
         setImportMessage("Import failed: invalid JSON.");
@@ -329,6 +345,18 @@ export default function DashboardClient() {
     );
   }
 
+  const showSampleBanner = sampleDataActive && !sampleBannerDismissed;
+  const emptyStateCtaLabel = sampleDataLoaded ? "Reload sample data" : "Load sample data";
+  const showEmptyStateCta = !hasCustomData;
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (process.env.NODE_ENV === "test") return;
+    if (deposits.length > 0) return;
+    if (sampleDataLoaded || hasCustomData) return;
+    seedDemoData();
+  }, [deposits.length, hasCustomData, isReady, sampleDataLoaded]);
+
   return (
     <div className="bg-page text-primary min-h-screen">
       <header className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-10 pb-10 md:px-10">
@@ -340,6 +368,38 @@ export default function DashboardClient() {
             experience — your data and feedback help shape what comes next.
           </AlertDescription>
         </Alert>
+        {showSampleBanner ? (
+          <Alert variant="info" className="flex items-start gap-3 pr-10">
+            <div>
+              <AlertTitle>Using sample data</AlertTitle>
+              <AlertDescription>
+                This is pre-filled test data so you can explore YieldFlow. Clear it
+                anytime in{" "}
+                <a
+                  href="#data-management"
+                  className="font-semibold underline underline-offset-4 hover:text-indigo-700 dark:hover:text-indigo-200"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    document
+                      .getElementById("data-management")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Data Management
+                </a>{" "}
+                below.
+              </AlertDescription>
+            </div>
+            <button
+              type="button"
+              className="text-muted-foreground focus-visible:ring-primary/60 absolute top-3 right-3 rounded-md p-1 transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2"
+              onClick={() => setSampleBannerDismissed(true)}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Dismiss</span>
+            </button>
+          </Alert>
+        ) : null}
         <Header />
         <StatsGrid
           totalPrincipal={totalPrincipal}
@@ -352,7 +412,7 @@ export default function DashboardClient() {
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 md:px-10">
-        <section className="border-subtle bg-surface rounded-2xl border p-6">
+        <section className="bg-portfolio-surface border-subtle rounded-2xl border p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Portfolio actions</h2>
@@ -388,7 +448,11 @@ export default function DashboardClient() {
               Loading your portfolio...
             </div>
           ) : deposits.length === 0 ? (
-            <EmptyState onSeed={seedDemoData} />
+            <EmptyState
+              onSeed={seedDemoData}
+              ctaLabel={emptyStateCtaLabel}
+              showCta={showEmptyStateCta}
+            />
           ) : (
             <div className="mt-6 flex flex-col gap-4">
               <Tabs defaultValue="ladder">
@@ -428,7 +492,10 @@ export default function DashboardClient() {
           )}
         </section>
 
-        <section className="border-subtle bg-surface rounded-2xl border p-6">
+        <section
+          id="data-management"
+          className="border-subtle bg-surface rounded-2xl border p-6"
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Data Management</h2>
@@ -476,7 +543,10 @@ export default function DashboardClient() {
             <Button
               variant="ghost"
               className="text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
-              onClick={() => setDeposits([])}
+              onClick={() => {
+                setDeposits([]);
+                setSampleDataActive(false);
+              }}
             >
               Clear All Data
             </Button>
