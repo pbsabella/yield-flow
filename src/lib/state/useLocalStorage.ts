@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
+type UseLocalStorageOptions<T> = {
+  persistWhen?: (value: T) => boolean;
+};
+
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T,
+  options?: UseLocalStorageOptions<T>,
+) {
   const [value, setValue] = useState<T>(initialValue);
   const [isReady, setIsReady] = useState(false);
 
@@ -23,8 +31,10 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   useEffect(() => {
     if (!isReady) return;
+    const shouldPersist = options?.persistWhen ? options.persistWhen(value) : true;
+    if (!shouldPersist) return;
     window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value, isReady]);
+  }, [isReady, key, options, value]);
 
   return { value, setValue, isReady } as const;
 }

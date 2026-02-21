@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import DashboardClient from "@/components/DashboardClient";
 import { banks as demoBanks, deposits as demoDeposits } from "@/lib/demo";
@@ -27,7 +27,6 @@ describe("DashboardClient", () => {
   });
 
   it("renders header and primary actions", async () => {
-    localStorage.setItem("yieldflow-deposits", JSON.stringify(demoDeposits));
     renderWithProviders(<DashboardClient />);
 
     expect(
@@ -39,9 +38,7 @@ describe("DashboardClient", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /add investment/i })).toBeInTheDocument();
-
-    expect(screen.getByRole("tab", { name: /timeline/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /cash flow/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /load sample data/i })).toBeInTheDocument();
   }, 10000);
 
   it("shows empty state with privacy notice", () => {
@@ -63,18 +60,45 @@ describe("DashboardClient", () => {
     renderWithProviders(<DashboardClient />);
 
     expect(screen.getByText(/data management/i)).toBeInTheDocument();
-    expect(screen.getByText(/saved to browser/i)).toBeInTheDocument();
+    expect(screen.getByText(/not saved yet/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /download backup \(json\)/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /clear all data/i })).toBeInTheDocument();
   });
 
+  it("does not touch local storage on initial render", () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+    const removeItemSpy = vi.spyOn(Storage.prototype, "removeItem");
+
+    renderWithProviders(<DashboardClient />);
+
+    expect(getItemSpy).not.toHaveBeenCalled();
+    expect(setItemSpy).not.toHaveBeenCalled();
+    expect(removeItemSpy).not.toHaveBeenCalled();
+
+    getItemSpy.mockRestore();
+    setItemSpy.mockRestore();
+    removeItemSpy.mockRestore();
+  });
+
+  it("does not persist seeded sample deposits to local storage", async () => {
+    renderWithProviders(<DashboardClient />);
+
+    fireEvent.click(screen.getByRole("button", { name: /load sample data/i }));
+
+    await screen.findByText(/using sample data/i);
+    await waitFor(() => {
+      expect(localStorage.getItem("yieldflow-deposits")).toBeNull();
+    });
+  });
+
   it("renders the summary cards with net income and next maturity details", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-02-21T12:00:00Z"));
-    localStorage.setItem("yieldflow-deposits", JSON.stringify(demoDeposits));
     renderWithProviders(<DashboardClient />);
+    fireEvent.click(screen.getByRole("button", { name: /load sample data/i }));
 
     const formatCurrency = (value: number) =>
       new Intl.NumberFormat("en-PH", {
@@ -146,8 +170,8 @@ describe("DashboardClient", () => {
   });
 
   it("toggles the settled filter in the timeline view", async () => {
-    localStorage.setItem("yieldflow-deposits", JSON.stringify(demoDeposits));
     renderWithProviders(<DashboardClient />);
+    fireEvent.click(screen.getByRole("button", { name: /load sample data/i }));
 
     const activeDeposit = demoDeposits.find((deposit) => !/settled/i.test(deposit.name));
     const settledDeposit = demoDeposits.find((deposit) => /settled/i.test(deposit.name));
@@ -175,5 +199,17 @@ describe("DashboardClient", () => {
     const settledItem = settledItems[0];
     const position = activeItem.compareDocumentPosition(settledItem);
     expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("removes saved deposits from local storage when clearing data", async () => {
+    localStorage.setItem("yieldflow-deposits", JSON.stringify(demoDeposits));
+    renderWithProviders(<DashboardClient />);
+
+    fireEvent.click(screen.getByRole("button", { name: /clear all data/i }));
+
+    await waitFor(() => {
+      expect(localStorage.getItem("yieldflow-deposits")).toBeNull();
+    });
+    expect(screen.getByText(/not saved yet/i)).toBeInTheDocument();
   });
 });

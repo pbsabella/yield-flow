@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { BellRing, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
 import { formatMonthLabel, monthKey } from "@/lib/domain/date";
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { banks as demoBanks, deposits as demoDeposits } from "@/lib/demo";
-import { useLocalStorage } from "@/lib/state/useLocalStorage";
 import type { Bank, TimeDeposit } from "@/lib/types";
 
 const initialForm: DepositFormState = {
@@ -45,6 +44,7 @@ const initialForm: DepositFormState = {
 };
 
 const EMPTY_DEPOSITS: TimeDeposit[] = [];
+const DEPOSITS_STORAGE_KEY = "yieldflow-deposits";
 
 const bankAliases: Record<string, string> = {
   ob: "OwnBank",
@@ -61,11 +61,6 @@ function resolveBankName(bankId: string, depositName: string) {
 
 export default function DashboardClient() {
   const [banks, setBanks] = useState<Bank[]>(demoBanks);
-  const {
-    value: deposits,
-    setValue: setDeposits,
-    isReady,
-  } = useLocalStorage<TimeDeposit[]>("yieldflow-deposits", EMPTY_DEPOSITS);
   const [form, setForm] = useState<DepositFormState>(initialForm);
   const [formErrors, setFormErrors] = useState<DepositFormErrors>({});
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,15 +71,10 @@ export default function DashboardClient() {
   const [showMatured, setShowMatured] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [sampleBannerDismissed, setSampleBannerDismissed] = useState(false);
-
-  const { value: sampleDataLoaded, setValue: setSampleDataLoaded } =
-    useLocalStorage<boolean>("yieldflow-sample-loaded", false);
-  const { value: sampleDataActive, setValue: setSampleDataActive } =
-    useLocalStorage<boolean>("yieldflow-sample-active", false);
-  const { value: hasCustomData, setValue: setHasCustomData } = useLocalStorage<boolean>(
-    "yieldflow-has-custom-data",
-    false,
-  );
+  const [deposits, setDeposits] = useState<TimeDeposit[]>(EMPTY_DEPOSITS);
+  const [sampleDataActive, setSampleDataActive] = useState(false);
+  const [hasSavedToBrowser, setHasSavedToBrowser] = useState(false);
+  const isReady = true;
 
   const activeDeposits = useMemo(
     () => deposits.filter((deposit) => deposit.status !== "settled"),
@@ -233,24 +223,24 @@ export default function DashboardClient() {
       status: existingStatus ?? "active",
     };
 
-    setDeposits((current) => {
-      if (editingId) {
-        return current.map((item) => (item.id === editingId ? newDeposit : item));
-      }
-      return [newDeposit, ...current];
-    });
-    setHasCustomData(true);
+    const nextDeposits = editingId
+      ? deposits.map((item) => (item.id === editingId ? newDeposit : item))
+      : [newDeposit, ...deposits];
+    setDeposits(nextDeposits);
     setSampleDataActive(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
+    }
+    setHasSavedToBrowser(true);
 
     resetForm();
     setDialogOpen(false);
   }
 
   const seedDemoData = useCallback(() => {
-    setDeposits(demoDeposits);
-    setSampleDataLoaded(true);
     setSampleDataActive(true);
-  }, [setDeposits, setSampleDataLoaded, setSampleDataActive]);
+    setDeposits(demoDeposits);
+  }, [setDeposits, setSampleDataActive]);
 
   function downloadBackup() {
     const payload = {
@@ -297,8 +287,11 @@ export default function DashboardClient() {
         }
 
         setDeposits(nextDeposits);
-        setHasCustomData(true);
         setSampleDataActive(false);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
+        }
+        setHasSavedToBrowser(true);
         setImportMessage(`Imported ${nextDeposits.length} deposits.`);
       } catch {
         setImportMessage("Import failed: invalid JSON.");
@@ -336,30 +329,29 @@ export default function DashboardClient() {
   }
 
   function handleDelete(id: string) {
-    setDeposits((current) => current.filter((item) => item.id !== id));
+    const nextDeposits = deposits.filter((item) => item.id !== id);
+    setDeposits(nextDeposits);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
+    }
+    setHasSavedToBrowser(true);
   }
 
   function handleMarkMatured(id: string) {
-    setDeposits((current) =>
-      current.map((item) => {
-        if (item.id !== id) return item;
-        if (item.status === "settled") return item;
-        return { ...item, status: "settled" };
-      }),
-    );
+    const nextDeposits = deposits.map((item) => {
+      if (item.id !== id) return item;
+      if (item.status === "settled") return item;
+      return { ...item, status: "settled" as const };
+    });
+    setDeposits(nextDeposits);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
+    }
+    setHasSavedToBrowser(true);
   }
 
   const showSampleBanner = sampleDataActive && !sampleBannerDismissed;
-  const emptyStateCtaLabel = sampleDataLoaded ? "Reload sample data" : "Load sample data";
-  const showEmptyStateCta = !hasCustomData;
-
-  useEffect(() => {
-    if (!isReady) return;
-    if (process.env.NODE_ENV === "test") return;
-    if (deposits.length > 0) return;
-    if (sampleDataLoaded || hasCustomData) return;
-    seedDemoData();
-  }, [deposits.length, hasCustomData, isReady, sampleDataLoaded, seedDemoData]);
+  const emptyStateCtaLabel = "Load sample data";
 
   return (
     <div className="bg-page text-primary min-h-screen">
@@ -454,11 +446,7 @@ export default function DashboardClient() {
               Loading your portfolio...
             </div>
           ) : deposits.length === 0 ? (
-            <EmptyState
-              onSeed={seedDemoData}
-              ctaLabel={emptyStateCtaLabel}
-              showCta={showEmptyStateCta}
-            />
+            <EmptyState onSeed={seedDemoData} ctaLabel={emptyStateCtaLabel} />
           ) : (
             <div className="mt-6 flex flex-col gap-4">
               <Tabs defaultValue="ladder">
@@ -508,7 +496,7 @@ export default function DashboardClient() {
               <p className="text-muted text-sm">Your data stays on your device</p>
             </div>
             <span className="border-subtle bg-surface-soft text-muted rounded-lg border px-3 py-1 text-xs">
-              Saved to Browser
+              {hasSavedToBrowser ? "Saved to Browser" : "Not saved yet"}
             </span>
           </div>
           <p className="text-muted mt-2 text-sm">
@@ -552,6 +540,10 @@ export default function DashboardClient() {
               onClick={() => {
                 setDeposits([]);
                 setSampleDataActive(false);
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(DEPOSITS_STORAGE_KEY);
+                }
+                setHasSavedToBrowser(false);
               }}
             >
               Clear All Data
