@@ -14,9 +14,6 @@ export default function EmptyState({ onSeed }: Props) {
         <p className="text-muted text-sm">
           Load sample data to explore YieldFlow instantly.
         </p>
-        <p className="text-muted mt-2 text-xs">
-          Local-only storage. No servers, no tracking.
-        </p>
       </div>
       <Button size="sm" onClick={onSeed}>
         <Database className="h-4 w-4" />

@@ -12,60 +12,74 @@ function formatCurrency(value: number) {
 }
 
 type Props = {
-  summaries: DepositSummary[];
   totalPrincipal: number;
-  currentMonthGross: number;
-  currentMonthNet: number;
+  currentMonthIncomeTotal: number;
+  currentMonthIncomePending: number;
+  currentMonthIncomeSettled: number;
   currentMonthLabel: string;
+  nextMaturity?: DepositSummary | null;
 };
 
 export default function StatsGrid({
-  summaries,
   totalPrincipal,
-  currentMonthGross,
-  currentMonthNet,
+  currentMonthIncomeTotal,
+  currentMonthIncomePending,
+  currentMonthIncomeSettled,
   currentMonthLabel,
+  nextMaturity,
 }: Props) {
-  const nextMaturity = summaries[0];
-
   return (
-    <div className="flex flex-wrap gap-4">
-      <div className="border-subtle bg-surface min-w-[220px] flex-1 rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
-        <p className="text-muted text-xs font-medium">Total principal</p>
+    <div className="grid gap-4 md:grid-cols-3">
+      <div className="border-subtle bg-surface rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
+        <p className="text-muted text-xs font-medium">Total Principal</p>
         <p className="font-financial mt-3 text-2xl font-semibold">
           {formatCurrency(totalPrincipal)}
         </p>
+        <p className="text-muted mt-2 text-xs">Excludes settled investments.</p>
       </div>
-      <div className="border-subtle bg-surface min-w-[220px] flex-1 rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
-        <p className="text-muted text-xs font-medium">
-          Expected this month · {currentMonthLabel}
+      <div className="border-subtle bg-surface rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
+        <p className="text-muted text-xs font-medium">Income This Month</p>
+        <p className="text-muted mt-1 text-xs">Net interest · {currentMonthLabel}</p>
+        <p className="font-financial mt-3 text-2xl font-semibold">
+          {formatCurrency(currentMonthIncomeTotal)}
         </p>
-        <div className="mt-3 flex items-baseline justify-between gap-3">
-          <div>
-            <p className="text-xs tracking-wide uppercase">Gross</p>
-            <p className="font-financial text-xl font-semibold">
-              {formatCurrency(currentMonthGross)}
-            </p>
+        {currentMonthIncomePending > 0 || currentMonthIncomeSettled > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            {currentMonthIncomePending > 0 ? (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/20">
+                {formatCurrency(currentMonthIncomePending)} pending
+              </span>
+            ) : null}
+            {currentMonthIncomeSettled > 0 ? (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+                {formatCurrency(currentMonthIncomeSettled)} settled
+              </span>
+            ) : null}
           </div>
-          <div>
-            <p className="text-xs tracking-wide text-indigo-600 uppercase dark:text-indigo-400">
-              Net
-            </p>
-            <p className="font-financial text-xl font-semibold text-indigo-700 dark:text-indigo-400">
-              {formatCurrency(currentMonthNet)}
-            </p>
-          </div>
-        </div>
-        <p className="text-muted mt-2 text-xs">Across scheduled payouts</p>
+        ) : null}
       </div>
-      <div className="border-subtle bg-surface min-w-[220px] flex-1 rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
-        <p className="text-muted text-xs font-medium">Next maturity</p>
-        <p className="font-financial mt-3 text-xl font-semibold">
-          {nextMaturity ? formatDate(new Date(nextMaturity.maturityDate)) : "—"}
-        </p>
-        <p className="mt-1 text-xs text-sky-700 dark:text-sky-400">
-          {nextMaturity?.bank.name}
-        </p>
+      <div className="border-subtle bg-surface rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
+        <p className="text-muted text-xs font-medium">Next Maturity</p>
+        {nextMaturity ? (
+          <>
+            <p className="font-financial mt-3 text-xl font-semibold">
+              {formatDate(new Date(nextMaturity.maturityDate))}
+            </p>
+            <p className="text-muted mt-1 text-xs">
+              {nextMaturity.deposit.name} · {nextMaturity.bank.name}
+            </p>
+            <p className="font-financial mt-2 text-base font-semibold text-sky-700 dark:text-sky-400">
+              {formatCurrency(nextMaturity.netTotal)} net proceeds
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-sm font-semibold">All settled for now</p>
+            <p className="text-muted mt-1 text-xs">
+              Add a new investment to see the next maturity.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

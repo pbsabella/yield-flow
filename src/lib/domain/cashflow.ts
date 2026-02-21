@@ -5,11 +5,9 @@ export function buildMonthlyAllowance(summaries: DepositSummary[]) {
   const map = new Map<string, MonthlyAllowance>();
 
   for (const summary of summaries) {
-    const { deposit, grossInterest, netInterest } = summary;
+    const { deposit, netInterest } = summary;
     const start = new Date(deposit.startDate);
     const months = Math.max(deposit.termMonths, 1);
-    const monthlyGross =
-      deposit.payoutFrequency === "monthly" ? grossInterest / months : grossInterest;
     const monthlyNet =
       deposit.payoutFrequency === "monthly" ? netInterest / months : netInterest;
 
@@ -24,19 +22,18 @@ export function buildMonthlyAllowance(summaries: DepositSummary[]) {
       const current = map.get(key) ?? {
         monthKey: key,
         label,
-        gross: 0,
         net: 0,
         entries: [],
       };
-      current.gross += monthlyGross;
       current.net += monthlyNet;
       current.entries?.push({
         depositId: deposit.id,
         name: deposit.name,
         bankName: summary.bank.name,
         payoutFrequency: deposit.payoutFrequency,
-        amountGross: monthlyGross,
         amountNet: monthlyNet,
+        principalReturned: deposit.payoutFrequency === "maturity" ? deposit.principal : 0,
+        status: deposit.status ?? "active",
       });
       map.set(key, current);
     }
