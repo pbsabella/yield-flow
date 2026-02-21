@@ -7,6 +7,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const useWebServer =
   process.env.PLAYWRIGHT_WEB_SERVER === "1" ||
   (!process.env.PLAYWRIGHT_BASE_URL && process.env.PLAYWRIGHT_WEB_SERVER !== "0");
+const webServerCommand =
+  process.env.PLAYWRIGHT_WEB_SERVER_CMD ||
+  "npm run dev -- --hostname 127.0.0.1 --port 4173";
 
 export default defineConfig({
   testDir: "./tests",
@@ -17,7 +20,7 @@ export default defineConfig({
   },
   webServer: useWebServer
     ? {
-        command: "npm run dev -- --hostname 127.0.0.1 --port 4173",
+        command: webServerCommand,
         cwd: rootDir,
         url: baseURL,
         reuseExistingServer: !process.env.CI,
