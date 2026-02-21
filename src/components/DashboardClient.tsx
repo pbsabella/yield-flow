@@ -202,6 +202,9 @@ export default function DashboardClient() {
       nextForm.termType === "open" ? "monthly" : nextForm.payoutFrequency;
     const interestTreatment =
       payoutFrequency === "monthly" ? "payout" : nextForm.interestTreatment;
+    const existingStatus = editingId
+      ? deposits.find((item) => item.id === editingId)?.status
+      : undefined;
 
     const newDeposit: TimeDeposit = {
       id: editingId ?? `td-${crypto.randomUUID()}`,
@@ -209,7 +212,7 @@ export default function DashboardClient() {
       name: nextForm.name.trim(),
       principal: toNumber(nextForm.principal),
       startDate: nextForm.startDate,
-      termMonths: Math.max(1, toNumber(nextForm.termMonths)),
+      termMonths: Math.max(0.1, toNumber(nextForm.termMonths)),
       interestMode: nextForm.interestMode,
       interestTreatment,
       compounding: nextForm.compounding,
@@ -227,6 +230,7 @@ export default function DashboardClient() {
           : [{ upTo: null, rate: toNumber(nextForm.flatRate) }],
       payoutFrequency,
       isOpenEnded,
+      status: existingStatus ?? "active",
     };
 
     setDeposits((current) => {
@@ -242,11 +246,11 @@ export default function DashboardClient() {
     setDialogOpen(false);
   }
 
-  function seedDemoData() {
+  const seedDemoData = useCallback(() => {
     setDeposits(demoDeposits);
     setSampleDataLoaded(true);
     setSampleDataActive(true);
-  }
+  }, [setDeposits, setSampleDataLoaded, setSampleDataActive]);
 
   function downloadBackup() {
     const payload = {
@@ -355,7 +359,7 @@ export default function DashboardClient() {
     if (deposits.length > 0) return;
     if (sampleDataLoaded || hasCustomData) return;
     seedDemoData();
-  }, [deposits.length, hasCustomData, isReady, sampleDataLoaded]);
+  }, [deposits.length, hasCustomData, isReady, sampleDataLoaded, seedDemoData]);
 
   return (
     <div className="bg-page text-primary min-h-screen">
@@ -365,7 +369,9 @@ export default function DashboardClient() {
           <AlertTitle>Work in progress</AlertTitle>
           <AlertDescription>
             YieldFlow is actively being built. Some features may change as I refine the
-            experience — your data and feedback help shape what comes next.
+            experience — your data and feedback help shape what comes next. Values are
+            estimates and may differ from bank-posted figures since institutions can use
+            different interest conventions (for example, day-count basis like /365).
           </AlertDescription>
         </Alert>
         {showSampleBanner ? (

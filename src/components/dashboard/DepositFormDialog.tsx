@@ -28,6 +28,7 @@ import { formatDate } from "@/lib/domain/date";
 import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
 import {
   decimalToPercentString,
+  normalizeNumericInput,
   percentToDecimalString,
   toNumber,
   validateDeposit,
@@ -111,7 +112,7 @@ export default function DepositFormDialog({
       name: debouncedForm.name || "New investment",
       principal: toNumber(debouncedForm.principal),
       startDate: debouncedForm.startDate || "1970-01-01",
-      termMonths: Math.max(1, toNumber(debouncedForm.termMonths)),
+      termMonths: Math.max(0.1, toNumber(debouncedForm.termMonths)),
       interestMode: debouncedForm.interestMode,
       flatRate: toNumber(debouncedForm.flatRate),
       compounding: debouncedForm.compounding,
@@ -432,7 +433,10 @@ export default function DepositFormDialog({
                 placeholder="1500000"
                 value={draftForm.principal}
                 onChange={(event) => {
-                  const nextForm = { ...draftForm, principal: event.target.value };
+                  const nextForm = {
+                    ...draftForm,
+                    principal: normalizeNumericInput(event.target.value, 2),
+                  };
                   setDraftForm(nextForm);
                 }}
                 onBlur={() => updateFieldError("principal", draftForm)}
@@ -558,14 +562,14 @@ export default function DepositFormDialog({
                 <Input
                   id="customTenure"
                   type="number"
-                  inputMode="numeric"
-                  step="1"
-                  min="1"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0.1"
                   value={draftForm.termMonths}
                   onChange={(event) => {
                     const nextForm: DepositFormState = {
                       ...draftForm,
-                      termMonths: event.target.value,
+                      termMonths: normalizeNumericInput(event.target.value, 2),
                       tenurePreset: "custom",
                     };
                     setDraftForm(nextForm);
@@ -573,7 +577,7 @@ export default function DepositFormDialog({
                   onBlur={() => updateFieldError("termMonths", draftForm)}
                   aria-invalid={Boolean(errors.termMonths)}
                   aria-describedby={errors.termMonths ? "error-term" : undefined}
-                  placeholder="Months"
+                  placeholder="Months (e.g. 0.5 = 15 days)"
                   disabled={draftForm.termType === "open"}
                 />
               </div>
@@ -595,14 +599,18 @@ export default function DepositFormDialog({
                   id="flatRate"
                   type="number"
                   inputMode="decimal"
-                  step="0.1"
+                  step="0.01"
                   min="0"
                   className={percentInputClass}
                   value={decimalToPercentString(draftForm.flatRate)}
                   onChange={(event) => {
+                    const normalizedPercent = normalizeNumericInput(
+                      event.target.value,
+                      6,
+                    );
                     const nextForm = {
                       ...draftForm,
-                      flatRate: percentToDecimalString(event.target.value),
+                      flatRate: percentToDecimalString(normalizedPercent),
                     };
                     setDraftForm(nextForm);
                   }}
@@ -635,14 +643,18 @@ export default function DepositFormDialog({
                     id="tier1Rate"
                     type="number"
                     inputMode="decimal"
-                    step="0.1"
+                    step="0.01"
                     min="0"
                     className={percentInputClass}
                     value={decimalToPercentString(draftForm.tier1Rate)}
                     onChange={(event) => {
+                      const normalizedPercent = normalizeNumericInput(
+                        event.target.value,
+                        6,
+                      );
                       const nextForm = {
                         ...draftForm,
-                        tier1Rate: percentToDecimalString(event.target.value),
+                        tier1Rate: percentToDecimalString(normalizedPercent),
                       };
                       setDraftForm(nextForm);
                     }}
@@ -666,20 +678,29 @@ export default function DepositFormDialog({
 
               <div className="space-y-3 text-sm">
                 <Label htmlFor="tier1Cap">Threshold</Label>
-                <Input
-                  id="tier1Cap"
-                  type="number"
-                  inputMode="decimal"
-                  step="1"
-                  min="0"
-                  value={draftForm.tier1Cap}
-                  onChange={(event) => {
-                    const nextForm = { ...draftForm, tier1Cap: event.target.value };
-                    setDraftForm(nextForm);
-                  }}
-                  onBlur={() => updateFieldError("tier1Rate", draftForm)}
-                />
-                <p className="text-muted text-xs">Example: 1000000 for MariBank.</p>
+                <div className="relative">
+                  <span className="text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
+                    {currency}
+                  </span>
+                  <Input
+                    id="tier1Cap"
+                    type="number"
+                    inputMode="decimal"
+                    step="1"
+                    min="0"
+                    className="pl-12"
+                    value={draftForm.tier1Cap}
+                    onChange={(event) => {
+                      const nextForm = {
+                        ...draftForm,
+                        tier1Cap: normalizeNumericInput(event.target.value, 2),
+                      };
+                      setDraftForm(nextForm);
+                    }}
+                    onBlur={() => updateFieldError("tier1Rate", draftForm)}
+                  />
+                </div>
+                <p className="text-muted text-xs">Example: P1,000,000.oo for MariBank.</p>
               </div>
 
               <div className="space-y-3 text-sm">
@@ -692,14 +713,18 @@ export default function DepositFormDialog({
                     id="tier2Rate"
                     type="number"
                     inputMode="decimal"
-                    step="0.1"
+                    step="0.01"
                     min="0"
                     className={percentInputClass}
                     value={decimalToPercentString(draftForm.tier2Rate)}
                     onChange={(event) => {
+                      const normalizedPercent = normalizeNumericInput(
+                        event.target.value,
+                        6,
+                      );
                       const nextForm = {
                         ...draftForm,
-                        tier2Rate: percentToDecimalString(event.target.value),
+                        tier2Rate: percentToDecimalString(normalizedPercent),
                       };
                       setDraftForm(nextForm);
                     }}
@@ -844,14 +869,15 @@ export default function DepositFormDialog({
                 id="taxRate"
                 type="number"
                 inputMode="decimal"
-                step="1"
+                step="0.01"
                 min="0"
                 className={percentInputClass}
                 value={decimalToPercentString(draftForm.taxRate)}
                 onChange={(event) => {
+                  const normalizedPercent = normalizeNumericInput(event.target.value, 6);
                   const nextForm = {
                     ...draftForm,
-                    taxRate: percentToDecimalString(event.target.value),
+                    taxRate: percentToDecimalString(normalizedPercent),
                   };
                   setDraftForm(nextForm);
                 }}
