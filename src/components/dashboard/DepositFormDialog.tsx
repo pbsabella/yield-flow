@@ -138,6 +138,7 @@ export default function DepositFormDialog({
   const [bankOpen, setBankOpen] = useState(false);
   const [bankActiveIndex, setBankActiveIndex] = useState(0);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const listboxRef = useRef<HTMLDivElement | null>(null);
   const bankQuery = draftForm.bankName;
   const normalizedQuery = bankQuery.trim().toLowerCase();
   const filteredBanks = banks.filter((bank) =>
@@ -154,10 +155,13 @@ export default function DepositFormDialog({
     ...(canCreate ? [{ id: "__create__", label: bankQuery.trim(), isCreate: true }] : []),
   ];
 
+  const safeBankActiveIndex =
+    options.length === 0 ? 0 : Math.min(bankActiveIndex, options.length - 1);
+
   useEffect(() => {
-    const node = optionRefs.current[bankActiveIndex];
+    const node = optionRefs.current[safeBankActiveIndex];
     if (node) node.scrollIntoView({ block: "nearest" });
-  }, [bankActiveIndex]);
+  }, [safeBankActiveIndex]);
 
   useEffect(() => {
     if (open) return;
@@ -196,7 +200,7 @@ export default function DepositFormDialog({
                 aria-controls="bank-options"
                 aria-activedescendant={
                   bankOpen && options.length > 0
-                    ? `bank-option-${bankActiveIndex}`
+                    ? `bank-option-${safeBankActiveIndex}`
                     : undefined
                 }
                 aria-invalid={Boolean(errors.bankName)}
@@ -218,31 +222,60 @@ export default function DepositFormDialog({
                   setBankActiveIndex(0);
                 }}
                 onKeyDown={(event) => {
-                  if (
-                    !bankOpen &&
-                    (event.key === "ArrowDown" || event.key === "ArrowUp")
-                  ) {
-                    setBankOpen(true);
-                    setBankActiveIndex(0);
+                  if (event.key === "Tab") {
+                    setBankOpen(false);
                     return;
                   }
                   if (event.key === "Escape") {
                     setBankOpen(false);
                     return;
                   }
+                  if (event.key === "Home") {
+                    event.preventDefault();
+                    if (!bankOpen) setBankOpen(true);
+                    setBankActiveIndex(0);
+                    requestAnimationFrame(() => {
+                      optionRefs.current[0]?.focus();
+                    });
+                    return;
+                  }
+                  if (event.key === "End") {
+                    event.preventDefault();
+                    if (!bankOpen) setBankOpen(true);
+                    const lastIndex = Math.max(options.length - 1, 0);
+                    setBankActiveIndex(lastIndex);
+                    requestAnimationFrame(() => {
+                      optionRefs.current[lastIndex]?.focus();
+                    });
+                    return;
+                  }
                   if (event.key === "ArrowDown") {
                     event.preventDefault();
-                    setBankActiveIndex((current) =>
-                      Math.min(current + 1, options.length - 1),
-                    );
+                    if (!bankOpen) setBankOpen(true);
+                    setBankActiveIndex((current) => {
+                      const next = Math.min(Math.max(current, 0) + 1, options.length - 1);
+                      requestAnimationFrame(() => {
+                        optionRefs.current[next]?.focus();
+                      });
+                      return next;
+                    });
+                    return;
                   }
                   if (event.key === "ArrowUp") {
                     event.preventDefault();
-                    setBankActiveIndex((current) => Math.max(current - 1, 0));
+                    if (!bankOpen) setBankOpen(true);
+                    setBankActiveIndex((current) => {
+                      const next = Math.max(Math.max(current, 0) - 1, 0);
+                      requestAnimationFrame(() => {
+                        optionRefs.current[next]?.focus();
+                      });
+                      return next;
+                    });
+                    return;
                   }
                   if (event.key === "Enter" && options.length > 0) {
                     event.preventDefault();
-                    const selected = options[bankActiveIndex];
+                    const selected = options[safeBankActiveIndex];
                     if (!selected) return;
                     if (selected.isCreate) {
                       const name = selected.label;
@@ -262,7 +295,11 @@ export default function DepositFormDialog({
                   }
                 }}
                 onBlur={() => {
-                  window.setTimeout(() => setBankOpen(false), 120);
+                  window.setTimeout(() => {
+                    const next = document.activeElement;
+                    if (next && listboxRef.current?.contains(next)) return;
+                    setBankOpen(false);
+                  }, 120);
                   updateFieldError("bankName", draftForm);
                 }}
                 placeholder="Search or type a bank name"
@@ -274,6 +311,7 @@ export default function DepositFormDialog({
                 <div
                   id="bank-options"
                   role="listbox"
+                  ref={listboxRef}
                   className="border-subtle bg-surface text-primary absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
                   onMouseDown={(event) => event.preventDefault()}
                 >
@@ -286,16 +324,40 @@ export default function DepositFormDialog({
                           key={option.id}
                           type="button"
                           role="option"
+                          tabIndex={safeBankActiveIndex === index ? 0 : -1}
                           id={`bank-option-${index}`}
-                          aria-selected={bankActiveIndex === index}
+                          aria-selected={safeBankActiveIndex === index}
                           ref={(node) => {
                             optionRefs.current[index] = node;
                           }}
-                          className={`focus-visible:ring-primary/60 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:outline-none ${
-                            bankActiveIndex === index
+                          className={`focus-visible:ring-primary/60 active:bg-muted/80 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2 ${
+                            safeBankActiveIndex === index
                               ? "bg-muted/70 text-foreground"
                               : "hover:bg-muted/70"
                           }`}
+                          onKeyDown={(event) => {
+                            if (event.key === "Tab") {
+                              setBankOpen(false);
+                              return;
+                            }
+                            if (event.key === "Escape") {
+                              setBankOpen(false);
+                              return;
+                            }
+                            if (event.key === "ArrowDown") {
+                              event.preventDefault();
+                              const next = Math.min(index + 1, options.length - 1);
+                              setBankActiveIndex(next);
+                              optionRefs.current[next]?.focus();
+                              return;
+                            }
+                            if (event.key === "ArrowUp") {
+                              event.preventDefault();
+                              const next = Math.max(index - 1, 0);
+                              setBankActiveIndex(next);
+                              optionRefs.current[next]?.focus();
+                            }
+                          }}
                           onClick={() => {
                             if (option.isCreate) {
                               const name = option.label;
@@ -860,7 +922,7 @@ export default function DepositFormDialog({
         <Button
           type="button"
           variant="outline"
-          className="flex-1"
+          className="hover:bg-muted active:bg-muted flex-1"
           onClick={() => {
             setDraftForm(form);
             onReset();
@@ -870,7 +932,7 @@ export default function DepositFormDialog({
         </Button>
         <Button
           type="submit"
-          className="flex-1 cursor-pointer bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-indigo-400 disabled:text-white/80 disabled:opacity-90"
+          className="flex-1 bg-indigo-600 text-white transition-colors duration-150 ease-out hover:bg-indigo-500 active:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400 disabled:text-white/80 disabled:opacity-90"
           disabled={isSaveDisabled}
         >
           Save
@@ -882,15 +944,15 @@ export default function DepositFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="top-auto right-0 bottom-0 left-0 max-w-5xl translate-x-0 translate-y-0 rounded-t-2xl sm:top-8 sm:right-auto sm:bottom-auto sm:left-1/2 sm:my-0 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:translate-x-[-50%] sm:translate-y-0 sm:overflow-hidden sm:rounded-2xl">
+      <DialogContent className="top-auto right-0 bottom-0 left-0 max-w-5xl translate-x-0 translate-y-0 rounded-t-2xl p-0 sm:top-8 sm:right-auto sm:bottom-auto sm:left-1/2 sm:my-0 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:translate-x-[-50%] sm:translate-y-0 sm:overflow-hidden sm:rounded-2xl">
         <div className="flex h-full flex-col">
-          <DialogHeader className="border-subtle border-b pr-12 pb-4">
+          <DialogHeader className="border-subtle border-b px-6 pt-6 pr-12 pb-4">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
               Projected net yield updates as you type.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto pt-6 pr-1">
+          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6">
             <form
               onSubmit={(event) => {
                 event.preventDefault();

@@ -27,7 +27,7 @@ export default function DatePicker({ value, onChange, id, className, onBlur }: P
           type="button"
           variant="outline"
           className={cn(
-            "border-border bg-card font-financial h-12 w-full justify-between text-left font-normal",
+            "border-border bg-card font-financial h-12 w-full justify-between text-left font-normal hover:bg-transparent active:bg-transparent",
             className,
           )}
           onBlur={onBlur}
@@ -44,7 +44,7 @@ export default function DatePicker({ value, onChange, id, className, onBlur }: P
           selected={date}
           onSelect={(next) => {
             if (!next) return;
-            onChange(next.toISOString().slice(0, 10));
+            onChange(format(next, "yyyy-MM-dd"));
           }}
           initialFocus
         />

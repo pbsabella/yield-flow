@@ -23,25 +23,33 @@ function Calendar({
         months: "flex flex-col gap-4",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
+        dropdown:
+          "rounded-md transition-colors duration-150 ease-out hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
+        dropdown_month:
+          "rounded-md transition-colors duration-150 ease-out hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
+        dropdown_year:
+          "rounded-md transition-colors duration-150 ease-out hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
         caption_label: "text-sm font-semibold text-primary",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline", size: "sm" }),
-          "h-7 w-7 bg-surface p-0 opacity-70 hover:opacity-100",
+          "h-7 w-7 bg-surface p-0 opacity-70 transition-opacity duration-150 ease-out hover:opacity-100 active:opacity-90",
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell: "text-muted rounded-md w-9 font-normal text-[0.7rem]",
-        row: "flex w-full mt-2",
+        row: "mt-2 flex w-full",
         cell: "h-9 w-9 text-center text-sm p-0 relative",
         day: cn(
-          "h-9 w-9 p-0 font-normal rounded-lg aria-selected:opacity-100",
-          "hover:bg-surface-soft",
+          "h-9 w-9 p-0 font-normal rounded-lg text-center leading-9 transition-colors duration-150 ease-out focus-visible:ring-primary/60 focus-visible:ring-2 aria-selected:opacity-100 aria-selected:bg-indigo-600 aria-selected:text-white dark:aria-selected:bg-indigo-500 dark:aria-selected:text-white",
+          "hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
         ),
-        day_selected: "bg-indigo-100 text-indigo-700",
-        day_today: "bg-surface-soft text-primary",
+        day_selected:
+          "bg-indigo-600 text-white hover:bg-indigo-600/90 active:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400 dark:active:bg-indigo-600",
+        day_today:
+          "bg-indigo-500/10 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200",
         day_outside: "text-muted opacity-50",
         day_disabled: "text-muted opacity-50",
         day_hidden: "invisible",

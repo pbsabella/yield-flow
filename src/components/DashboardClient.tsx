@@ -324,7 +324,7 @@ export default function DashboardClient() {
               trigger={
                 <Button
                   size="sm"
-                  className="bg-indigo-600 text-white shadow-sm hover:bg-indigo-500"
+                  className="bg-indigo-600 text-white shadow-sm transition-colors duration-150 ease-out hover:bg-indigo-500 active:bg-indigo-700"
                 >
                   Add investment
                 </Button>
@@ -356,6 +356,7 @@ export default function DashboardClient() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="hover:bg-muted active:bg-muted"
                     onClick={() => setShowMatured((current) => !current)}
                   >
                     {showMatured ? "Hide matured" : "Show matured"}
@@ -390,7 +391,11 @@ export default function DashboardClient() {
             </span>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button variant="outline" onClick={downloadBackup}>
+            <Button
+              variant="outline"
+              className="hover:bg-muted active:bg-muted"
+              onClick={downloadBackup}
+            >
               Download Backup (JSON)
             </Button>
             <label htmlFor="import-json" className="sr-only">
@@ -411,13 +416,14 @@ export default function DashboardClient() {
             <Button
               variant="outline"
               type="button"
+              className="hover:bg-muted active:bg-muted"
               onClick={() => importInputRef.current?.click()}
             >
               Import JSON
             </Button>
             <Button
               variant="ghost"
-              className="text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-400/20"
+              className="text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
               onClick={() => setDeposits([])}
             >
               Clear All Data
@@ -442,7 +448,7 @@ export default function DashboardClient() {
         <span>© {new Date().getFullYear()} </span>
         <a
           href="https://pbsabella.github.io/"
-          className="text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-400"
+          className="focus-visible:ring-primary/60 text-indigo-600 underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 dark:active:text-indigo-200"
           target="_blank"
           rel="noreferrer"
         >

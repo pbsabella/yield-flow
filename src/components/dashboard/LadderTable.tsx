@@ -115,7 +115,7 @@ export default function LadderTable({
               <TableHead>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
                   onClick={() => toggleSort("bank")}
                 >
                   Bank
@@ -133,7 +133,7 @@ export default function LadderTable({
               <TableHead>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
                   onClick={() => toggleSort("principal")}
                 >
                   Principal
@@ -151,7 +151,7 @@ export default function LadderTable({
               <TableHead>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
                   onClick={() => toggleSort("maturity")}
                 >
                   Maturity
@@ -169,7 +169,7 @@ export default function LadderTable({
               <TableHead>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
                   onClick={() => toggleSort("days")}
                 >
                   Days
@@ -187,7 +187,7 @@ export default function LadderTable({
               <TableHead>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
                   onClick={() => toggleSort("net")}
                 >
                   Net interest
@@ -261,7 +261,11 @@ export default function LadderTable({
                       ) : null}
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-9 w-9 p-0 hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
+                          >
                             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                             <span className="sr-only">More actions</span>
                           </Button>
@@ -271,7 +275,7 @@ export default function LadderTable({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="justify-start"
+                              className="justify-start hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
                               onClick={() => onEdit(summary.deposit.id)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -280,7 +284,7 @@ export default function LadderTable({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="justify-start text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-400/20"
+                              className="justify-start text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
                               onClick={() => onDeleteRequest(summary.deposit.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -316,7 +320,7 @@ export default function LadderTable({
                     {summary.bank.name}
                   </p>
                 </div>
-                <CollapsibleTrigger className="font-financial flex items-center gap-2 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                <CollapsibleTrigger className="font-financial focus-visible:ring-primary/60 flex items-center gap-2 rounded-md px-2 py-1 text-xs font-semibold text-indigo-700 transition-colors duration-150 ease-out hover:bg-indigo-500/10 hover:text-indigo-800 focus-visible:ring-2 active:bg-indigo-500/20 active:text-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-200 dark:active:bg-indigo-500/30 dark:active:text-indigo-100">
                   <TrendingUp className="h-4 w-4" />
                   {formatCurrency(summary.netInterest)}
                   <ChevronDown className="h-4 w-4 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
@@ -368,7 +372,11 @@ export default function LadderTable({
                   ) : null}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-9 w-9 p-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 w-9 p-0 hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
+                      >
                         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                         <span className="sr-only">More actions</span>
                       </Button>
@@ -387,7 +395,7 @@ export default function LadderTable({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="justify-start text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-400/20"
+                          className="justify-start text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
                           onClick={() => onDeleteRequest(summary.deposit.id)}
                         >
                           <Trash2 className="h-4 w-4" />

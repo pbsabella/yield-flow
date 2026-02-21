@@ -35,7 +35,7 @@ export default function MonthlyFlow({ items }: Props) {
                   current === item.monthKey ? null : item.monthKey,
                 )
               }
-              className="hover:bg-surface focus-visible:ring-primary/60 flex w-full items-center justify-between px-4 py-3 text-left transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none"
+              className="hover:bg-surface focus-visible:ring-primary/60 active:bg-surface-strong flex w-full items-center justify-between px-4 py-3 text-left transition-colors duration-150 ease-out focus-visible:ring-2"
             >
               <div>
                 <p className="text-sm font-semibold">{item.label}</p>

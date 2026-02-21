@@ -21,7 +21,7 @@
   --primary-foreground: 0 0% 100%;
   --secondary: 220 28% 96%;
   --secondary-foreground: 240 5.9% 10%;
-  --muted: 220 28% 96%;
+  --muted: 220 18% 88%;
   --accent: 220 28% 96%;
   --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
@@ -61,7 +61,7 @@
   --primary-foreground: 240 10% 3.9%;
   --secondary: 228 15% 18%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 228 15% 18%;
+  --muted: 228 22% 28%;
   --accent: 228 15% 18%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
@@ -168,7 +168,7 @@
 
   *:focus-visible {
     outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
+    outline-offset: 1px;
   }
 
   button,
@@ -179,6 +179,11 @@
   input[type="checkbox"],
   input[type="radio"] {
     cursor: pointer;
+  }
+
+  [disabled],
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 
   input[type="date"].date-input {
