@@ -1,4 +1,4 @@
-import { addMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
+import { addTermMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
 import type { InterestTier } from "@/lib/types";
 
 export type InterestMode = "simple" | "tiered";
@@ -87,7 +87,7 @@ function calculateTieredSimple(
 
 export function calculateNetYield(input: YieldInput): YieldResult {
   const start = new Date(input.startDate);
-  const maturity = addMonths(start, input.termMonths);
+  const maturity = addTermMonths(start, input.termMonths);
   const dayCount = Math.max(1, differenceInCalendarDays(maturity, start));
   const maturityDate = toISODate(maturity);
 
@@ -97,12 +97,10 @@ export function calculateNetYield(input: YieldInput): YieldResult {
   const cadence = input.compounding ?? "daily";
 
   if (input.interestMode === "simple") {
-    const ratePer =
-      cadence === "monthly" ? input.flatRate / 12 : input.flatRate / DAYS_IN_YEAR;
-    const periods = cadence === "monthly" ? input.termMonths : dayCount;
-    grossInterest = isPayout
-      ? input.principal * ratePer * periods
-      : input.principal * Math.pow(1 + ratePer, periods) - input.principal;
+    const termMonths = Math.max(input.termMonths, 0.1);
+    // In simple mode, always use pro-rated month-based interest:
+    // gross = principal * annualRate * (termMonths / 12)
+    grossInterest = input.principal * input.flatRate * (termMonths / 12);
   } else {
     if (isPayout) {
       const ratePer = cadence === "monthly" ? 1 / 12 : 1 / DAYS_IN_YEAR;
