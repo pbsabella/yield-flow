@@ -16,8 +16,8 @@ export default function Header() {
         </div>
         <h1 className="text-3xl font-semibold md:text-4xl">YieldFlow</h1>
         <p className="text-secondary max-w-xl text-sm md:text-base">
-          Track multiple investments across banks, visualize maturity timing, and plan
-          your monthly cash flow with gross and net clarity.
+          Track your fixed-income investments, visualize maturity timing, and see your
+          passive income clearly.
         </p>
       </div>
     </div>

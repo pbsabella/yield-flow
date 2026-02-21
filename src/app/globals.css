@@ -7,11 +7,11 @@
 :root {
   color-scheme: light;
   --theme: light;
-  --background: 0 0% 100%;
+  --background: 220 25% 97%;
   --foreground: 240 10% 3.9%;
   --primary: 243 75% 59%;
-  --card: 220 35% 99%;
-  --border: 240 5% 96%;
+  --card: 0 0% 100%;
+  --border: 240 5% 90%;
   --muted-foreground: 240 5% 38%;
   --radius: 0.5rem;
 
@@ -35,11 +35,11 @@
   --focus-ring: hsl(var(--ring));
   --shadow: 0 0 0 transparent;
 
-  --page-bg: hsl(var(--background));
+  --page-bg: hsl(220 25% 97%);
   --page-bg-2: hsl(220 36% 97%);
-  --surface-1: hsl(var(--card));
-  --surface-2: hsl(220 28% 96%);
-  --surface-3: hsl(220 22% 93%);
+  --surface-1: hsl(0 0% 100%);
+  --surface-2: hsl(220 20% 96%);
+  --surface-3: hsl(220 15% 92%);
   --text-1: hsl(var(--foreground));
   --text-2: hsl(240 5% 38%);
   --text-3: hsl(240 5% 38%);
@@ -51,8 +51,8 @@
   --background: 228 20% 9%;
   --foreground: 0 0% 98%;
   --primary: 239 84% 67%;
-  --card: 228 20% 12%;
-  --border: 240 6% 10%;
+  --card: 228 12% 14%;
+  --border: 228 12% 18%;
   --muted-foreground: 240 6% 72%;
 
   --card-foreground: 0 0% 98%;
@@ -77,9 +77,9 @@
 
   --page-bg: hsl(228 20% 9%);
   --page-bg-2: hsl(228 24% 7%);
-  --surface-1: hsl(var(--card));
-  --surface-2: hsl(228 18% 14%);
-  --surface-3: hsl(228 17% 17%);
+  --surface-1: hsl(228 12% 14%);
+  --surface-2: hsl(228 10% 18%);
+  --surface-3: hsl(228 8% 22%);
   --text-1: hsl(var(--foreground));
   --text-2: hsl(240 6% 72%);
   --text-3: hsl(240 5% 60%);
@@ -210,6 +210,48 @@
 
   .bg-surface-strong {
     background: var(--surface-3);
+  }
+
+  .bg-item-card {
+    background: hsl(222 45% 98%);
+  }
+
+  .dark .bg-item-card {
+    background: hsl(232 22% 16%);
+  }
+
+  .bg-portfolio-surface {
+    background: hsl(0 0% 100%);
+  }
+
+  .dark .bg-portfolio-surface {
+    background: hsl(var(--card) / 0.48);
+  }
+
+  .bg-overdue {
+    background: hsl(38 88% 94%);
+  }
+
+  .dark .bg-overdue {
+    background: hsl(32 42% 18%);
+  }
+
+  .bg-overdue-sticky {
+    background: hsl(38 88% 94%);
+  }
+
+  .dark .bg-overdue-sticky {
+    background: hsl(32 42% 18%);
+  }
+
+  .bg-sample-banner {
+    background: hsl(243 60% 97%);
+    border-color: hsl(243 40% 88%);
+  }
+
+  .dark .bg-sample-banner {
+    background: hsl(243 30% 15%);
+    border-color: hsl(243 25% 25%);
   }
 
   .text-primary {

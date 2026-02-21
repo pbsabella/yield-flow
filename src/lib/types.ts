@@ -22,7 +22,7 @@ export type TimeDeposit = {
   tiers: InterestTier[];
   payoutFrequency: PayoutFrequency;
   isOpenEnded?: boolean;
-  status?: "active" | "matured";
+  status?: "active" | "matured" | "settled";
 };
 
 export type Bank = {
@@ -45,14 +45,14 @@ export type DepositSummary = {
 export type MonthlyAllowance = {
   monthKey: string;
   label: string;
-  gross: number;
   net: number;
   entries?: Array<{
     depositId: string;
     name: string;
     bankName: string;
     payoutFrequency: PayoutFrequency;
-    amountGross: number;
     amountNet: number;
+    principalReturned?: number;
+    status?: "active" | "matured" | "settled";
   }>;
 };

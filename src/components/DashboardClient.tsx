@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { BellRing } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BellRing, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,36 +75,58 @@ export default function DashboardClient() {
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [showMatured, setShowMatured] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const [sampleBannerDismissed, setSampleBannerDismissed] = useState(false);
+
+  const { value: sampleDataLoaded, setValue: setSampleDataLoaded } =
+    useLocalStorage<boolean>("yieldflow-sample-loaded", false);
+  const { value: sampleDataActive, setValue: setSampleDataActive } =
+    useLocalStorage<boolean>("yieldflow-sample-active", false);
+  const { value: hasCustomData, setValue: setHasCustomData } = useLocalStorage<boolean>(
+    "yieldflow-has-custom-data",
+    false,
+  );
 
   const activeDeposits = useMemo(
-    () => deposits.filter((deposit) => deposit.status !== "matured"),
+    () => deposits.filter((deposit) => deposit.status !== "settled"),
     [deposits],
   );
 
-  const summaries = useMemo(() => {
-    const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
+  const buildSummaries = useCallback(
+    (items: TimeDeposit[]) => {
+      const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
 
-    for (const deposit of activeDeposits) {
-      if (bankMap.has(deposit.bankId)) continue;
-      const inferredName = resolveBankName(deposit.bankId, deposit.name);
-      bankMap.set(deposit.bankId, {
-        id: deposit.bankId,
-        name: inferredName,
-        taxRate: 0.2,
-      });
-    }
+      for (const deposit of items) {
+        if (bankMap.has(deposit.bankId)) continue;
+        const inferredName = resolveBankName(deposit.bankId, deposit.name);
+        bankMap.set(deposit.bankId, {
+          id: deposit.bankId,
+          name: inferredName,
+          taxRate: 0.2,
+        });
+      }
 
-    return activeDeposits
-      .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
-      .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
-  }, [banks, activeDeposits]);
+      return items
+        .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
+        .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
+    },
+    [banks],
+  );
+
+  const summaries = useMemo(
+    () => buildSummaries(activeDeposits),
+    [buildSummaries, activeDeposits],
+  );
+  const allSummaries = useMemo(
+    () => buildSummaries(deposits),
+    [buildSummaries, deposits],
+  );
 
   const maturedSummaries = useMemo(() => {
     if (!showMatured) return [];
-    const matured = deposits.filter((deposit) => deposit.status === "matured");
-    if (matured.length === 0) return [];
+    const settled = deposits.filter((deposit) => deposit.status === "settled");
+    if (settled.length === 0) return [];
     const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
-    for (const deposit of matured) {
+    for (const deposit of settled) {
       if (bankMap.has(deposit.bankId)) continue;
       const inferredName = resolveBankName(deposit.bankId, deposit.name);
       bankMap.set(deposit.bankId, {
@@ -113,22 +135,52 @@ export default function DashboardClient() {
         taxRate: 0.2,
       });
     }
-    return matured
+    return settled
       .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
       .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
   }, [banks, deposits, showMatured]);
 
-  const monthlyAllowance = useMemo(() => buildMonthlyAllowance(summaries), [summaries]);
+  const monthlyAllowance = useMemo(
+    () => buildMonthlyAllowance(allSummaries),
+    [allSummaries],
+  );
 
   const totalPrincipal = activeDeposits.reduce(
     (sum, deposit) => sum + deposit.principal,
     0,
   );
   const currentMonthKey = monthKey(new Date());
-  const currentMonth = monthlyAllowance.find((item) => item.monthKey === currentMonthKey);
-  const currentMonthLabel = currentMonth?.label ?? formatMonthLabel(new Date());
-  const currentMonthGross = currentMonth?.gross ?? 0;
-  const currentMonthNet = currentMonth?.net ?? 0;
+  const currentMonthLabel = formatMonthLabel(new Date());
+
+  const {
+    currentMonthIncomeTotal,
+    currentMonthIncomePending,
+    currentMonthIncomeSettled,
+  } = useMemo(() => {
+    let pending = 0;
+    let settled = 0;
+
+    for (const summary of allSummaries) {
+      if (summary.deposit.isOpenEnded) continue;
+      if (monthKey(new Date(summary.maturityDate)) !== currentMonthKey) continue;
+      if (summary.deposit.status === "settled") {
+        settled += summary.netInterest;
+      } else if (summary.deposit.status === "matured") {
+        pending += summary.netInterest;
+      }
+    }
+
+    return {
+      currentMonthIncomeTotal: pending + settled,
+      currentMonthIncomePending: pending,
+      currentMonthIncomeSettled: settled,
+    };
+  }, [allSummaries, currentMonthKey]);
+
+  const nextMaturity = useMemo(
+    () => summaries.find((summary) => !summary.deposit.isOpenEnded),
+    [summaries],
+  );
 
   function resetForm() {
     setForm(initialForm);
@@ -183,6 +235,8 @@ export default function DashboardClient() {
       }
       return [newDeposit, ...current];
     });
+    setHasCustomData(true);
+    setSampleDataActive(false);
 
     resetForm();
     setDialogOpen(false);
@@ -190,6 +244,8 @@ export default function DashboardClient() {
 
   function seedDemoData() {
     setDeposits(demoDeposits);
+    setSampleDataLoaded(true);
+    setSampleDataActive(true);
   }
 
   function downloadBackup() {
@@ -237,6 +293,8 @@ export default function DashboardClient() {
         }
 
         setDeposits(nextDeposits);
+        setHasCustomData(true);
+        setSampleDataActive(false);
         setImportMessage(`Imported ${nextDeposits.length} deposits.`);
       } catch {
         setImportMessage("Import failed: invalid JSON.");
@@ -279,39 +337,85 @@ export default function DashboardClient() {
 
   function handleMarkMatured(id: string) {
     setDeposits((current) =>
-      current.map((item) => (item.id === id ? { ...item, status: "matured" } : item)),
+      current.map((item) => {
+        if (item.id !== id) return item;
+        if (item.status === "settled") return item;
+        return { ...item, status: "settled" };
+      }),
     );
   }
+
+  const showSampleBanner = sampleDataActive && !sampleBannerDismissed;
+  const emptyStateCtaLabel = sampleDataLoaded ? "Reload sample data" : "Load sample data";
+  const showEmptyStateCta = !hasCustomData;
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (process.env.NODE_ENV === "test") return;
+    if (deposits.length > 0) return;
+    if (sampleDataLoaded || hasCustomData) return;
+    seedDemoData();
+  }, [deposits.length, hasCustomData, isReady, sampleDataLoaded]);
 
   return (
     <div className="bg-page text-primary min-h-screen">
       <header className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-10 pb-10 md:px-10">
         <Alert variant="warning">
           <BellRing className="h-4 w-4" />
-          <AlertTitle>Heads up</AlertTitle>
+          <AlertTitle>Work in progress</AlertTitle>
           <AlertDescription>
-            YieldFlow is still a work in progress. I am actively refining the UI/UX,
-            calculations, and workflows, so expect frequent tweaks.
+            YieldFlow is actively being built. Some features may change as I refine the
+            experience — your data and feedback help shape what comes next.
           </AlertDescription>
         </Alert>
+        {showSampleBanner ? (
+          <Alert variant="info" className="flex items-start gap-3 pr-10">
+            <div>
+              <AlertTitle>Using sample data</AlertTitle>
+              <AlertDescription>
+                This is pre-filled test data so you can explore YieldFlow. Clear it
+                anytime in{" "}
+                <a
+                  href="#data-management"
+                  className="font-semibold underline underline-offset-4 hover:text-indigo-700 dark:hover:text-indigo-200"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    document
+                      .getElementById("data-management")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Data Management
+                </a>{" "}
+                below.
+              </AlertDescription>
+            </div>
+            <button
+              type="button"
+              className="text-muted-foreground focus-visible:ring-primary/60 absolute top-3 right-3 rounded-md p-1 transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2"
+              onClick={() => setSampleBannerDismissed(true)}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Dismiss</span>
+            </button>
+          </Alert>
+        ) : null}
         <Header />
         <StatsGrid
-          summaries={summaries}
           totalPrincipal={totalPrincipal}
-          currentMonthGross={currentMonthGross}
-          currentMonthNet={currentMonthNet}
+          currentMonthIncomeTotal={currentMonthIncomeTotal}
+          currentMonthIncomePending={currentMonthIncomePending}
+          currentMonthIncomeSettled={currentMonthIncomeSettled}
           currentMonthLabel={currentMonthLabel}
+          nextMaturity={nextMaturity}
         />
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 md:px-10">
-        <section className="border-subtle bg-surface rounded-2xl border p-6">
+        <section className="bg-portfolio-surface border-subtle rounded-2xl border p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Portfolio actions</h2>
-              <p className="text-muted text-sm">
-                Add new investments, switch modes, and preview net yield in real time.
-              </p>
             </div>
             <DepositFormDialog
               key={`${editingId ?? "new"}-${formSession}`}
@@ -344,7 +448,11 @@ export default function DashboardClient() {
               Loading your portfolio...
             </div>
           ) : deposits.length === 0 ? (
-            <EmptyState onSeed={seedDemoData} />
+            <EmptyState
+              onSeed={seedDemoData}
+              ctaLabel={emptyStateCtaLabel}
+              showCta={showEmptyStateCta}
+            />
           ) : (
             <div className="mt-6 flex flex-col gap-4">
               <Tabs defaultValue="ladder">
@@ -353,16 +461,17 @@ export default function DashboardClient() {
                     <TabsTrigger value="ladder">Timeline</TabsTrigger>
                     <TabsTrigger value="monthly">Cash Flow</TabsTrigger>
                   </TabsList>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="hover:bg-muted active:bg-muted"
-                    onClick={() => setShowMatured((current) => !current)}
-                  >
-                    {showMatured ? "Hide matured" : "Show matured"}
-                  </Button>
                 </div>
                 <TabsContent value="ladder" className="mt-4">
+                  <label className="border-subtle bg-surface text-muted mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
+                    <input
+                      type="checkbox"
+                      className="accent-indigo-600"
+                      checked={showMatured}
+                      onChange={(event) => setShowMatured(event.target.checked)}
+                    />
+                    Show settled
+                  </label>
                   <LadderTable
                     summaries={[...summaries, ...maturedSummaries]}
                     onEdit={handleEdit}
@@ -371,25 +480,35 @@ export default function DashboardClient() {
                   />
                 </TabsContent>
                 <TabsContent value="monthly" className="mt-4">
-                  <MonthlyFlow items={monthlyAllowance} />
+                  <MonthlyFlow
+                    items={monthlyAllowance}
+                    currentMonthKey={currentMonthKey}
+                    currentMonthPending={currentMonthIncomePending}
+                    currentMonthSettled={currentMonthIncomeSettled}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
           )}
         </section>
 
-        <section className="border-subtle bg-surface rounded-2xl border p-6">
+        <section
+          id="data-management"
+          className="border-subtle bg-surface rounded-2xl border p-6"
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Data Management</h2>
-              <p className="text-muted text-sm">
-                Local-only storage. No servers, no tracking.
-              </p>
+              <p className="text-muted text-sm">Your data stays on your device</p>
             </div>
             <span className="border-subtle bg-surface-soft text-muted rounded-lg border px-3 py-1 text-xs">
               Saved to Browser
             </span>
           </div>
+          <p className="text-muted mt-2 text-sm">
+            Everything is stored privately on this device — no accounts, no servers, no
+            tracking. Use the backup option to keep a copy safe.
+          </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button
               variant="outline"
@@ -424,7 +543,10 @@ export default function DashboardClient() {
             <Button
               variant="ghost"
               className="text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
-              onClick={() => setDeposits([])}
+              onClick={() => {
+                setDeposits([]);
+                setSampleDataActive(false);
+              }}
             >
               Clear All Data
             </Button>
