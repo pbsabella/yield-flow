@@ -604,7 +604,7 @@ export default function DepositFormDialog({
     if (step === 1) return null;
 
     return (
-      <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-3 text-xs">
+      <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-3 text-xs">
         <div className="flex items-center justify-between">
           <p className="text-foreground font-semibold">Step 1 summary</p>
           <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>
@@ -641,7 +641,7 @@ export default function DepositFormDialog({
               </span>
             ) : null}
           </span>
-          <span className="font-financial text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+          <span className="text-income-net font-financial text-sm font-semibold">
             {formatPhpCurrency(previewSummary.netInterest)}
           </span>
         </button>
@@ -673,7 +673,7 @@ export default function DepositFormDialog({
     ) : null;
 
   const livePreviewCard = (
-    <aside className="bg-surface sticky top-0 rounded-xl border border-indigo-300/60 p-5 lg:top-6 dark:border-indigo-500/30">
+    <aside className="bg-surface border-subtle sticky top-0 rounded-xl border p-5 lg:top-6">
       <div className="text-secondary-foreground flex items-center gap-2 text-sm font-semibold">
         <Calculator className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
         Live calculation preview
@@ -698,11 +698,11 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-500/10">
+          <div className="flex items-center justify-between rounded-sm bg-indigo-50 px-3 py-2 dark:bg-indigo-500/10">
             <span className="font-medium text-indigo-900 dark:text-indigo-200">
               Net interest
             </span>
-            <span className="font-financial font-semibold text-indigo-800 dark:text-indigo-300">
+            <span className="text-income-net font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}
             </span>
           </div>
@@ -722,7 +722,7 @@ export default function DepositFormDialog({
           ) : null}
 
           {previewTierBreakdown.length > 0 ? (
-            <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-3">
+            <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-3">
               <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                 Tier allocation
               </p>
@@ -867,7 +867,7 @@ export default function DepositFormDialog({
                         ref={(node) => {
                           optionRefs.current[index] = node;
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
+                        className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
                           safeBankActiveIndex === index
                             ? "bg-muted text-foreground"
                             : "hover:bg-muted"
@@ -915,7 +915,7 @@ export default function DepositFormDialog({
       </div>
 
       {customBankOpen ? (
-        <div className="border-border bg-surface-soft space-y-3 rounded-lg border p-3">
+        <div className="border-border bg-surface-soft space-y-3 rounded-sm border p-3">
           <h4 className="text-sm font-semibold">Add custom bank</h4>
           <div className="space-y-2 text-sm">
             <Label htmlFor="custom-bank-name">
@@ -1304,7 +1304,7 @@ export default function DepositFormDialog({
         </>
       ) : null}
 
-      <div className="border-border bg-surface-soft space-y-3 rounded-lg border p-3 text-sm">
+      <div className="border-border bg-surface-soft space-y-3 rounded-sm border p-3 text-sm">
         <Label className="block text-sm font-semibold">Interest Rate</Label>
 
         {!draftForm.tieredEnabled ? (
@@ -1377,7 +1377,7 @@ export default function DepositFormDialog({
                       Tier ceiling
                     </Label>
                     {isLast ? (
-                      <div className="border-border bg-muted text-muted-foreground flex h-12 items-center rounded-lg border px-3 text-sm">
+                      <div className="border-border bg-muted text-muted-foreground flex h-12 items-center rounded-sm border px-3 text-sm">
                         Above {aboveAmount}
                       </div>
                     ) : (
@@ -1642,7 +1642,7 @@ export default function DepositFormDialog({
 
       {renderStepSummaries()}
 
-      <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-4 text-sm">
+      <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-4 text-sm">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Investment name</span>
           <span className="font-medium">{draftForm.name || "-"}</span>
@@ -1668,7 +1668,7 @@ export default function DepositFormDialog({
       </div>
 
       {previewSummary ? (
-        <div className="space-y-2 rounded-lg border border-indigo-300/60 bg-indigo-50/60 p-4 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+        <div className="space-y-2 rounded-sm border border-indigo-300/60 bg-indigo-50/60 p-4 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
           <div className="flex items-center justify-between">
             <span>Gross interest</span>
             <span className="font-financial">
@@ -1683,7 +1683,7 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="flex items-center justify-between text-indigo-900 dark:text-indigo-200">
+          <div className="text-income-net flex items-center justify-between">
             <span className="font-semibold">Net interest</span>
             <span className="font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}

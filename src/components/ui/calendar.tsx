@@ -43,7 +43,7 @@ function Calendar({
         row: "mt-2 flex w-full",
         cell: "h-9 w-9 text-center text-sm p-0 relative",
         day: cn(
-          "h-9 w-9 p-0 font-normal rounded-lg text-center leading-9 transition-colors duration-150 ease-out focus-visible:ring-primary/60 focus-visible:ring-2 aria-selected:opacity-100 aria-selected:bg-indigo-600 aria-selected:text-white dark:aria-selected:bg-indigo-500 dark:aria-selected:text-white",
+          "h-9 w-9 p-0 font-normal rounded-sm text-center leading-9 transition-colors duration-150 ease-out focus-visible:ring-primary/60 focus-visible:ring-2 aria-selected:opacity-100 aria-selected:bg-indigo-600 aria-selected:text-white dark:aria-selected:bg-indigo-500 dark:aria-selected:text-white",
           "hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
         ),
         day_selected:

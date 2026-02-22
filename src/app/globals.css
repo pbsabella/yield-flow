@@ -43,6 +43,25 @@
   --text-1: hsl(var(--foreground));
   --text-2: hsl(240 5% 38%);
   --text-3: hsl(240 5% 38%);
+  --color-surface-page: hsl(220 25% 97%);
+  --color-surface-base: hsl(0 0% 100%);
+  --color-surface-soft: hsl(220 20% 96%);
+  --color-surface-raised: hsl(220 15% 92%);
+  --color-status-overdue-bg: hsl(38 80% 96%);
+  --color-status-overdue-sticky: hsl(38 80% 96%);
+  --color-status-overdue-fg: hsl(32 80% 30%);
+  --color-status-overdue-border: hsl(38 60% 85%);
+  --color-status-warning-bg: hsl(48 96% 95%);
+  --color-status-warning-fg: hsl(32 80% 30%);
+  --color-status-warning-border: hsl(48 80% 82%);
+  --color-income-net-fg: hsl(243 75% 45%);
+  --color-interactive-hover-bg: hsl(243 75% 59% / 0.08);
+  --color-interactive-active-bg: hsl(243 75% 59% / 0.14);
+  --color-interactive-selected-bg: hsl(243 75% 59% / 0.12);
+  --color-danger-fg: hsl(0 84% 50%);
+  --color-danger-hover: hsl(0 84% 60% / 0.1);
+  --color-danger-active: hsl(0 84% 60% / 0.18);
+  --color-overlay: hsl(228 20% 5% / 0.6);
 }
 
 .dark {
@@ -83,6 +102,25 @@
   --text-1: hsl(var(--foreground));
   --text-2: hsl(240 6% 72%);
   --text-3: hsl(240 5% 60%);
+  --color-surface-page: hsl(228 20% 9%);
+  --color-surface-base: hsl(228 12% 14%);
+  --color-surface-soft: hsl(228 10% 18%);
+  --color-surface-raised: hsl(228 8% 22%);
+  --color-status-overdue-bg: hsl(38 55% 15%);
+  --color-status-overdue-sticky: hsl(38 55% 15%);
+  --color-status-overdue-fg: hsl(38 80% 70%);
+  --color-status-overdue-border: hsl(38 40% 25%);
+  --color-status-warning-bg: hsl(38 40% 14%);
+  --color-status-warning-fg: hsl(38 80% 70%);
+  --color-status-warning-border: hsl(38 30% 22%);
+  --color-income-net-fg: hsl(239 84% 72%);
+  --color-interactive-hover-bg: hsl(239 84% 67% / 0.12);
+  --color-interactive-active-bg: hsl(239 84% 67% / 0.2);
+  --color-interactive-selected-bg: hsl(239 84% 67% / 0.16);
+  --color-danger-fg: hsl(0 72% 60%);
+  --color-danger-hover: hsl(0 72% 60% / 0.12);
+  --color-danger-active: hsl(0 72% 60% / 0.2);
+  --color-overlay: hsl(228 20% 5% / 0.6);
 }
 
 @theme inline {
@@ -90,6 +128,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -119,6 +158,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-interactive-selected: var(--color-interactive-selected-bg);
+  --color-interactive-hover: var(--color-interactive-hover-bg);
+  --color-interactive-active: var(--color-interactive-active-bg);
+  --color-income-net: var(--color-income-net-fg);
+  --color-status-overdue: var(--color-status-overdue-bg);
+  --color-danger: var(--color-danger-fg);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -197,19 +243,19 @@
 
 @layer utilities {
   .bg-page {
-    background: hsl(var(--background));
+    background: var(--color-surface-page);
   }
 
   .bg-surface {
-    background: var(--surface-1);
+    background: var(--color-surface-base);
   }
 
   .bg-surface-soft {
-    background: var(--surface-2);
+    background: var(--color-surface-soft);
   }
 
   .bg-surface-strong {
-    background: var(--surface-3);
+    background: var(--color-surface-raised);
   }
 
   .bg-item-card {
@@ -229,19 +275,35 @@
   }
 
   .bg-overdue {
-    background: hsl(38 88% 94%);
-  }
-
-  .dark .bg-overdue {
-    background: hsl(32 42% 18%);
+    background: var(--color-status-overdue-bg);
   }
 
   .bg-overdue-sticky {
-    background: hsl(38 88% 94%);
+    background: var(--color-status-overdue-sticky);
   }
 
-  .dark .bg-overdue-sticky {
-    background: hsl(32 42% 18%);
+  .text-overdue {
+    color: var(--color-status-overdue-fg);
+  }
+
+  .border-overdue {
+    border-color: var(--color-status-overdue-border);
+  }
+
+  .bg-warning {
+    background: var(--color-status-warning-bg);
+  }
+
+  .text-warning {
+    color: var(--color-status-warning-fg);
+  }
+
+  .border-warning {
+    border-color: var(--color-status-warning-border);
+  }
+
+  .text-income-net {
+    color: var(--color-income-net-fg);
   }
 
   .bg-sample-banner {
@@ -288,6 +350,10 @@
     box-shadow: var(--shadow);
   }
 
+  .bg-overlay {
+    background: var(--color-overlay);
+  }
+
   .glass {
     background: color-mix(in srgb, var(--surface-1), transparent 12%);
     backdrop-filter: blur(14px);
@@ -295,5 +361,58 @@
   .font-financial {
     font-family: var(--font-geist-sans), system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .table-sort-btn {
+    @apply text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2;
+    background: transparent;
+    &:hover {
+      background: var(--color-interactive-hover-bg);
+    }
+    &:active {
+      background: var(--color-interactive-active-bg);
+    }
+  }
+
+  .action-menu-btn {
+    @apply h-9 w-9 rounded-md p-0 transition-colors duration-150;
+    background: transparent;
+    &:hover {
+      background: var(--color-interactive-hover-bg);
+    }
+    &:active {
+      background: var(--color-interactive-active-bg);
+    }
+  }
+
+  .danger-ghost-btn {
+    @apply justify-start rounded-md px-2 py-1.5 text-sm font-medium transition-colors duration-150;
+    color: var(--color-danger-fg);
+    &:hover {
+      background: var(--color-danger-hover);
+    }
+    &:active {
+      background: var(--color-danger-active);
+    }
+  }
+
+  .status-pill {
+    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+  }
+
+  .status-pill-neutral {
+    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+    background: var(--color-surface-soft);
+    border-color: hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .status-pill-overdue {
+    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+    background: var(--color-status-overdue-bg);
+    border-color: var(--color-status-overdue-border);
+    color: var(--color-status-overdue-fg);
   }
 }

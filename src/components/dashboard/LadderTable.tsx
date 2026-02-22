@@ -114,7 +114,7 @@ export default function LadderTable({
                     <TableHead>
                       <button
                         type="button"
-                        className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
+                        className="table-sort-btn focus-visible:ring-primary/60"
                         onClick={() => toggleSort("bank")}
                       >
                         Bank
@@ -132,7 +132,7 @@ export default function LadderTable({
                     <TableHead>
                       <button
                         type="button"
-                        className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
+                        className="table-sort-btn focus-visible:ring-primary/60"
                         onClick={() => toggleSort("principal")}
                       >
                         Principal
@@ -150,7 +150,7 @@ export default function LadderTable({
                     <TableHead>
                       <button
                         type="button"
-                        className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
+                        className="table-sort-btn focus-visible:ring-primary/60"
                         onClick={() => toggleSort("maturity")}
                       >
                         Maturity
@@ -168,7 +168,7 @@ export default function LadderTable({
                     <TableHead>
                       <button
                         type="button"
-                        className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
+                        className="table-sort-btn focus-visible:ring-primary/60"
                         onClick={() => toggleSort("days")}
                       >
                         Days to Maturity
@@ -186,7 +186,7 @@ export default function LadderTable({
                     <TableHead>
                       <button
                         type="button"
-                        className="text-muted-foreground hover:bg-muted/60 hover:text-foreground active:bg-muted/80 active:text-foreground focus-visible:ring-primary/60 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2"
+                        className="table-sort-btn focus-visible:ring-primary/60"
                         onClick={() => toggleSort("net")}
                       >
                         Net interest
@@ -257,14 +257,12 @@ export default function LadderTable({
                             <TimelineBadge
                               label={formatDaysToMaturity(days)}
                               className={
-                                isDue
-                                  ? "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-100"
-                                  : undefined
+                                isDue ? "status-pill-overdue" : "status-pill-neutral"
                               }
                             />
                           )}
                         </TableCell>
-                        <TableCell className="font-financial font-semibold text-indigo-700 dark:text-indigo-400">
+                        <TableCell className="text-income-net font-financial font-semibold">
                           {formatPhpCurrency(summary.netInterest)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -283,7 +281,7 @@ export default function LadderTable({
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-9 w-9 p-0 hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
+                                  className="action-menu-btn"
                                 >
                                   <MoreHorizontal
                                     className="h-4 w-4"
@@ -297,7 +295,7 @@ export default function LadderTable({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="justify-start hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
+                                    className="justify-start hover:bg-[var(--color-interactive-hover-bg)] active:bg-[var(--color-interactive-active-bg)]"
                                     onClick={() => onEdit(summary.deposit.id)}
                                   >
                                     <Pencil className="h-4 w-4" />
@@ -306,7 +304,7 @@ export default function LadderTable({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="justify-start text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
+                                    className="danger-ghost-btn px-3"
                                     onClick={() => onDeleteRequest(summary.deposit.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -353,7 +351,7 @@ export default function LadderTable({
               } ${isSettled ? "opacity-50" : ""}`}
             >
               <div
-                className="hover:bg-surface/60 focus-visible:ring-primary/60 active:bg-surface-strong flex cursor-pointer items-start justify-between gap-3 rounded-lg px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
+                className="hover:bg-surface/60 focus-visible:ring-primary/60 active:bg-surface-strong flex cursor-pointer items-start justify-between gap-3 rounded-sm px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
@@ -408,7 +406,7 @@ export default function LadderTable({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 w-8 p-0 hover:bg-indigo-500/10 active:bg-indigo-500/20 dark:hover:bg-indigo-500/20 dark:active:bg-indigo-500/30"
+                        className="action-menu-btn h-8 w-8"
                         onClick={(event) => event.stopPropagation()}
                         onPointerDown={(event) => event.stopPropagation()}
                       >
@@ -430,7 +428,7 @@ export default function LadderTable({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="justify-start text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
+                          className="danger-ghost-btn px-3"
                           onClick={() => onDeleteRequest(summary.deposit.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -447,7 +445,7 @@ export default function LadderTable({
                     ? "Maturity —"
                     : `Maturity ${formatDate(new Date(summary.maturityDate))}`}
                 </div>
-                <div className="font-financial text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+                <div className="text-income-net font-financial text-sm font-semibold">
                   {formatPhpCurrency(summary.netInterest)}
                 </div>
               </div>
@@ -477,17 +475,13 @@ export default function LadderTable({
                   ) : (
                     <TimelineBadge
                       label={formatDaysToMaturity(days)}
-                      className={
-                        isDue
-                          ? "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-100"
-                          : undefined
-                      }
+                      className={isDue ? "status-pill-overdue" : "status-pill-neutral"}
                     />
                   )}
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Net interest</span>
-                  <span className="text-primary font-financial">
+                  <span className="text-income-net font-financial">
                     {formatPhpCurrency(summary.netInterest)}
                   </span>
                 </div>

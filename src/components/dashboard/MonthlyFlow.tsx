@@ -68,7 +68,7 @@ export default function MonthlyFlow({
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="text-right">
-                      <p className="font-financial text-lg font-semibold text-indigo-700 dark:text-indigo-400">
+                      <p className="text-income-net font-financial text-lg font-semibold">
                         {formatPhpCurrency(item.net)}
                       </p>
                       {isCurrentMonth ? (
@@ -109,7 +109,7 @@ export default function MonthlyFlow({
                                 Net interest
                               </div>
                             </div>
-                            <div className="font-financial text-right font-semibold text-indigo-700 dark:text-indigo-400">
+                            <div className="text-income-net font-financial text-right font-semibold">
                               {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
@@ -139,7 +139,7 @@ export default function MonthlyFlow({
                                 Net interest
                               </div>
                             </div>
-                            <div className="font-financial text-right font-semibold text-indigo-700 dark:text-indigo-400">
+                            <div className="text-income-net font-financial text-right font-semibold">
                               {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
@@ -164,7 +164,7 @@ export default function MonthlyFlow({
       {!showAll ? (
         <button
           type="button"
-          className="text-muted hover:text-foreground hover:bg-muted/40 inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold transition-colors duration-150 ease-out"
+          className="text-muted hover:text-foreground hover:bg-muted/40 inline-flex items-center rounded-sm px-3 py-2 text-xs font-semibold transition-colors duration-150 ease-out"
           onClick={() => setShowAll(true)}
         >
           Show all

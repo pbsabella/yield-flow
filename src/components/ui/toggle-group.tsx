@@ -12,7 +12,7 @@ const ToggleGroup = React.forwardRef<
   <ToggleGroupPrimitive.Root
     ref={ref}
     className={cn(
-      "bg-muted/70 inline-flex flex-wrap items-center gap-1 rounded-lg border border-indigo-200 p-1 dark:border-indigo-500/30",
+      "bg-muted/70 border-subtle inline-flex flex-wrap items-center gap-1 rounded-sm border p-1",
       className,
     )}
     {...props}
@@ -27,7 +27,7 @@ const ToggleGroupItem = React.forwardRef<
   <ToggleGroupPrimitive.Item
     ref={ref}
     className={cn(
-      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground cursor-pointer rounded-md border border-transparent px-3 py-2 text-xs font-semibold transition-colors duration-150 ease-out hover:bg-indigo-500/10 hover:text-indigo-700 focus-visible:ring-2 active:bg-indigo-500/20 active:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent data-[state=on]:border-indigo-300/80 data-[state=on]:bg-indigo-500/16 data-[state=on]:text-indigo-700 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-200 dark:active:bg-indigo-500/30 dark:active:text-indigo-100 dark:data-[state=on]:border-indigo-500/50 dark:data-[state=on]:bg-indigo-500/24 dark:data-[state=on]:text-indigo-200",
+      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground hover:text-foreground active:text-foreground data-[state=on]:border-subtle data-[state=on]:text-foreground cursor-pointer rounded-md border border-transparent px-3 py-2 text-xs font-semibold transition-colors duration-150 ease-out hover:bg-[var(--color-interactive-hover-bg)] focus-visible:ring-2 active:bg-[var(--color-interactive-active-bg)] data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent data-[state=on]:bg-[var(--color-interactive-selected-bg)]",
       className,
     )}
     {...props}
