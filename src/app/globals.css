@@ -51,16 +51,27 @@
   --color-status-overdue-sticky: hsl(38 80% 96%);
   --color-status-overdue-fg: hsl(32 80% 30%);
   --color-status-overdue-border: hsl(38 60% 85%);
+  --color-status-info-bg: hsl(243 60% 97%);
+  --color-status-info-fg: hsl(243 60% 25%);
+  --color-status-info-border: hsl(243 40% 88%);
   --color-status-warning-bg: hsl(48 96% 95%);
   --color-status-warning-fg: hsl(32 80% 30%);
   --color-status-warning-border: hsl(48 80% 82%);
+  --color-status-success-bg: hsl(142 60% 95%);
+  --color-status-success-fg: hsl(142 60% 25%);
+  --color-status-success-border: hsl(142 50% 82%);
+  --color-danger-bg: hsl(0 84% 50%);
+  --color-danger-border: hsl(0 84% 75%);
   --color-income-net-fg: hsl(243 75% 45%);
   --color-interactive-hover-bg: hsl(243 75% 59% / 0.08);
   --color-interactive-active-bg: hsl(243 75% 59% / 0.14);
   --color-interactive-selected-bg: hsl(243 75% 59% / 0.12);
+  --color-interactive-selected-border: hsl(243 75% 70%);
   --color-danger-fg: hsl(0 84% 50%);
   --color-danger-hover: hsl(0 84% 60% / 0.1);
   --color-danger-active: hsl(0 84% 60% / 0.18);
+  --color-bank-name-fg: hsl(199 89% 35%);
+  --color-surface-item-card: hsl(222 45% 98%);
   --color-overlay: hsl(228 20% 5% / 0.6);
 }
 
@@ -110,16 +121,27 @@
   --color-status-overdue-sticky: hsl(38 55% 15%);
   --color-status-overdue-fg: hsl(38 80% 70%);
   --color-status-overdue-border: hsl(38 40% 25%);
+  --color-status-info-bg: hsl(243 30% 15%);
+  --color-status-info-fg: hsl(243 60% 85%);
+  --color-status-info-border: hsl(243 25% 25%);
   --color-status-warning-bg: hsl(38 40% 14%);
   --color-status-warning-fg: hsl(38 80% 70%);
   --color-status-warning-border: hsl(38 30% 22%);
+  --color-status-success-bg: hsl(142 30% 12%);
+  --color-status-success-fg: hsl(142 60% 70%);
+  --color-status-success-border: hsl(142 30% 22%);
+  --color-danger-bg: hsl(0 72% 45%);
+  --color-danger-border: hsl(0 72% 40%);
   --color-income-net-fg: hsl(239 84% 72%);
   --color-interactive-hover-bg: hsl(239 84% 67% / 0.12);
   --color-interactive-active-bg: hsl(239 84% 67% / 0.2);
   --color-interactive-selected-bg: hsl(239 84% 67% / 0.16);
+  --color-interactive-selected-border: hsl(239 84% 60%);
   --color-danger-fg: hsl(0 72% 60%);
   --color-danger-hover: hsl(0 72% 60% / 0.12);
   --color-danger-active: hsl(0 72% 60% / 0.2);
+  --color-bank-name-fg: hsl(199 89% 60%);
+  --color-surface-item-card: hsl(232 22% 16%);
   --color-overlay: hsl(228 20% 5% / 0.6);
 }
 
@@ -158,12 +180,24 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-status-info: var(--color-status-info-bg);
+  --color-status-info-fg: var(--color-status-info-fg);
+  --color-status-info-border: var(--color-status-info-border);
+  --color-status-success: var(--color-status-success-bg);
+  --color-status-success-fg: var(--color-status-success-fg);
+  --color-status-success-border: var(--color-status-success-border);
+  --color-danger-solid: var(--color-danger-bg);
+  --color-danger-border: var(--color-danger-border);
+  --color-interactive-selected-border: var(--color-interactive-selected-border);
   --color-interactive-selected: var(--color-interactive-selected-bg);
   --color-interactive-hover: var(--color-interactive-hover-bg);
   --color-interactive-active: var(--color-interactive-active-bg);
+  --color-bank-name: var(--color-bank-name-fg);
+  --color-surface-item: var(--color-surface-item-card);
   --color-income-net: var(--color-income-net-fg);
   --color-status-overdue: var(--color-status-overdue-bg);
   --color-danger: var(--color-danger-fg);
+  --text-badge: 0.6875rem;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -259,19 +293,11 @@
   }
 
   .bg-item-card {
-    background: hsl(222 45% 98%);
-  }
-
-  .dark .bg-item-card {
-    background: hsl(232 22% 16%);
+    background: var(--color-surface-item-card);
   }
 
   .bg-portfolio-surface {
-    background: hsl(0 0% 100%);
-  }
-
-  .dark .bg-portfolio-surface {
-    background: hsl(var(--card) / 0.48);
+    background: var(--color-surface-base);
   }
 
   .bg-overdue {
@@ -307,13 +333,8 @@
   }
 
   .bg-sample-banner {
-    background: hsl(243 60% 97%);
-    border-color: hsl(243 40% 88%);
-  }
-
-  .dark .bg-sample-banner {
-    background: hsl(243 30% 15%);
-    border-color: hsl(243 25% 25%);
+    background: var(--color-status-info-bg);
+    border-color: var(--color-status-info-border);
   }
 
   .text-primary {
