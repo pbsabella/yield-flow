@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { DepositSummary } from "@/lib/types";
 import { differenceInCalendarDays, formatDate } from "@/lib/domain/date";
+import { formatPhpCurrency } from "@/lib/domain/format";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,16 +23,6 @@ import {
 import TimelineBadge from "@/components/dashboard/TimelineBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const currency = "PHP";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 type Props = {
   summaries: DepositSummary[];
   onEdit: (id: string) => void;
@@ -45,17 +36,13 @@ export default function LadderTable({
   onDeleteRequest,
   onMarkMatured,
 }: Props) {
-  const today = new Date();
+  const todayKey = new Date().toDateString();
+  const today = useMemo(() => new Date(todayKey), [todayKey]);
   const [sortKey, setSortKey] = useState<
     "maturity" | "principal" | "net" | "days" | "bank"
   >("maturity");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
-
-  function getDaysToMaturity(dateISO: string) {
-    const days = differenceInCalendarDays(new Date(dateISO), today);
-    return days;
-  }
 
   function formatDaysToMaturity(days: number) {
     if (days < 0) return `Overdue ${Math.abs(days)} days`;
@@ -63,37 +50,41 @@ export default function LadderTable({
     return `${days} days`;
   }
 
-  const sorted = [...summaries].sort((a, b) => {
-    const statusA = a.deposit.status === "settled" ? 1 : 0;
-    const statusB = b.deposit.status === "settled" ? 1 : 0;
-    if (statusA !== statusB) return statusA - statusB;
-    if (sortKey === "bank") {
-      const nameA = a.bank.name.toLowerCase();
-      const nameB = b.bank.name.toLowerCase();
-      if (nameA === nameB) return 0;
-      return sortDir === "asc" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-    }
-    const daysA = getDaysToMaturity(a.maturityDate);
-    const daysB = getDaysToMaturity(b.maturityDate);
-    const valueA =
-      sortKey === "principal"
-        ? a.deposit.principal
-        : sortKey === "net"
-          ? a.netInterest
-          : sortKey === "days"
-            ? daysA
-            : new Date(a.maturityDate).getTime();
-    const valueB =
-      sortKey === "principal"
-        ? b.deposit.principal
-        : sortKey === "net"
-          ? b.netInterest
-          : sortKey === "days"
-            ? daysB
-            : new Date(b.maturityDate).getTime();
-    if (valueA === valueB) return 0;
-    return sortDir === "asc" ? (valueA > valueB ? 1 : -1) : valueA > valueB ? -1 : 1;
-  });
+  const sorted = useMemo(() => {
+    return [...summaries].sort((a, b) => {
+      const statusA = a.deposit.status === "settled" ? 1 : 0;
+      const statusB = b.deposit.status === "settled" ? 1 : 0;
+      if (statusA !== statusB) return statusA - statusB;
+      if (sortKey === "bank") {
+        const nameA = a.bank.name.toLowerCase();
+        const nameB = b.bank.name.toLowerCase();
+        if (nameA === nameB) return 0;
+        return sortDir === "asc"
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      }
+      const daysA = differenceInCalendarDays(new Date(a.maturityDate), today);
+      const daysB = differenceInCalendarDays(new Date(b.maturityDate), today);
+      const valueA =
+        sortKey === "principal"
+          ? a.deposit.principal
+          : sortKey === "net"
+            ? a.netInterest
+            : sortKey === "days"
+              ? daysA
+              : new Date(a.maturityDate).getTime();
+      const valueB =
+        sortKey === "principal"
+          ? b.deposit.principal
+          : sortKey === "net"
+            ? b.netInterest
+            : sortKey === "days"
+              ? daysB
+              : new Date(b.maturityDate).getTime();
+      if (valueA === valueB) return 0;
+      return sortDir === "asc" ? (valueA > valueB ? 1 : -1) : valueA > valueB ? -1 : 1;
+    });
+  }, [summaries, sortKey, sortDir, today]);
 
   function toggleSort(key: "maturity" | "principal" | "net" | "days" | "bank") {
     if (sortKey === key) {
@@ -219,7 +210,10 @@ export default function LadderTable({
                 </TableHeader>
                 <TableBody className="[&>tr:last-child>td:first-child]:rounded-bl-2xl">
                   {sorted.map((summary) => {
-                    const days = getDaysToMaturity(summary.maturityDate);
+                    const days = differenceInCalendarDays(
+                      new Date(summary.maturityDate),
+                      today,
+                    );
                     const isSettled = summary.deposit.status === "settled";
                     const isDue = days <= 0 && !summary.deposit.isOpenEnded && !isSettled;
                     const isMatured = summary.deposit.status === "matured";
@@ -241,7 +235,7 @@ export default function LadderTable({
                           {summary.bank.name}
                         </TableCell>
                         <TableCell className="font-financial">
-                          {formatCurrency(summary.deposit.principal)}
+                          {formatPhpCurrency(summary.deposit.principal)}
                         </TableCell>
                         <TableCell>
                           {summary.deposit.isOpenEnded ? (
@@ -271,7 +265,7 @@ export default function LadderTable({
                           )}
                         </TableCell>
                         <TableCell className="font-financial font-semibold text-indigo-700 dark:text-indigo-400">
-                          {formatCurrency(summary.netInterest)}
+                          {formatPhpCurrency(summary.netInterest)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -334,7 +328,7 @@ export default function LadderTable({
       </div>
       <div className="space-y-3 md:hidden">
         {sorted.map((summary) => {
-          const days = getDaysToMaturity(summary.maturityDate);
+          const days = differenceInCalendarDays(new Date(summary.maturityDate), today);
           const isSettled = summary.deposit.status === "settled";
           const isDue = days <= 0 && !summary.deposit.isOpenEnded && !isSettled;
           const isMatured = summary.deposit.status === "matured";
@@ -454,14 +448,14 @@ export default function LadderTable({
                     : `Maturity ${formatDate(new Date(summary.maturityDate))}`}
                 </div>
                 <div className="font-financial text-sm font-semibold text-indigo-700 dark:text-indigo-400">
-                  {formatCurrency(summary.netInterest)}
+                  {formatPhpCurrency(summary.netInterest)}
                 </div>
               </div>
               <CollapsibleContent className="text-muted mt-4 grid gap-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span>Principal</span>
                   <span className="text-primary font-financial">
-                    {formatCurrency(summary.deposit.principal)}
+                    {formatPhpCurrency(summary.deposit.principal)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -494,7 +488,7 @@ export default function LadderTable({
                 <div className="flex items-center justify-between">
                   <span>Net interest</span>
                   <span className="text-primary font-financial">
-                    {formatCurrency(summary.netInterest)}
+                    {formatPhpCurrency(summary.netInterest)}
                   </span>
                 </div>
               </CollapsibleContent>

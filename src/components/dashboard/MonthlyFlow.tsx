@@ -1,16 +1,7 @@
 import type { MonthlyAllowance } from "@/lib/types";
 import { addMonths, formatMonthLabel, monthKey } from "@/lib/domain/date";
+import { formatPhpCurrency } from "@/lib/domain/format";
 import { useMemo, useState } from "react";
-
-const currency = "PHP";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 type Props = {
   items: MonthlyAllowance[];
@@ -78,18 +69,18 @@ export default function MonthlyFlow({
                   <div className="flex items-start gap-2">
                     <div className="text-right">
                       <p className="font-financial text-lg font-semibold text-indigo-700 dark:text-indigo-400">
-                        {formatCurrency(item.net)}
+                        {formatPhpCurrency(item.net)}
                       </p>
                       {isCurrentMonth ? (
                         <div className="mt-2 flex flex-wrap justify-end gap-2 text-[11px] font-semibold">
                           {pendingNet > 0 ? (
                             <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/20">
-                              {formatCurrency(pendingNet)} pending
+                              {formatPhpCurrency(pendingNet)} pending
                             </span>
                           ) : null}
                           {settledNet > 0 ? (
                             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
-                              {formatCurrency(settledNet)} settled
+                              {formatPhpCurrency(settledNet)} settled
                             </span>
                           ) : null}
                         </div>
@@ -119,7 +110,7 @@ export default function MonthlyFlow({
                               </div>
                             </div>
                             <div className="font-financial text-right font-semibold text-indigo-700 dark:text-indigo-400">
-                              {formatCurrency(entry.amountNet)}
+                              {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
                         ))}
@@ -149,7 +140,7 @@ export default function MonthlyFlow({
                               </div>
                             </div>
                             <div className="font-financial text-right font-semibold text-indigo-700 dark:text-indigo-400">
-                              {formatCurrency(entry.amountNet)}
+                              {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
                         ))}

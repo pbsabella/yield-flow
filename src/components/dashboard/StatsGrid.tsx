@@ -1,15 +1,6 @@
 import type { DepositSummary } from "@/lib/types";
 import { formatDate } from "@/lib/domain/date";
-
-const currency = "PHP";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatPhpCurrency } from "@/lib/domain/format";
 
 type Props = {
   totalPrincipal: number;
@@ -33,7 +24,7 @@ export default function StatsGrid({
       <div className="border-subtle bg-surface rounded-2xl border px-5 py-4 transition-colors duration-200 ease-out">
         <p className="text-muted text-xs font-medium">Total Principal</p>
         <p className="font-financial mt-3 text-2xl font-semibold">
-          {formatCurrency(totalPrincipal)}
+          {formatPhpCurrency(totalPrincipal)}
         </p>
         <p className="text-muted mt-2 text-xs">Excludes settled investments.</p>
       </div>
@@ -41,18 +32,18 @@ export default function StatsGrid({
         <p className="text-muted text-xs font-medium">Income This Month</p>
         <p className="text-muted mt-1 text-xs">Net interest · {currentMonthLabel}</p>
         <p className="font-financial mt-3 text-2xl font-semibold">
-          {formatCurrency(currentMonthIncomeTotal)}
+          {formatPhpCurrency(currentMonthIncomeTotal)}
         </p>
         {currentMonthIncomePending > 0 || currentMonthIncomeSettled > 0 ? (
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             {currentMonthIncomePending > 0 ? (
               <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/20">
-                {formatCurrency(currentMonthIncomePending)} pending
+                {formatPhpCurrency(currentMonthIncomePending)} pending
               </span>
             ) : null}
             {currentMonthIncomeSettled > 0 ? (
               <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
-                {formatCurrency(currentMonthIncomeSettled)} settled
+                {formatPhpCurrency(currentMonthIncomeSettled)} settled
               </span>
             ) : null}
           </div>
@@ -69,7 +60,7 @@ export default function StatsGrid({
               {nextMaturity.deposit.name} · {nextMaturity.bank.name}
             </p>
             <p className="font-financial mt-2 text-base font-semibold text-sky-700 dark:text-sky-400">
-              {formatCurrency(nextMaturity.netTotal)} net proceeds
+              {formatPhpCurrency(nextMaturity.netTotal)} net proceeds
             </p>
           </>
         ) : (

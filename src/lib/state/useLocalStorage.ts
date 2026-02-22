@@ -1,9 +1,14 @@
+// Primary storage abstraction for YieldFlow.
+// All localStorage access must go through this hook.
+// Do not use localStorage directly anywhere in the codebase.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type UseLocalStorageOptions<T> = {
   persistWhen?: (value: T) => boolean;
+  hydrate?: boolean;
+  skipInitialWrite?: boolean;
 };
 
 export function useLocalStorage<T>(
@@ -13,28 +18,44 @@ export function useLocalStorage<T>(
 ) {
   const [value, setValue] = useState<T>(initialValue);
   const [isReady, setIsReady] = useState(false);
+  const hasHandledInitialWrite = useRef(false);
+  const persistWhen = options?.persistWhen;
+  const hydrate = options?.hydrate ?? true;
+  const skipInitialWrite = options?.skipInitialWrite ?? false;
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(key);
-    if (stored) {
-      try {
-        setValue(JSON.parse(stored) as T);
-      } catch {
-        setValue(initialValue);
+    if (hydrate) {
+      const stored = window.localStorage.getItem(key);
+      if (stored) {
+        try {
+          setValue(JSON.parse(stored) as T);
+        } catch {
+          setValue(initialValue);
+        }
       }
     }
     setIsReady(true);
-  }, [key, initialValue]);
+  }, [key, initialValue, hydrate]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!isReady) return;
-    const shouldPersist = options?.persistWhen ? options.persistWhen(value) : true;
+    if (skipInitialWrite && !hasHandledInitialWrite.current) {
+      hasHandledInitialWrite.current = true;
+      return;
+    }
+
+    const shouldPersist = persistWhen ? persistWhen(value) : true;
     if (!shouldPersist) return;
     window.localStorage.setItem(key, JSON.stringify(value));
-  }, [isReady, key, options, value]);
+  }, [isReady, key, persistWhen, skipInitialWrite, value]);
 
-  return { value, setValue, isReady } as const;
+  const remove = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem(key);
+  }, [key]);
+
+  return { value, setValue, isReady, remove } as const;
 }

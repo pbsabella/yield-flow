@@ -53,10 +53,9 @@ import {
 import type { Bank, InterestTier, TimeDeposit } from "@/lib/types";
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { formatDate, toISODate } from "@/lib/domain/date";
+import { formatPhpCurrency } from "@/lib/domain/format";
 import { getBankProducts, type BankProduct } from "@/lib/banks-config";
 import { useMediaQuery } from "@/lib/state/useMediaQuery";
-
-const currency = "PHP";
 
 type ProductOption = {
   productType: ProductType;
@@ -67,14 +66,6 @@ type PendingSelectionChange = {
   nextForm: DepositFormState;
   message: string;
 };
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function toBankId(name: string) {
   return name
@@ -258,7 +249,8 @@ function buildTierBreakdown(principal: number, tiers: InterestTier[]) {
       lastThreshold = cap;
       return {
         id: `tier-breakdown-${index}`,
-        label: tier.upTo === null ? "Final tier" : `Up to ${formatCurrency(tier.upTo)}`,
+        label:
+          tier.upTo === null ? "Final tier" : `Up to ${formatPhpCurrency(tier.upTo)}`,
         amount,
         rate: tier.rate,
       };
@@ -650,7 +642,7 @@ export default function DepositFormDialog({
             ) : null}
           </span>
           <span className="font-financial text-sm font-semibold text-indigo-700 dark:text-indigo-400">
-            {formatCurrency(previewSummary.netInterest)}
+            {formatPhpCurrency(previewSummary.netInterest)}
           </span>
         </button>
         {mobilePreviewExpanded ? (
@@ -658,13 +650,13 @@ export default function DepositFormDialog({
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Gross interest</span>
               <span className="font-financial">
-                {formatCurrency(previewSummary.grossInterest)}
+                {formatPhpCurrency(previewSummary.grossInterest)}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Tax withheld</span>
               <span className="font-financial">
-                {formatCurrency(
+                {formatPhpCurrency(
                   previewSummary.grossInterest - previewSummary.netInterest,
                 )}
               </span>
@@ -672,7 +664,7 @@ export default function DepositFormDialog({
             {debouncedForm.payoutFrequency === "monthly" ? (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Monthly net</span>
-                <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+                <span className="font-financial">{formatPhpCurrency(monthlyNet)}</span>
               </div>
             ) : null}
           </div>
@@ -695,13 +687,15 @@ export default function DepositFormDialog({
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Gross interest</span>
             <span className="font-financial">
-              {formatCurrency(previewSummary.grossInterest)}
+              {formatPhpCurrency(previewSummary.grossInterest)}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Tax withheld</span>
             <span className="font-financial">
-              {formatCurrency(previewSummary.grossInterest - previewSummary.netInterest)}
+              {formatPhpCurrency(
+                previewSummary.grossInterest - previewSummary.netInterest,
+              )}
             </span>
           </div>
           <div className="flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-500/10">
@@ -709,7 +703,7 @@ export default function DepositFormDialog({
               Net interest
             </span>
             <span className="font-financial font-semibold text-indigo-800 dark:text-indigo-300">
-              {formatCurrency(previewSummary.netInterest)}
+              {formatPhpCurrency(previewSummary.netInterest)}
             </span>
           </div>
           {!draftForm.isOpenEnded ? (
@@ -723,7 +717,7 @@ export default function DepositFormDialog({
           {draftForm.payoutFrequency === "monthly" ? (
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Monthly net interest</span>
-              <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+              <span className="font-financial">{formatPhpCurrency(monthlyNet)}</span>
             </div>
           ) : null}
 
@@ -737,7 +731,7 @@ export default function DepositFormDialog({
                   <span className="text-muted-foreground">
                     {tier.label} · {(tier.rate * 100).toFixed(2)}%
                   </span>
-                  <span className="font-financial">{formatCurrency(tier.amount)}</span>
+                  <span className="font-financial">{formatPhpCurrency(tier.amount)}</span>
                 </div>
               ))}
             </div>
@@ -1366,8 +1360,8 @@ export default function DepositFormDialog({
               const isLast = index === arr.length - 1;
               const prevTier = arr[index - 1];
               const aboveAmount = prevTier?.upTo
-                ? formatCurrency(toNumber(unformatCurrencyInput(prevTier.upTo)))
-                : formatCurrency(0);
+                ? formatPhpCurrency(toNumber(unformatCurrencyInput(prevTier.upTo)))
+                : formatPhpCurrency(0);
               const canRemove = arr.length > 1;
 
               return (
@@ -1656,7 +1650,7 @@ export default function DepositFormDialog({
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Principal</span>
           <span className="font-financial font-medium">
-            {formatCurrency(toNumber(unformatCurrencyInput(draftForm.principal)))}
+            {formatPhpCurrency(toNumber(unformatCurrencyInput(draftForm.principal)))}
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -1678,19 +1672,21 @@ export default function DepositFormDialog({
           <div className="flex items-center justify-between">
             <span>Gross interest</span>
             <span className="font-financial">
-              {formatCurrency(previewSummary.grossInterest)}
+              {formatPhpCurrency(previewSummary.grossInterest)}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span>Tax withheld</span>
             <span className="font-financial">
-              {formatCurrency(previewSummary.grossInterest - previewSummary.netInterest)}
+              {formatPhpCurrency(
+                previewSummary.grossInterest - previewSummary.netInterest,
+              )}
             </span>
           </div>
           <div className="flex items-center justify-between text-indigo-900 dark:text-indigo-200">
             <span className="font-semibold">Net interest</span>
             <span className="font-financial font-semibold">
-              {formatCurrency(previewSummary.netInterest)}
+              {formatPhpCurrency(previewSummary.netInterest)}
             </span>
           </div>
           {!draftForm.isOpenEnded ? (
@@ -1704,7 +1700,7 @@ export default function DepositFormDialog({
           {draftForm.payoutFrequency === "monthly" ? (
             <div className="flex items-center justify-between">
               <span>Monthly net interest</span>
-              <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+              <span className="font-financial">{formatPhpCurrency(monthlyNet)}</span>
             </div>
           ) : null}
         </div>
@@ -1783,7 +1779,7 @@ export default function DepositFormDialog({
             >
               <p aria-live="polite" className="sr-only">
                 {previewSummary
-                  ? `Net interest ${formatCurrency(previewSummary.netInterest)}${
+                  ? `Net interest ${formatPhpCurrency(previewSummary.netInterest)}${
                       draftForm.isOpenEnded
                         ? ""
                         : `. Maturity date ${formatDate(new Date(previewSummary.maturityDate))}`

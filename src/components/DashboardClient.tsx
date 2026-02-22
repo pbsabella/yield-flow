@@ -26,9 +26,10 @@ import {
 import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
 import { formatMonthLabel, monthKey } from "@/lib/domain/date";
 import { buildDepositSummary } from "@/lib/domain/interest";
+import { useLocalStorage } from "@/lib/state/useLocalStorage";
 import { deposits as demoDeposits } from "@/lib/demo";
 import { bankTemplates, getBankProducts } from "@/lib/banks-config";
-import type { Bank, TimeDeposit } from "@/lib/types";
+import type { Bank, DepositSummary, TimeDeposit } from "@/lib/types";
 
 const initialForm: DepositFormState = {
   bankId: "",
@@ -70,6 +71,35 @@ function resolveBankName(bankId: string, depositName: string) {
   return bankAliases[normalized] ?? base;
 }
 
+function buildSummaries(
+  deposits: TimeDeposit[],
+  banks: Bank[],
+  filter: "active" | "settled" | "all",
+): DepositSummary[] {
+  const filteredDeposits =
+    filter === "active"
+      ? deposits.filter((deposit) => deposit.status !== "settled")
+      : filter === "settled"
+        ? deposits.filter((deposit) => deposit.status === "settled")
+        : deposits;
+
+  const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
+
+  for (const deposit of filteredDeposits) {
+    if (bankMap.has(deposit.bankId)) continue;
+    const inferredName = resolveBankName(deposit.bankId, deposit.name);
+    bankMap.set(deposit.bankId, {
+      id: deposit.bankId,
+      name: inferredName,
+      taxRate: 0.2,
+    });
+  }
+
+  return filteredDeposits
+    .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
+    .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
+}
+
 export default function DashboardClient() {
   const [banks, setBanks] = useState<Bank[]>(
     bankTemplates.map((bank) => ({ ...bank, pdicMember: true })),
@@ -87,6 +117,12 @@ export default function DashboardClient() {
   const [deposits, setDeposits] = useState<TimeDeposit[]>(EMPTY_DEPOSITS);
   const [sampleDataActive, setSampleDataActive] = useState(false);
   const [hasSavedToBrowser, setHasSavedToBrowser] = useState(false);
+  const { setValue: setStoredDeposits, remove: clearStoredDeposits } = useLocalStorage<
+    TimeDeposit[]
+  >(DEPOSITS_STORAGE_KEY, EMPTY_DEPOSITS, {
+    hydrate: false,
+    skipInitialWrite: true,
+  });
   const isReady = true;
 
   const activeDeposits = useMemo(
@@ -94,53 +130,18 @@ export default function DashboardClient() {
     [deposits],
   );
 
-  const buildSummaries = useCallback(
-    (items: TimeDeposit[]) => {
-      const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
-
-      for (const deposit of items) {
-        if (bankMap.has(deposit.bankId)) continue;
-        const inferredName = resolveBankName(deposit.bankId, deposit.name);
-        bankMap.set(deposit.bankId, {
-          id: deposit.bankId,
-          name: inferredName,
-          taxRate: 0.2,
-        });
-      }
-
-      return items
-        .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
-        .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
-    },
-    [banks],
-  );
-
   const summaries = useMemo(
-    () => buildSummaries(activeDeposits),
-    [buildSummaries, activeDeposits],
+    () => buildSummaries(deposits, banks, "active"),
+    [banks, deposits],
   );
   const allSummaries = useMemo(
-    () => buildSummaries(deposits),
-    [buildSummaries, deposits],
+    () => buildSummaries(deposits, banks, "all"),
+    [banks, deposits],
   );
 
   const maturedSummaries = useMemo(() => {
     if (!showMatured) return [];
-    const settled = deposits.filter((deposit) => deposit.status === "settled");
-    if (settled.length === 0) return [];
-    const bankMap = new Map(banks.map((bank) => [bank.id, bank]));
-    for (const deposit of settled) {
-      if (bankMap.has(deposit.bankId)) continue;
-      const inferredName = resolveBankName(deposit.bankId, deposit.name);
-      bankMap.set(deposit.bankId, {
-        id: deposit.bankId,
-        name: inferredName,
-        taxRate: 0.2,
-      });
-    }
-    return settled
-      .map((deposit) => buildDepositSummary(deposit, bankMap.get(deposit.bankId)!))
-      .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
+    return buildSummaries(deposits, banks, "settled");
   }, [banks, deposits, showMatured]);
 
   const monthlyAllowance = useMemo(
@@ -191,6 +192,12 @@ export default function DashboardClient() {
     setEditingId(null);
   }
 
+  function persistDeposits(next: TimeDeposit[]): void {
+    setDeposits(next);
+    setStoredDeposits(next);
+    setHasSavedToBrowser(true);
+  }
+
   function handleSubmit(nextForm: DepositFormState) {
     const errors = validateDeposit(nextForm);
     setFormErrors(errors);
@@ -232,12 +239,8 @@ export default function DashboardClient() {
     const nextDeposits = editingId
       ? deposits.map((item) => (item.id === editingId ? newDeposit : item))
       : [newDeposit, ...deposits];
-    setDeposits(nextDeposits);
     setSampleDataActive(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
-    }
-    setHasSavedToBrowser(true);
+    persistDeposits(nextDeposits);
 
     resetForm();
     setDialogOpen(false);
@@ -292,12 +295,8 @@ export default function DashboardClient() {
           setBanks(nextBanks);
         }
 
-        setDeposits(nextDeposits);
         setSampleDataActive(false);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
-        }
-        setHasSavedToBrowser(true);
+        persistDeposits(nextDeposits);
         setImportMessage(`Imported ${nextDeposits.length} deposits.`);
       } catch {
         setImportMessage("Import failed: invalid JSON.");
@@ -363,11 +362,7 @@ export default function DashboardClient() {
 
   function handleDelete(id: string) {
     const nextDeposits = deposits.filter((item) => item.id !== id);
-    setDeposits(nextDeposits);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
-    }
-    setHasSavedToBrowser(true);
+    persistDeposits(nextDeposits);
   }
 
   function handleMarkMatured(id: string) {
@@ -376,11 +371,7 @@ export default function DashboardClient() {
       if (item.status === "settled") return item;
       return { ...item, status: "settled" as const };
     });
-    setDeposits(nextDeposits);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(DEPOSITS_STORAGE_KEY, JSON.stringify(nextDeposits));
-    }
-    setHasSavedToBrowser(true);
+    persistDeposits(nextDeposits);
   }
 
   const showSampleBanner = sampleDataActive && !sampleBannerDismissed;
@@ -574,9 +565,7 @@ export default function DashboardClient() {
               onClick={() => {
                 setDeposits([]);
                 setSampleDataActive(false);
-                if (typeof window !== "undefined") {
-                  window.localStorage.removeItem(DEPOSITS_STORAGE_KEY);
-                }
+                clearStoredDeposits();
                 setHasSavedToBrowser(false);
               }}
             >
