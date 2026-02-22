@@ -31,7 +31,7 @@ export default function ConfirmDeleteDialog({ open, onOpenChange, onConfirm }: P
           </Button>
           <Button
             onClick={onConfirm}
-            className="bg-rose-600 text-white transition-colors duration-150 ease-out hover:bg-rose-700 active:bg-rose-800 dark:bg-rose-500 dark:hover:bg-rose-400 dark:active:bg-rose-300"
+            className="bg-danger-solid hover:bg-danger-solid/90 active:bg-danger-solid/80 text-white transition-colors duration-150 ease-out"
           >
             Delete
           </Button>

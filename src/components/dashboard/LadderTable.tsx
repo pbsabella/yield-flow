@@ -231,7 +231,7 @@ export default function LadderTable({
                         >
                           {summary.deposit.name}
                         </TableCell>
-                        <TableCell className="text-sky-700 dark:text-sky-400">
+                        <TableCell className="text-bank-name">
                           {summary.bank.name}
                         </TableCell>
                         <TableCell className="font-financial">
@@ -250,7 +250,7 @@ export default function LadderTable({
                         </TableCell>
                         <TableCell>
                           {summary.deposit.isOpenEnded ? (
-                            <span className="text-muted-foreground inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold">
+                            <span className="text-muted-foreground text-badge inline-flex items-center rounded-full px-2 py-1 font-semibold">
                               —
                             </span>
                           ) : (
@@ -295,7 +295,7 @@ export default function LadderTable({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="justify-start hover:bg-[var(--color-interactive-hover-bg)] active:bg-[var(--color-interactive-active-bg)]"
+                                    className="hover:bg-interactive-hover active:bg-interactive-active justify-start"
                                     onClick={() => onEdit(summary.deposit.id)}
                                   >
                                     <Pencil className="h-4 w-4" />
@@ -382,9 +382,7 @@ export default function LadderTable({
               >
                 <div>
                   <p className="text-sm font-semibold">{summary.deposit.name}</p>
-                  <p className="text-xs text-sky-700 dark:text-sky-400">
-                    {summary.bank.name}
-                  </p>
+                  <p className="text-bank-name text-xs">{summary.bank.name}</p>
                 </div>
                 <div className="flex items-start gap-2">
                   {isDue && isMatured ? (
@@ -469,7 +467,7 @@ export default function LadderTable({
                 <div className="flex items-center justify-between">
                   <span>Days to maturity</span>
                   {summary.deposit.isOpenEnded ? (
-                    <span className="text-muted-foreground inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold">
+                    <span className="text-muted-foreground text-badge inline-flex items-center rounded-full px-2 py-1 font-semibold">
                       —
                     </span>
                   ) : (

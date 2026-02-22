@@ -72,14 +72,14 @@ export default function MonthlyFlow({
                         {formatPhpCurrency(item.net)}
                       </p>
                       {isCurrentMonth ? (
-                        <div className="mt-2 flex flex-wrap justify-end gap-2 text-[11px] font-semibold">
+                        <div className="text-badge mt-2 flex flex-wrap justify-end gap-2 font-semibold">
                           {pendingNet > 0 ? (
-                            <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/20">
+                            <span className="bg-status-warning text-status-warning-fg ring-status-warning-border inline-flex items-center rounded-full px-2 py-1 ring-1">
                               {formatPhpCurrency(pendingNet)} pending
                             </span>
                           ) : null}
                           {settledNet > 0 ? (
-                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+                            <span className="bg-status-success text-status-success-fg ring-status-success-border inline-flex items-center rounded-full px-2 py-1 ring-1">
                               {formatPhpCurrency(settledNet)} settled
                             </span>
                           ) : null}

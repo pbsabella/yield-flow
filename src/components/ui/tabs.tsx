@@ -29,7 +29,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground active:bg-interactive-selected rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors duration-150 ease-out hover:bg-indigo-500/10 hover:text-indigo-700 focus-visible:ring-2 active:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent data-[state=active]:border-indigo-300/80 data-[state=active]:bg-indigo-500/16 data-[state=active]:text-indigo-700 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-200 dark:active:bg-indigo-500/30 dark:active:text-indigo-100 dark:data-[state=active]:border-indigo-500/50 dark:data-[state=active]:bg-indigo-500/24 dark:data-[state=active]:text-indigo-200",
+      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground hover:bg-interactive-hover active:bg-interactive-active data-[state=active]:border-interactive-selected-border data-[state=active]:bg-interactive-selected data-[state=active]:text-income-net rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2 active:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent dark:hover:text-indigo-200 dark:active:text-indigo-100",
       className,
     )}
     {...props}

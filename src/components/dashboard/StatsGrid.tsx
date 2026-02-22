@@ -37,12 +37,12 @@ export default function StatsGrid({
         {currentMonthIncomePending > 0 || currentMonthIncomeSettled > 0 ? (
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             {currentMonthIncomePending > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/20">
+              <span className="bg-status-warning text-status-warning-fg ring-status-warning-border inline-flex items-center rounded-full px-2.5 py-1 ring-1">
                 {formatPhpCurrency(currentMonthIncomePending)} pending
               </span>
             ) : null}
             {currentMonthIncomeSettled > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+              <span className="bg-status-success text-status-success-fg ring-status-success-border inline-flex items-center rounded-full px-2.5 py-1 ring-1">
                 {formatPhpCurrency(currentMonthIncomeSettled)} settled
               </span>
             ) : null}
@@ -59,7 +59,7 @@ export default function StatsGrid({
             <p className="text-muted mt-1 text-xs">
               {nextMaturity.deposit.name} · {nextMaturity.bank.name}
             </p>
-            <p className="font-financial mt-2 text-base font-semibold text-sky-700 dark:text-sky-400">
+            <p className="font-financial text-bank-name mt-2 text-base font-semibold">
               {formatPhpCurrency(nextMaturity.netTotal)} net proceeds
             </p>
           </>

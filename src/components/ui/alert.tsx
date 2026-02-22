@@ -9,9 +9,8 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "border-subtle bg-surface text-primary",
-        info: "bg-sample-banner border text-indigo-900 dark:text-indigo-100",
-        warning:
-          "border-amber-200 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-400/10 dark:text-amber-100",
+        info: "bg-status-info border-status-info text-status-info-fg",
+        warning: "border-status-warning bg-status-warning text-status-warning-fg",
       },
     },
     defaultVariants: {

@@ -485,7 +485,7 @@ export default function DashboardClient() {
                   <label className="border-subtle bg-surface text-muted mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
                     <input
                       type="checkbox"
-                      className="accent-indigo-600"
+                      className="accent-primary"
                       checked={showMatured}
                       onChange={(event) => setShowMatured(event.target.checked)}
                     />
@@ -591,7 +591,7 @@ export default function DashboardClient() {
         <span>© {new Date().getFullYear()} </span>
         <a
           href="https://pbsabella.github.io/"
-          className="focus-visible:ring-primary/60 text-indigo-600 underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 dark:active:text-indigo-200"
+          className="focus-visible:ring-primary/60 text-income-net underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:hover:text-indigo-300 dark:active:text-indigo-200"
           target="_blank"
           rel="noreferrer"
         >

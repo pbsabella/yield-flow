@@ -320,12 +320,72 @@
     background: var(--color-status-warning-bg);
   }
 
+  .bg-status-warning {
+    background: var(--color-status-warning-bg);
+  }
+
   .text-warning {
+    color: var(--color-status-warning-fg);
+  }
+
+  .text-status-warning-fg {
     color: var(--color-status-warning-fg);
   }
 
   .border-warning {
     border-color: var(--color-status-warning-border);
+  }
+
+  .border-status-warning {
+    border-color: var(--color-status-warning-border);
+  }
+
+  .ring-status-warning-border {
+    --tw-ring-color: var(--color-status-warning-border);
+  }
+
+  .bg-status-success {
+    background: var(--color-status-success-bg);
+  }
+
+  .text-status-success-fg {
+    color: var(--color-status-success-fg);
+  }
+
+  .ring-status-success-border {
+    --tw-ring-color: var(--color-status-success-border);
+  }
+
+  .bg-status-info {
+    background: var(--color-status-info-bg);
+  }
+
+  .border-status-info {
+    border-color: var(--color-status-info-border);
+  }
+
+  .text-status-info-fg {
+    color: var(--color-status-info-fg);
+  }
+
+  .text-danger-fg {
+    color: var(--color-danger-fg);
+  }
+
+  .border-danger-border {
+    border-color: var(--color-danger-border);
+  }
+
+  .bg-danger-solid {
+    background: var(--color-danger-bg);
+  }
+
+  .text-bank-name {
+    color: var(--color-bank-name-fg);
+  }
+
+  .border-interactive-selected-border {
+    border-color: var(--color-interactive-selected-border);
   }
 
   .text-income-net {
@@ -420,18 +480,18 @@
   }
 
   .status-pill {
-    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+    @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
   }
 
   .status-pill-neutral {
-    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+    @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
     background: var(--color-surface-soft);
     border-color: hsl(var(--border));
     color: hsl(var(--muted-foreground));
   }
 
   .status-pill-overdue {
-    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold;
+    @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
     background: var(--color-status-overdue-bg);
     border-color: var(--color-status-overdue-border);
     color: var(--color-status-overdue-fg);

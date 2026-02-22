@@ -96,7 +96,7 @@ function defaultTierInputs(rate: string) {
 function RequiredIndicator() {
   return (
     <>
-      <span className="text-rose-600 dark:text-rose-300" aria-hidden>
+      <span className="text-danger-fg" aria-hidden>
         *
       </span>
       <span className="sr-only"> required</span>
@@ -675,7 +675,7 @@ export default function DepositFormDialog({
   const livePreviewCard = (
     <aside className="bg-surface border-subtle sticky top-0 rounded-xl border p-5 lg:top-6">
       <div className="text-secondary-foreground flex items-center gap-2 text-sm font-semibold">
-        <Calculator className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+        <Calculator className="text-income-net h-4 w-4" />
         Live calculation preview
       </div>
       {!previewSummary ? (
@@ -698,10 +698,8 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="flex items-center justify-between rounded-sm bg-indigo-50 px-3 py-2 dark:bg-indigo-500/10">
-            <span className="font-medium text-indigo-900 dark:text-indigo-200">
-              Net interest
-            </span>
+          <div className="bg-status-info flex items-center justify-between rounded-sm px-3 py-2">
+            <span className="text-status-info-fg font-medium">Net interest</span>
             <span className="text-income-net font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}
             </span>
@@ -748,7 +746,7 @@ export default function DepositFormDialog({
         {[1, 2, 3].map((index) => (
           <div key={index} className="flex items-center gap-2">
             <span
-              className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold ${
+              className={`text-badge inline-flex h-6 w-6 items-center justify-center rounded-full border font-semibold ${
                 step >= index
                   ? "border-indigo-600 bg-indigo-600 text-white"
                   : "border-border bg-surface text-muted-foreground"
@@ -897,7 +895,7 @@ export default function DepositFormDialog({
                       >
                         <span>{isCustom ? "+ Add custom bank" : option.label}</span>
                         {!isCustom && bank ? (
-                          <span className="text-muted-foreground text-[11px]">
+                          <span className="text-muted-foreground text-badge">
                             {bank.pdicMember === false ? "No PDIC" : "PDIC"}
                           </span>
                         ) : null}
@@ -909,7 +907,7 @@ export default function DepositFormDialog({
             </div>
           ) : null}
         </div>
-        <p id="error-bank" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+        <p id="error-bank" className="text-danger-fg min-h-5 text-xs">
           {errors.bankId ?? ""}
         </p>
       </div>
@@ -926,7 +924,7 @@ export default function DepositFormDialog({
               value={customBankName}
               onChange={(event) => setCustomBankName(event.target.value)}
             />
-            <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+            <p className="text-danger-fg min-h-4 text-xs">
               {customBankErrors.name ?? ""}
             </p>
           </div>
@@ -941,14 +939,14 @@ export default function DepositFormDialog({
                 setCustomBankTaxRate(normalizeNumericInput(event.target.value, 2))
               }
             />
-            <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+            <p className="text-danger-fg min-h-4 text-xs">
               {customBankErrors.taxRate ?? ""}
             </p>
           </div>
           <label className="inline-flex items-center gap-2 text-sm">
             <input
               type="checkbox"
-              className="accent-indigo-600"
+              className="accent-primary"
               checked={customBankPdicMember}
               onChange={(event) => setCustomBankPdicMember(event.target.checked)}
             />
@@ -1054,9 +1052,7 @@ export default function DepositFormDialog({
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-          <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
-            {errors.productType ?? ""}
-          </p>
+          <p className="text-danger-fg min-h-5 text-xs">{errors.productType ?? ""}</p>
         </div>
       ) : null}
 
@@ -1095,7 +1091,7 @@ export default function DepositFormDialog({
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "error-name" : undefined}
         />
-        <p id="error-name" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+        <p id="error-name" className="text-danger-fg min-h-5 text-xs">
           {errors.name ?? ""}
         </p>
       </div>
@@ -1134,10 +1130,7 @@ export default function DepositFormDialog({
           aria-invalid={Boolean(errors.principal)}
           aria-describedby={errors.principal ? "error-principal" : undefined}
         />
-        <p
-          id="error-principal"
-          className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
-        >
+        <p id="error-principal" className="text-danger-fg min-h-5 text-xs">
           {errors.principal ?? ""}
         </p>
       </div>
@@ -1161,13 +1154,9 @@ export default function DepositFormDialog({
             setDraftForm(next);
           }}
           onBlur={() => updateFieldError("startDate", draftForm)}
-          className={
-            errors.startDate ? "border-rose-600 dark:border-rose-400" : undefined
-          }
+          className={errors.startDate ? "border-danger-border" : undefined}
         />
-        <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
-          {errors.startDate ?? ""}
-        </p>
+        <p className="text-danger-fg min-h-5 text-xs">{errors.startDate ?? ""}</p>
         {warnings.startDate ? (
           <p className="text-xs text-amber-700 dark:text-amber-300">
             {warnings.startDate}
@@ -1179,7 +1168,7 @@ export default function DepositFormDialog({
         <label className="inline-flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            className="accent-indigo-600"
+            className="accent-primary"
             checked={draftForm.isOpenEnded}
             onChange={(event) =>
               setDraftForm({ ...draftForm, isOpenEnded: event.target.checked })
@@ -1269,10 +1258,7 @@ export default function DepositFormDialog({
                   </Button>
                 ))}
               </div>
-              <p
-                id="error-term"
-                className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
-              >
+              <p id="error-term" className="text-danger-fg min-h-5 text-xs">
                 {errors.termMonths ?? ""}
               </p>
             </div>
@@ -1292,13 +1278,9 @@ export default function DepositFormDialog({
                   });
                 }}
                 onBlur={() => updateFieldError("endDate", draftForm)}
-                className={
-                  errors.endDate ? "border-rose-600 dark:border-rose-400" : undefined
-                }
+                className={errors.endDate ? "border-danger-border" : undefined}
               />
-              <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
-                {errors.endDate ?? ""}
-              </p>
+              <p className="text-danger-fg min-h-5 text-xs">{errors.endDate ?? ""}</p>
             </div>
           )}
         </>
@@ -1346,10 +1328,7 @@ export default function DepositFormDialog({
                 {warnings.rate}
               </p>
             ) : null}
-            <p
-              id="error-rate"
-              className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
-            >
+            <p id="error-rate" className="text-danger-fg min-h-5 text-xs">
               {errors.rate ?? ""}
             </p>
           </>
@@ -1434,7 +1413,7 @@ export default function DepositFormDialog({
                         />
                       </div>
                     )}
-                    <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+                    <p className="text-danger-fg min-h-4 text-xs">
                       {errors[`tier-${tier.id}-upTo`] ?? ""}
                     </p>
                   </div>
@@ -1471,7 +1450,7 @@ export default function DepositFormDialog({
                         %
                       </span>
                     </div>
-                    <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+                    <p className="text-danger-fg min-h-4 text-xs">
                       {errors[`tier-${tier.id}-rate`] ?? ""}
                     </p>
                   </div>
@@ -1530,7 +1509,7 @@ export default function DepositFormDialog({
         <label className="inline-flex items-center gap-2">
           <input
             type="checkbox"
-            className="accent-indigo-600"
+            className="accent-primary"
             checked={draftForm.tieredEnabled}
             onChange={(event) => {
               if (event.target.checked) {
@@ -1626,7 +1605,7 @@ export default function DepositFormDialog({
         <p id="tax-help" className="text-muted-foreground text-xs">
           Standard PH rate is 20%
         </p>
-        <p id="error-tax" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+        <p id="error-tax" className="text-danger-fg min-h-5 text-xs">
           {errors.taxRate ?? ""}
         </p>
       </div>
@@ -1668,7 +1647,7 @@ export default function DepositFormDialog({
       </div>
 
       {previewSummary ? (
-        <div className="space-y-2 rounded-sm border border-indigo-300/60 bg-indigo-50/60 p-4 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+        <div className="border-status-info bg-status-info space-y-2 rounded-sm border p-4 text-sm">
           <div className="flex items-center justify-between">
             <span>Gross interest</span>
             <span className="font-financial">
@@ -1752,7 +1731,7 @@ export default function DepositFormDialog({
                   </Button>
                   <Button
                     size="sm"
-                    className="bg-rose-600 text-white transition-colors duration-150 ease-out hover:bg-rose-700 active:bg-rose-800 dark:bg-rose-500 dark:hover:bg-rose-400 dark:active:bg-rose-300"
+                    className="bg-danger-solid hover:bg-danger-solid/90 active:bg-danger-solid/80 text-white transition-colors duration-150 ease-out"
                     onClick={() => {
                       setDiscardPromptOpen(false);
                       onValidate({});
