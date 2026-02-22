@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  CalendarDays,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Calculator,
+  Check,
   Landmark,
-  LineChart,
-  SlidersHorizontal,
-  TrendingUp,
+  Plus,
+  Trash2,
+  TriangleAlert,
 } from "lucide-react";
 
 import {
@@ -21,20 +25,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import DatePicker from "@/components/dashboard/DatePicker";
-import type { Bank, TimeDeposit } from "@/lib/types";
-import { buildDepositSummary } from "@/lib/domain/interest";
-import { formatDate } from "@/lib/domain/date";
-import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
+import type {
+  DepositFormErrors,
+  DepositFormState,
+  DepositFormWarnings,
+  ProductType,
+  TierInput,
+} from "@/components/dashboard/types";
 import {
+  buildWarnings,
+  convertEndDateToTermMonths,
+  convertTermMonthsToEndDate,
   decimalToPercentString,
+  ensureFinalUnlimitedTier,
+  formatCurrencyInput,
+  labelToMonthYear,
   normalizeNumericInput,
+  parseTierInputs,
   percentToDecimalString,
+  productTypeLabel,
   toNumber,
+  unformatCurrencyInput,
   validateDeposit,
 } from "@/components/dashboard/utils";
+import type { Bank, InterestTier, TimeDeposit } from "@/lib/types";
+import { buildDepositSummary } from "@/lib/domain/interest";
+import { formatDate, toISODate } from "@/lib/domain/date";
+import { getBankProducts, type BankProduct } from "@/lib/banks-config";
+import { useMediaQuery } from "@/lib/state/useMediaQuery";
 
 const currency = "PHP";
+
+type ProductOption = {
+  productType: ProductType;
+  template?: BankProduct;
+};
+
+type PendingSelectionChange = {
+  nextForm: DepositFormState;
+  message: string;
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-PH", {
@@ -52,23 +84,36 @@ function toBankId(name: string) {
     .replace(/(^-|-$)+/g, "");
 }
 
-type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  trigger: React.ReactNode;
-  title: string;
-  banks: Bank[];
-  form: DepositFormState;
-  errors: DepositFormErrors;
-  onValidate: (next: DepositFormErrors) => void;
-  onSubmit: (nextForm: DepositFormState) => void;
-  onReset: () => void;
-};
+function getSuggestedName(bankName: string, productType: ProductType | "") {
+  if (!bankName || !productType) return "";
+  const suffix =
+    productType === "td-maturity"
+      ? "TD"
+      : productType === "td-monthly"
+        ? "TD Monthly"
+        : "Savings";
+  return `${bankName} - ${suffix}`;
+}
 
-const percentInputClass =
-  "h-12 w-full rounded-lg border border-border bg-card px-4 py-3 pr-8 text-sm";
+function defaultTierInputs(rate: string) {
+  return ensureFinalUnlimitedTier([
+    { id: "tier-1", upTo: "1000000", rate },
+    { id: "tier-2", upTo: "", rate },
+  ]);
+}
 
-function useDebouncedValue<T>(value: T, delay = 250) {
+function RequiredIndicator() {
+  return (
+    <>
+      <span className="text-rose-600 dark:text-rose-300" aria-hidden>
+        *
+      </span>
+      <span className="sr-only"> required</span>
+    </>
+  );
+}
+
+function useDebouncedValue<T>(value: T, delay = 300) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
@@ -79,95 +124,297 @@ function useDebouncedValue<T>(value: T, delay = 250) {
   return debouncedValue;
 }
 
+function normalizeComparableForm(form: DepositFormState) {
+  return {
+    ...form,
+    principal: unformatCurrencyInput(form.principal),
+    tiers: ensureFinalUnlimitedTier(form.tiers).map((tier) => ({
+      upTo: tier.upTo,
+      rate: tier.rate,
+    })),
+  };
+}
+
+function getProductOptions(bankId: string): ProductOption[] {
+  if (!bankId) return [];
+  const templates = getBankProducts(bankId);
+  if (templates.length === 0) {
+    return [
+      { productType: "td-maturity" },
+      { productType: "td-monthly" },
+      { productType: "savings" },
+    ];
+  }
+
+  const byType = new Map<ProductType, BankProduct>();
+  for (const item of templates) {
+    if (!byType.has(item.productType)) {
+      byType.set(item.productType, item);
+    }
+  }
+
+  return [...byType.entries()].map(([productType, template]) => ({
+    productType,
+    template,
+  }));
+}
+
+function createFormWithBankReset(
+  base: DepositFormState,
+  bankId: string,
+  bankName: string,
+) {
+  return {
+    ...base,
+    bankId,
+    bankName,
+    productId: "",
+    productType: "" as const,
+    isOpenEnded: false,
+    termMonths: "",
+    endDate: "",
+    rate: "",
+    tieredEnabled: false,
+    tiers: defaultTierInputs(base.rate || ""),
+    lastUpdated: undefined,
+    notes: undefined,
+  };
+}
+
+function applyProductDefaults(
+  base: DepositFormState,
+  option: ProductOption,
+): DepositFormState {
+  const template = option.template;
+  const isSavings = option.productType === "savings";
+  const rate = template ? String(template.defaultRate) : base.rate || "";
+  const taxRate = template ? String(template.defaultTaxRate) : base.taxRate || "0.2";
+  const compounding = template
+    ? template.defaultCompounding
+    : isSavings
+      ? "daily"
+      : "monthly";
+  const payoutFrequency = template
+    ? template.defaultPayoutFrequency
+    : option.productType === "td-maturity"
+      ? "maturity"
+      : "monthly";
+
+  const tiers: TierInput[] = template?.defaultTiers
+    ? ensureFinalUnlimitedTier(
+        template.defaultTiers.map((tier, index) => ({
+          id: `tier-${index + 1}`,
+          upTo: tier.upTo === null ? "" : String(tier.upTo),
+          rate: String(tier.rate),
+        })),
+      )
+    : defaultTierInputs(rate);
+
+  const nextTermMonths = isSavings
+    ? base.termMonths || "12"
+    : String(template?.defaultTermMonths ?? (base.termMonths || "6"));
+
+  const next: DepositFormState = {
+    ...base,
+    productType: option.productType,
+    productId: template?.id ?? `${base.bankId}-${option.productType}`,
+    isOpenEnded: isSavings,
+    termMonths: nextTermMonths,
+    endDate: convertTermMonthsToEndDate(base.startDate, nextTermMonths),
+    payoutFrequency,
+    compounding,
+    taxRate,
+    rate,
+    dayCountConvention: template?.dayCountConvention ?? 365,
+    tieredEnabled: Boolean(template?.isTiered),
+    tiers,
+    lastUpdated: template?.lastUpdated,
+    notes: template?.notes,
+  };
+
+  if (!next.name.trim()) {
+    next.name = getSuggestedName(next.bankName, next.productType);
+  }
+
+  return next;
+}
+
+function buildTierBreakdown(principal: number, tiers: InterestTier[]) {
+  const sorted = [...tiers].sort((a, b) => {
+    if (a.upTo === null) return 1;
+    if (b.upTo === null) return -1;
+    return a.upTo - b.upTo;
+  });
+
+  let remaining = principal;
+  let lastThreshold = 0;
+
+  return sorted
+    .map((tier, index) => {
+      const cap = tier.upTo ?? Infinity;
+      const available = Math.max(cap - lastThreshold, 0);
+      const amount = Math.max(0, Math.min(remaining, available));
+      remaining -= amount;
+      lastThreshold = cap;
+      return {
+        id: `tier-breakdown-${index}`,
+        label: tier.upTo === null ? "Final tier" : `Up to ${formatCurrency(tier.upTo)}`,
+        amount,
+        rate: tier.rate,
+      };
+    })
+    .filter((tier) => tier.amount > 0);
+}
+
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  trigger: React.ReactNode;
+  title: string;
+  banks: Bank[];
+  deposits: TimeDeposit[];
+  form: DepositFormState;
+  errors: DepositFormErrors;
+  onValidate: (next: DepositFormErrors) => void;
+  onSubmit: (nextForm: DepositFormState) => void;
+  isEditMode: boolean;
+};
+
 export default function DepositFormDialog({
   open,
   onOpenChange,
   trigger,
   title,
   banks,
+  deposits,
   form,
   errors,
   onValidate,
   onSubmit,
-  onReset,
+  isEditMode,
 }: Props) {
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [step, setStep] = useState<1 | 2 | 3>(isEditMode ? 2 : 1);
   const [draftForm, setDraftForm] = useState<DepositFormState>(form);
-  const debouncedForm = useDebouncedValue(draftForm, 300);
-  const isSaveDisabled =
-    !draftForm.bankName.trim() ||
-    !draftForm.name.trim() ||
-    !draftForm.startDate ||
-    toNumber(draftForm.principal) <= 0 ||
-    toNumber(draftForm.termMonths) <= 0 ||
-    toNumber(draftForm.taxRate) < 0 ||
-    toNumber(draftForm.taxRate) > 1 ||
-    (draftForm.interestMode === "simple"
-      ? toNumber(draftForm.flatRate) <= 0
-      : toNumber(draftForm.tier1Rate) <= 0 || toNumber(draftForm.tier2Rate) <= 0);
-
-  const previewSummary = useMemo(() => {
-    const previewDeposit: TimeDeposit = {
-      id: "preview",
-      bankId: debouncedForm.bankId,
-      name: debouncedForm.name || "New investment",
-      principal: toNumber(debouncedForm.principal),
-      startDate: debouncedForm.startDate || "1970-01-01",
-      termMonths: Math.max(0.1, toNumber(debouncedForm.termMonths)),
-      interestMode: debouncedForm.interestMode,
-      flatRate: toNumber(debouncedForm.flatRate),
-      compounding: debouncedForm.compounding,
-      taxRateOverride: toNumber(debouncedForm.taxRate),
-      tiers: [
-        {
-          upTo: toNumber(debouncedForm.tier1Cap) || null,
-          rate: toNumber(debouncedForm.tier1Rate),
-        },
-        {
-          upTo: null,
-          rate: toNumber(debouncedForm.tier2Rate) || toNumber(debouncedForm.tier1Rate),
-        },
-      ],
-      payoutFrequency: debouncedForm.payoutFrequency,
-    };
-
-    return buildDepositSummary(
-      previewDeposit,
-      banks.find((bank) => bank.id === debouncedForm.bankId) ?? banks[0],
-    );
-  }, [banks, debouncedForm]);
+  const [baselineForm, setBaselineForm] = useState<DepositFormState | null>(null);
+  const [confirmedSelection, setConfirmedSelection] = useState({
+    bankId: form.bankId,
+    productType: form.productType,
+  });
 
   const [bankOpen, setBankOpen] = useState(false);
   const [bankActiveIndex, setBankActiveIndex] = useState(0);
+  const [customBankOpen, setCustomBankOpen] = useState(false);
+  const [customBankName, setCustomBankName] = useState("");
+  const [customBankTaxRate, setCustomBankTaxRate] = useState("20");
+  const [customBankPdicMember, setCustomBankPdicMember] = useState(false);
+  const [customBankErrors, setCustomBankErrors] = useState<{
+    name?: string;
+    taxRate?: string;
+  }>({});
+  const [customBanks, setCustomBanks] = useState<Bank[]>([]);
+
+  const [pendingSelectionChange, setPendingSelectionChange] =
+    useState<PendingSelectionChange | null>(null);
+  const [mobilePreviewExpanded, setMobilePreviewExpanded] = useState(false);
+  const [discardPromptOpen, setDiscardPromptOpen] = useState(false);
+
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const listboxRef = useRef<HTMLDivElement | null>(null);
+  const debouncedForm = useDebouncedValue(draftForm, 300);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const today = toISODate(new Date());
+    const normalized = {
+      ...form,
+      startDate: form.startDate || today,
+      principal: form.principal || "",
+      tiers: ensureFinalUnlimitedTier(
+        form.tiers.length ? form.tiers : defaultTierInputs(form.rate || ""),
+      ),
+    };
+
+    const handle = window.setTimeout(() => {
+      setDraftForm(normalized);
+      setBaselineForm(normalized);
+      setConfirmedSelection({
+        bankId: normalized.bankId,
+        productType: normalized.productType,
+      });
+      setStep(isEditMode ? 2 : 1);
+      setPendingSelectionChange(null);
+      setMobilePreviewExpanded(false);
+      setDiscardPromptOpen(false);
+      setCustomBankOpen(false);
+      setCustomBankName("");
+      setCustomBankTaxRate("20");
+      setCustomBankPdicMember(false);
+      setCustomBankErrors({});
+    }, 0);
+    return () => window.clearTimeout(handle);
+  }, [form, isEditMode, open]);
+
+  useEffect(() => {
+    if (open) return;
+    onValidate({});
+  }, [open, onValidate]);
+
+  const availableBanks = useMemo(() => {
+    const map = new Map<string, Bank>();
+    for (const bank of banks) map.set(bank.id, bank);
+    for (const bank of customBanks) map.set(bank.id, bank);
+    return [...map.values()];
+  }, [banks, customBanks]);
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (!baselineForm) return false;
+    return (
+      JSON.stringify(normalizeComparableForm(draftForm)) !==
+      JSON.stringify(normalizeComparableForm(baselineForm))
+    );
+  }, [baselineForm, draftForm]);
+
+  function requestClose() {
+    if (hasUnsavedChanges) {
+      setDiscardPromptOpen(true);
+      return;
+    }
+    onValidate({});
+    onOpenChange(false);
+  }
+
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+    requestClose();
+  }
+
   const bankQuery = draftForm.bankName;
   const normalizedQuery = bankQuery.trim().toLowerCase();
-  const filteredBanks = banks.filter((bank) =>
+  const filteredBanks = availableBanks.filter((bank) =>
     bank.name.toLowerCase().includes(normalizedQuery),
   );
-  const hasExactMatch = banks.some((bank) => bank.name.toLowerCase() === normalizedQuery);
-  const canCreate = normalizedQuery.length > 0 && !hasExactMatch;
-  const options = [
-    ...filteredBanks.map((bank) => ({
-      id: bank.id,
-      label: bank.name,
-      isCreate: false,
-    })),
-    ...(canCreate ? [{ id: "__create__", label: bankQuery.trim(), isCreate: true }] : []),
+  const bankOptions = [
+    ...filteredBanks.map((bank) => ({ id: bank.id, label: bank.name })),
   ];
+  bankOptions.push({ id: "__custom__", label: "Add custom bank" });
 
   const safeBankActiveIndex =
-    options.length === 0 ? 0 : Math.min(bankActiveIndex, options.length - 1);
+    bankOptions.length === 0 ? 0 : Math.min(bankActiveIndex, bankOptions.length - 1);
 
   useEffect(() => {
     const node = optionRefs.current[safeBankActiveIndex];
     if (node) node.scrollIntoView({ block: "nearest" });
   }, [safeBankActiveIndex]);
 
-  useEffect(() => {
-    if (open) return;
-    onValidate({});
-  }, [open, onValidate]);
+  const productOptions = useMemo(() => {
+    if (!draftForm.bankId || customBankOpen) return [];
+    return getProductOptions(draftForm.bankId);
+  }, [customBankOpen, draftForm.bankId]);
 
   function updateFieldError(field: keyof DepositFormErrors, nextForm: DepositFormState) {
     const nextErrors = validateDeposit(nextForm);
@@ -180,818 +427,1420 @@ export default function DepositFormDialog({
     onValidate(merged);
   }
 
-  const FormFields = (
-    <div className="space-y-8">
-      <div className="space-y-5">
-        <div className="text-secondary flex items-center gap-2 text-sm font-semibold">
-          <Landmark className="h-4 w-4 text-sky-700 dark:text-sky-400" />
-          The Asset
+  function applyOrQueueSelectionChange(nextForm: DepositFormState, message: string) {
+    if (!isEditMode) {
+      setDraftForm(nextForm);
+      return;
+    }
+
+    const isChanged =
+      nextForm.bankId !== confirmedSelection.bankId ||
+      nextForm.productType !== confirmedSelection.productType;
+
+    if (!isChanged) {
+      setDraftForm(nextForm);
+      return;
+    }
+
+    setPendingSelectionChange({ nextForm, message });
+  }
+
+  function applyBankSelection(bankId: string, bankName: string) {
+    if (bankId === confirmedSelection.bankId) {
+      setDraftForm((current) => ({ ...current, bankId, bankName }));
+      return;
+    }
+
+    const next = createFormWithBankReset(draftForm, bankId, bankName);
+    applyOrQueueSelectionChange(
+      next,
+      "Changing the bank will reset product and rate fields. Principal and start date will be kept.",
+    );
+  }
+
+  function applyProductSelection(productType: ProductType) {
+    const option = productOptions.find((item) => item.productType === productType);
+    if (!option) return;
+
+    const next = applyProductDefaults(draftForm, option);
+    if (
+      productType === confirmedSelection.productType &&
+      next.bankId === confirmedSelection.bankId
+    ) {
+      setDraftForm(next);
+      return;
+    }
+
+    if (!confirmedSelection.productType) {
+      setDraftForm(next);
+      return;
+    }
+
+    applyOrQueueSelectionChange(
+      next,
+      "Changing the product type will reset rate and term fields. Principal and start date will be kept.",
+    );
+  }
+
+  const bankPrincipalTotal = useMemo(() => {
+    const principal = toNumber(unformatCurrencyInput(draftForm.principal));
+    const existingTotal = deposits
+      .filter(
+        (deposit) => deposit.bankId === draftForm.bankId && deposit.status !== "settled",
+      )
+      .reduce((sum, deposit) => sum + deposit.principal, 0);
+    return existingTotal + principal;
+  }, [deposits, draftForm.bankId, draftForm.principal]);
+
+  const warnings: DepositFormWarnings = useMemo(
+    () => buildWarnings(draftForm, bankPrincipalTotal),
+    [bankPrincipalTotal, draftForm],
+  );
+
+  const hasPreviewData =
+    toNumber(unformatCurrencyInput(debouncedForm.principal)) > 0 &&
+    toNumber(debouncedForm.rate) > 0;
+
+  const previewSummary = useMemo(() => {
+    if (!hasPreviewData) return null;
+
+    const principal = toNumber(unformatCurrencyInput(debouncedForm.principal));
+    const tiers = debouncedForm.tieredEnabled
+      ? parseTierInputs(debouncedForm.tiers)
+      : [{ upTo: null, rate: toNumber(debouncedForm.rate) }];
+
+    const previewDeposit: TimeDeposit = {
+      id: "preview",
+      bankId: debouncedForm.bankId || "preview-bank",
+      name: debouncedForm.name || "New investment",
+      principal,
+      startDate: debouncedForm.startDate || toISODate(new Date()),
+      termMonths: Math.max(0.1, toNumber(debouncedForm.termMonths || "12")),
+      interestMode: debouncedForm.tieredEnabled ? "tiered" : "simple",
+      interestTreatment:
+        debouncedForm.payoutFrequency === "monthly" ? "payout" : "reinvest",
+      compounding: debouncedForm.compounding,
+      taxRateOverride: toNumber(debouncedForm.taxRate),
+      flatRate: toNumber(debouncedForm.rate),
+      tiers,
+      payoutFrequency: debouncedForm.isOpenEnded
+        ? "monthly"
+        : debouncedForm.payoutFrequency,
+      dayCountConvention: debouncedForm.dayCountConvention,
+      isOpenEnded: debouncedForm.isOpenEnded,
+    };
+
+    const bank =
+      availableBanks.find((item) => item.id === previewDeposit.bankId) ??
+      ({
+        id: previewDeposit.bankId,
+        name: debouncedForm.bankName || "Custom bank",
+        taxRate: 0.2,
+      } as Bank);
+
+    return buildDepositSummary(previewDeposit, bank);
+  }, [availableBanks, debouncedForm, hasPreviewData]);
+
+  const previewTierBreakdown = useMemo(() => {
+    if (!debouncedForm.tieredEnabled) return [];
+    const principal = toNumber(unformatCurrencyInput(debouncedForm.principal));
+    if (principal <= 0) return [];
+    return buildTierBreakdown(principal, parseTierInputs(debouncedForm.tiers));
+  }, [debouncedForm.principal, debouncedForm.tieredEnabled, debouncedForm.tiers]);
+
+  const monthlyNet = useMemo(() => {
+    if (!previewSummary) return 0;
+    if (debouncedForm.payoutFrequency !== "monthly") return 0;
+    const divisor = Math.max(1, toNumber(debouncedForm.termMonths || "12"));
+    return previewSummary.netInterest / divisor;
+  }, [debouncedForm.payoutFrequency, debouncedForm.termMonths, previewSummary]);
+
+  const showOpenEndedToggle = draftForm.productType === "savings";
+  const showTermFields = draftForm.productType !== "savings" || !draftForm.isOpenEnded;
+  const showPayoutFrequency = draftForm.productType !== "savings";
+
+  function stepOneIsReady() {
+    return Boolean(draftForm.bankId && draftForm.productType);
+  }
+
+  function stepTwoHasRequiredValues() {
+    const hasRateValue = draftForm.tieredEnabled
+      ? draftForm.tiers.some((tier) => Boolean(tier.rate))
+      : Boolean(draftForm.rate);
+    const hasCore =
+      Boolean(draftForm.name.trim()) &&
+      Boolean(unformatCurrencyInput(draftForm.principal)) &&
+      Boolean(draftForm.startDate) &&
+      hasRateValue;
+
+    if (!hasCore) return false;
+    if (!showTermFields) return true;
+    if (draftForm.termInputMode === "months") return Boolean(draftForm.termMonths);
+    return Boolean(draftForm.endDate);
+  }
+
+  function handleNext() {
+    if (step === 1) {
+      if (!stepOneIsReady()) {
+        const nextErrors: DepositFormErrors = {};
+        if (!draftForm.bankId) nextErrors.bankId = "Bank is required.";
+        if (!draftForm.productType) nextErrors.productType = "Product type is required.";
+        onValidate({ ...errors, ...nextErrors });
+        return;
+      }
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      const nextErrors = validateDeposit(draftForm);
+      onValidate(nextErrors);
+      if (Object.keys(nextErrors).length > 0) return;
+      setStep(3);
+    }
+  }
+
+  function resetToBaseline() {
+    if (!baselineForm) return;
+    setDraftForm(baselineForm);
+    onValidate({});
+    setPendingSelectionChange(null);
+    setStep(isEditMode ? 2 : 1);
+  }
+
+  function renderStepSummaries() {
+    if (step === 1) return null;
+
+    return (
+      <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-3 text-xs">
+        <div className="flex items-center justify-between">
+          <p className="text-foreground font-semibold">Step 1 summary</p>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>
+            Change
+          </Button>
         </div>
-        <div className="grid gap-6">
-          <div className="space-y-3 text-sm">
-            <Label htmlFor="bank">
-              Bank <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                id="bank"
-                role="combobox"
-                aria-autocomplete="list"
-                aria-expanded={bankOpen}
-                aria-controls="bank-options"
-                aria-activedescendant={
-                  bankOpen && options.length > 0
-                    ? `bank-option-${safeBankActiveIndex}`
-                    : undefined
-                }
-                aria-invalid={Boolean(errors.bankName)}
-                aria-describedby={errors.bankName ? "error-bank" : undefined}
-                value={bankQuery}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setBankActiveIndex(0);
-                  const nextForm = {
-                    ...draftForm,
-                    bankName: next,
-                    bankId: toBankId(next),
-                  };
-                  setDraftForm(nextForm);
-                  if (!bankOpen) setBankOpen(true);
-                }}
-                onFocus={() => {
-                  setBankOpen(true);
-                  setBankActiveIndex(0);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Tab") {
-                    setBankOpen(false);
-                    return;
-                  }
-                  if (event.key === "Escape") {
-                    setBankOpen(false);
-                    return;
-                  }
-                  if (event.key === "Home") {
-                    event.preventDefault();
-                    if (!bankOpen) setBankOpen(true);
-                    setBankActiveIndex(0);
-                    requestAnimationFrame(() => {
-                      optionRefs.current[0]?.focus();
-                    });
-                    return;
-                  }
-                  if (event.key === "End") {
-                    event.preventDefault();
-                    if (!bankOpen) setBankOpen(true);
-                    const lastIndex = Math.max(options.length - 1, 0);
-                    setBankActiveIndex(lastIndex);
-                    requestAnimationFrame(() => {
-                      optionRefs.current[lastIndex]?.focus();
-                    });
-                    return;
-                  }
-                  if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    if (!bankOpen) setBankOpen(true);
-                    setBankActiveIndex((current) => {
-                      const next = Math.min(Math.max(current, 0) + 1, options.length - 1);
-                      requestAnimationFrame(() => {
-                        optionRefs.current[next]?.focus();
-                      });
-                      return next;
-                    });
-                    return;
-                  }
-                  if (event.key === "ArrowUp") {
-                    event.preventDefault();
-                    if (!bankOpen) setBankOpen(true);
-                    setBankActiveIndex((current) => {
-                      const next = Math.max(Math.max(current, 0) - 1, 0);
-                      requestAnimationFrame(() => {
-                        optionRefs.current[next]?.focus();
-                      });
-                      return next;
-                    });
-                    return;
-                  }
-                  if (event.key === "Enter" && options.length > 0) {
-                    event.preventDefault();
-                    const selected = options[safeBankActiveIndex];
-                    if (!selected) return;
-                    if (selected.isCreate) {
-                      const name = selected.label;
-                      setDraftForm({
-                        ...draftForm,
-                        bankName: name,
-                        bankId: toBankId(name),
-                      });
-                    } else {
-                      setDraftForm({
-                        ...draftForm,
-                        bankName: selected.label,
-                        bankId: selected.id,
-                      });
-                    }
-                    setBankOpen(false);
-                  }
-                }}
-                onBlur={() => {
-                  window.setTimeout(() => {
-                    const next = document.activeElement;
-                    if (next && listboxRef.current?.contains(next)) return;
-                    setBankOpen(false);
-                  }, 120);
-                  updateFieldError("bankName", draftForm);
-                }}
-                placeholder="Search or type a bank name"
-              />
-              <span className="text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
-                ▼
-              </span>
-              {bankOpen ? (
-                <div
-                  id="bank-options"
-                  role="listbox"
-                  ref={listboxRef}
-                  className="border-subtle bg-surface text-primary absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
-                  onMouseDown={(event) => event.preventDefault()}
-                >
-                  {options.length === 0 ? (
-                    <p className="text-muted px-2 py-1 text-xs">No matches.</p>
-                  ) : (
-                    <div className="flex flex-col gap-1">
-                      {options.map((option, index) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          role="option"
-                          tabIndex={safeBankActiveIndex === index ? 0 : -1}
-                          id={`bank-option-${index}`}
-                          aria-selected={safeBankActiveIndex === index}
-                          ref={(node) => {
-                            optionRefs.current[index] = node;
-                          }}
-                          className={`focus-visible:ring-primary/60 active:bg-muted/80 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2 ${
-                            safeBankActiveIndex === index
-                              ? "bg-muted/70 text-foreground"
-                              : "hover:bg-muted/70"
-                          }`}
-                          onKeyDown={(event) => {
-                            if (event.key === "Tab") {
-                              setBankOpen(false);
-                              return;
-                            }
-                            if (event.key === "Escape") {
-                              setBankOpen(false);
-                              return;
-                            }
-                            if (event.key === "ArrowDown") {
-                              event.preventDefault();
-                              const next = Math.min(index + 1, options.length - 1);
-                              setBankActiveIndex(next);
-                              optionRefs.current[next]?.focus();
-                              return;
-                            }
-                            if (event.key === "ArrowUp") {
-                              event.preventDefault();
-                              const next = Math.max(index - 1, 0);
-                              setBankActiveIndex(next);
-                              optionRefs.current[next]?.focus();
-                            }
-                          }}
-                          onClick={() => {
-                            if (option.isCreate) {
-                              const name = option.label;
-                              setDraftForm({
-                                ...draftForm,
-                                bankName: name,
-                                bankId: toBankId(name),
-                              });
-                            } else {
-                              setDraftForm({
-                                ...draftForm,
-                                bankName: option.label,
-                                bankId: option.id,
-                              });
-                            }
-                            setBankOpen(false);
-                          }}
-                        >
-                          {option.isCreate ? `Create "${option.label}"` : option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-            {errors.bankName ? (
-              <p id="error-bank" className="text-xs text-rose-600 dark:text-rose-300">
-                {errors.bankName}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label htmlFor="name">
-              Investment name <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <Input
-              id="name"
-              placeholder="6M Flex"
-              value={draftForm.name}
-              onChange={(event) => {
-                const nextForm = { ...draftForm, name: event.target.value };
-                setDraftForm(nextForm);
-              }}
-              onBlur={() => updateFieldError("name", draftForm)}
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "error-name" : undefined}
-            />
-            {errors.name ? (
-              <p id="error-name" className="text-xs text-rose-600 dark:text-rose-300">
-                {errors.name}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label htmlFor="principal">
-              Principal <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <div className="relative">
-              <span className="text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-                {currency}
-              </span>
-              <Input
-                id="principal"
-                type="number"
-                inputMode="decimal"
-                step="1"
-                min="0"
-                className="pl-12"
-                placeholder="1500000"
-                value={draftForm.principal}
-                onChange={(event) => {
-                  const nextForm = {
-                    ...draftForm,
-                    principal: normalizeNumericInput(event.target.value, 2),
-                  };
-                  setDraftForm(nextForm);
-                }}
-                onBlur={() => updateFieldError("principal", draftForm)}
-                aria-invalid={Boolean(errors.principal)}
-                aria-describedby={errors.principal ? "error-principal" : undefined}
-              />
-            </div>
-            {errors.principal ? (
-              <p
-                id="error-principal"
-                className="text-xs text-rose-600 dark:text-rose-300"
-              >
-                {errors.principal}
-              </p>
-            ) : null}
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground">Bank</span>
+          <span className="font-medium">{draftForm.bankName || "-"}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground">Product</span>
+          <span className="font-medium">
+            {productTypeLabel(draftForm.productType) || "-"}
+          </span>
         </div>
       </div>
+    );
+  }
 
-      <div className="space-y-5">
-        <div className="text-secondary flex items-center gap-2 text-sm font-semibold">
-          <SlidersHorizontal className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
-          Accrual & Payout
-        </div>
-        <div className="grid gap-6">
-          <div className="space-y-3 text-sm">
-            <Label id="calc-mode-label" className="block">
-              Calculation mode <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="calc-mode-label"
-              value={draftForm.interestMode}
-              onValueChange={(value) => {
-                if (!value) return;
-                setDraftForm({
-                  ...draftForm,
-                  interestMode: value as DepositFormState["interestMode"],
-                });
-              }}
-            >
-              <ToggleGroupItem value="simple">Fixed</ToggleGroupItem>
-              <ToggleGroupItem value="tiered">Tiered</ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-muted text-xs">
-              Fixed uses one rate. Tiered splits at the threshold.
-            </p>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label id="term-type-label" className="block">
-              Term type <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="term-type-label"
-              value={draftForm.termType}
-              onValueChange={(value) => {
-                if (!value) return;
-                const nextForm: DepositFormState = {
-                  ...draftForm,
-                  termType: value as DepositFormState["termType"],
-                  payoutFrequency:
-                    value === "open" ? "monthly" : draftForm.payoutFrequency,
-                  interestTreatment:
-                    value === "open" ? "payout" : draftForm.interestTreatment,
-                  tenurePreset: value === "open" ? "open" : draftForm.tenurePreset,
-                  termMonths: value === "open" ? "12" : draftForm.termMonths,
-                };
-                setDraftForm(nextForm);
-              }}
-            >
-              <ToggleGroupItem value="fixed">Fixed term</ToggleGroupItem>
-              <ToggleGroupItem value="open">Open-ended</ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-muted text-xs">
-              Open-ended uses a rolling 12-month projection for forecasts.
-            </p>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label id="tenure-label" className="block">
-              Tenure <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="tenure-label"
-              value={draftForm.tenurePreset}
-              onValueChange={(value) => {
-                if (!value) return;
-                const preset = value as DepositFormState["tenurePreset"];
-                const presetMonths =
-                  preset === "30d"
-                    ? "1"
-                    : preset === "60d"
-                      ? "2"
-                      : preset === "90d"
-                        ? "3"
-                        : preset === "1y"
-                          ? "12"
-                          : draftForm.termMonths;
-                const nextForm: DepositFormState = {
-                  ...draftForm,
-                  tenurePreset: preset,
-                  termMonths: preset === "custom" ? draftForm.termMonths : presetMonths,
-                };
-                setDraftForm(nextForm);
-              }}
-              disabled={draftForm.termType === "open"}
-            >
-              <ToggleGroupItem value="30d">30d</ToggleGroupItem>
-              <ToggleGroupItem value="60d">60d</ToggleGroupItem>
-              <ToggleGroupItem value="90d">90d</ToggleGroupItem>
-              <ToggleGroupItem value="1y">1y</ToggleGroupItem>
-              <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-            </ToggleGroup>
-            {draftForm.tenurePreset === "custom" ? (
-              <div className="mt-3 space-y-2 text-sm">
-                <Label htmlFor="customTenure">
-                  Custom tenure (months){" "}
-                  <span className="text-rose-600 dark:text-rose-300">*</span>
-                </Label>
-                <Input
-                  id="customTenure"
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  min="0.1"
-                  value={draftForm.termMonths}
-                  onChange={(event) => {
-                    const nextForm: DepositFormState = {
-                      ...draftForm,
-                      termMonths: normalizeNumericInput(event.target.value, 2),
-                      tenurePreset: "custom",
-                    };
-                    setDraftForm(nextForm);
-                  }}
-                  onBlur={() => updateFieldError("termMonths", draftForm)}
-                  aria-invalid={Boolean(errors.termMonths)}
-                  aria-describedby={errors.termMonths ? "error-term" : undefined}
-                  placeholder="Months (e.g. 0.5 = 15 days)"
-                  disabled={draftForm.termType === "open"}
-                />
-              </div>
+  const mobileStickyBar =
+    !isDesktop && previewSummary ? (
+      <div className="border-border bg-surface fixed right-0 bottom-0 left-0 z-50 border-t px-4 py-3 shadow-lg">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between text-left"
+          onClick={() => setMobilePreviewExpanded((value) => !value)}
+        >
+          <span className="text-muted-foreground text-xs">
+            Running net interest
+            {!draftForm.isOpenEnded ? (
+              <span className="ml-2">
+                · Matures {formatDate(new Date(previewSummary.maturityDate))}
+              </span>
             ) : null}
-            {errors.termMonths ? (
-              <p id="error-term" className="text-xs text-rose-600 dark:text-rose-300">
-                {errors.termMonths}
-              </p>
-            ) : null}
-          </div>
-
-          {draftForm.interestMode === "simple" ? (
-            <div className="space-y-3 text-sm">
-              <Label htmlFor="flatRate">
-                Annual rate <span className="text-rose-600 dark:text-rose-300">*</span>
-              </Label>
-              <div className="relative">
-                <Input
-                  id="flatRate"
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  min="0"
-                  className={percentInputClass}
-                  value={decimalToPercentString(draftForm.flatRate)}
-                  onChange={(event) => {
-                    const normalizedPercent = normalizeNumericInput(
-                      event.target.value,
-                      6,
-                    );
-                    const nextForm = {
-                      ...draftForm,
-                      flatRate: percentToDecimalString(normalizedPercent),
-                    };
-                    setDraftForm(nextForm);
-                  }}
-                  onBlur={() => updateFieldError("flatRate", draftForm)}
-                  aria-invalid={Boolean(errors.flatRate)}
-                  aria-describedby={errors.flatRate ? "error-flat-rate" : undefined}
-                />
-                <span className="text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
-                  %
-                </span>
-              </div>
-              {errors.flatRate ? (
-                <p
-                  id="error-flat-rate"
-                  className="text-xs text-rose-600 dark:text-rose-300"
-                >
-                  {errors.flatRate}
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3 text-sm">
-                <Label htmlFor="tier1Rate">
-                  Base rate (Tier 1){" "}
-                  <span className="text-rose-600 dark:text-rose-300">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="tier1Rate"
-                    type="number"
-                    inputMode="decimal"
-                    step="0.01"
-                    min="0"
-                    className={percentInputClass}
-                    value={decimalToPercentString(draftForm.tier1Rate)}
-                    onChange={(event) => {
-                      const normalizedPercent = normalizeNumericInput(
-                        event.target.value,
-                        6,
-                      );
-                      const nextForm = {
-                        ...draftForm,
-                        tier1Rate: percentToDecimalString(normalizedPercent),
-                      };
-                      setDraftForm(nextForm);
-                    }}
-                    onBlur={() => updateFieldError("tier1Rate", draftForm)}
-                    aria-invalid={Boolean(errors.tier1Rate)}
-                    aria-describedby={errors.tier1Rate ? "error-tier1-rate" : undefined}
-                  />
-                  <span className="text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
-                    %
-                  </span>
-                </div>
-                {errors.tier1Rate ? (
-                  <p
-                    id="error-tier1-rate"
-                    className="text-xs text-rose-600 dark:text-rose-300"
-                  >
-                    {errors.tier1Rate}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="space-y-3 text-sm">
-                <Label htmlFor="tier1Cap">Threshold</Label>
-                <div className="relative">
-                  <span className="text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-                    {currency}
-                  </span>
-                  <Input
-                    id="tier1Cap"
-                    type="number"
-                    inputMode="decimal"
-                    step="1"
-                    min="0"
-                    className="pl-12"
-                    value={draftForm.tier1Cap}
-                    onChange={(event) => {
-                      const nextForm = {
-                        ...draftForm,
-                        tier1Cap: normalizeNumericInput(event.target.value, 2),
-                      };
-                      setDraftForm(nextForm);
-                    }}
-                    onBlur={() => updateFieldError("tier1Rate", draftForm)}
-                  />
-                </div>
-                <p className="text-muted text-xs">Example: P1,000,000.oo for MariBank.</p>
-              </div>
-
-              <div className="space-y-3 text-sm">
-                <Label htmlFor="tier2Rate">
-                  Secondary rate (Tier 2){" "}
-                  <span className="text-rose-600 dark:text-rose-300">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="tier2Rate"
-                    type="number"
-                    inputMode="decimal"
-                    step="0.01"
-                    min="0"
-                    className={percentInputClass}
-                    value={decimalToPercentString(draftForm.tier2Rate)}
-                    onChange={(event) => {
-                      const normalizedPercent = normalizeNumericInput(
-                        event.target.value,
-                        6,
-                      );
-                      const nextForm = {
-                        ...draftForm,
-                        tier2Rate: percentToDecimalString(normalizedPercent),
-                      };
-                      setDraftForm(nextForm);
-                    }}
-                    onBlur={() => updateFieldError("tier2Rate", draftForm)}
-                    aria-invalid={Boolean(errors.tier2Rate)}
-                    aria-describedby={errors.tier2Rate ? "error-tier2-rate" : undefined}
-                  />
-                  <span className="text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
-                    %
-                  </span>
-                </div>
-                {errors.tier2Rate ? (
-                  <p
-                    id="error-tier2-rate"
-                    className="text-xs text-rose-600 dark:text-rose-300"
-                  >
-                    {errors.tier2Rate}
-                  </p>
-                ) : null}
-              </div>
-            </>
-          )}
-
-          <div className="space-y-3 text-sm">
-            <Label id="accrual-label" className="block">
-              Accrual cadence <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="accrual-label"
-              value={draftForm.compounding}
-              onValueChange={(value) => {
-                if (!value) return;
-                setDraftForm({
-                  ...draftForm,
-                  compounding: value as DepositFormState["compounding"],
-                });
-              }}
-            >
-              <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
-              <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-muted text-xs">
-              Accrual affects growth rate, not cashflow timing.
-            </p>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label id="payout-label" className="block">
-              Cash payout <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="payout-label"
-              value={draftForm.payoutFrequency}
-              onValueChange={(value) => {
-                if (!value) return;
-                const next = value as DepositFormState["payoutFrequency"];
-                setDraftForm({
-                  ...draftForm,
-                  payoutFrequency: next,
-                  interestTreatment:
-                    next === "monthly" ? "payout" : draftForm.interestTreatment,
-                });
-              }}
-              disabled={draftForm.termType === "open"}
-            >
-              <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-              <ToggleGroupItem value="maturity">At maturity</ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-muted text-xs">Cashflow appears only on payout dates.</p>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label id="interest-treatment-label" className="block">
-              Interest treatment{" "}
-              <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <ToggleGroup
-              type="single"
-              aria-labelledby="interest-treatment-label"
-              value={draftForm.interestTreatment}
-              onValueChange={(value) => {
-                if (!value) return;
-                setDraftForm({
-                  ...draftForm,
-                  interestTreatment: value as DepositFormState["interestTreatment"],
-                });
-              }}
-              disabled={
-                draftForm.payoutFrequency === "monthly" || draftForm.termType === "open"
-              }
-            >
-              <ToggleGroupItem value="reinvest">Reinvest (compounding)</ToggleGroupItem>
-              <ToggleGroupItem value="payout">Paid out (no compounding)</ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-muted text-xs">
-              Monthly payout always uses paid-out interest.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-5">
-        <div className="text-secondary flex items-center gap-2 text-sm font-semibold">
-          <CalendarDays className="h-4 w-4 text-amber-500" />
-          The Timeline
-        </div>
-        <div className="grid gap-6">
-          <div className="space-y-3 text-sm">
-            <Label htmlFor="startDate">
-              Start date <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <DatePicker
-              id="startDate"
-              value={draftForm.startDate}
-              onChange={(value) => {
-                const nextForm = { ...draftForm, startDate: value };
-                setDraftForm(nextForm);
-              }}
-              onBlur={() => updateFieldError("startDate", draftForm)}
-              className={
-                errors.startDate ? "border-rose-600 dark:border-rose-400" : undefined
-              }
-            />
-            {errors.startDate ? (
-              <p
-                id="error-start-date"
-                className="text-xs text-rose-600 dark:text-rose-300"
-              >
-                {errors.startDate}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <Label htmlFor="taxRate">
-              Withholding tax <span className="text-rose-600 dark:text-rose-300">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                id="taxRate"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
-                className={percentInputClass}
-                value={decimalToPercentString(draftForm.taxRate)}
-                onChange={(event) => {
-                  const normalizedPercent = normalizeNumericInput(event.target.value, 6);
-                  const nextForm = {
-                    ...draftForm,
-                    taxRate: percentToDecimalString(normalizedPercent),
-                  };
-                  setDraftForm(nextForm);
-                }}
-                onBlur={() => updateFieldError("taxRate", draftForm)}
-                aria-invalid={Boolean(errors.taxRate)}
-                aria-describedby={errors.taxRate ? "error-tax-rate" : undefined}
-              />
-              <span className="text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
-                %
+          </span>
+          <span className="font-financial text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+            {formatCurrency(previewSummary.netInterest)}
+          </span>
+        </button>
+        {mobilePreviewExpanded ? (
+          <div className="border-border mt-3 space-y-2 border-t pt-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Gross interest</span>
+              <span className="font-financial">
+                {formatCurrency(previewSummary.grossInterest)}
               </span>
             </div>
-            {errors.taxRate ? (
-              <p id="error-tax-rate" className="text-xs text-rose-600 dark:text-rose-300">
-                {errors.taxRate}
-              </p>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Tax withheld</span>
+              <span className="font-financial">
+                {formatCurrency(
+                  previewSummary.grossInterest - previewSummary.netInterest,
+                )}
+              </span>
+            </div>
+            {debouncedForm.payoutFrequency === "monthly" ? (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Monthly net</span>
+                <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+              </div>
             ) : null}
           </div>
+        ) : null}
+      </div>
+    ) : null;
+
+  const livePreviewCard = (
+    <aside className="bg-surface sticky top-0 rounded-xl border border-indigo-300/60 p-5 lg:top-6 dark:border-indigo-500/30">
+      <div className="text-secondary-foreground flex items-center gap-2 text-sm font-semibold">
+        <Calculator className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+        Live calculation preview
+      </div>
+      {!previewSummary ? (
+        <p className="text-muted-foreground mt-4 text-sm">
+          Enter principal and rate to see your projection
+        </p>
+      ) : (
+        <div className="mt-4 space-y-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Gross interest</span>
+            <span className="font-financial">
+              {formatCurrency(previewSummary.grossInterest)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Tax withheld</span>
+            <span className="font-financial">
+              {formatCurrency(previewSummary.grossInterest - previewSummary.netInterest)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-500/10">
+            <span className="font-medium text-indigo-900 dark:text-indigo-200">
+              Net interest
+            </span>
+            <span className="font-financial font-semibold text-indigo-800 dark:text-indigo-300">
+              {formatCurrency(previewSummary.netInterest)}
+            </span>
+          </div>
+          {!draftForm.isOpenEnded ? (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Maturity date</span>
+              <span className="font-financial">
+                {formatDate(new Date(previewSummary.maturityDate))}
+              </span>
+            </div>
+          ) : null}
+          {draftForm.payoutFrequency === "monthly" ? (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Monthly net interest</span>
+              <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+            </div>
+          ) : null}
+
+          {previewTierBreakdown.length > 0 ? (
+            <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-3">
+              <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                Tier allocation
+              </p>
+              {previewTierBreakdown.map((tier) => (
+                <div key={tier.id} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {tier.label} · {(tier.rate * 100).toFixed(2)}%
+                  </span>
+                  <span className="font-financial">{formatCurrency(tier.amount)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
+      )}
+    </aside>
+  );
+
+  const StepHeader = (
+    <div className="space-y-2" aria-label="Wizard steps">
+      <p className="text-muted-foreground text-xs font-semibold">Step {step} of 3</p>
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        {[1, 2, 3].map((index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span
+              className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                step >= index
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-border bg-surface text-muted-foreground"
+              }`}
+              aria-current={step === index ? "step" : undefined}
+            >
+              {step > index ? <Check className="h-3.5 w-3.5" /> : index}
+            </span>
+            {index < 3 ? <span className="bg-border h-px w-6" /> : null}
+          </div>
+        ))}
       </div>
     </div>
   );
 
-  const maturityLabel = draftForm.startDate
-    ? formatDate(new Date(previewSummary.maturityDate))
-    : "Pick a date";
+  const StepOne = (
+    <section className="space-y-5" aria-label="Step 1 Bank and Product">
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Step 1 - Bank & Product</h3>
+        <p className="text-muted-foreground text-xs">
+          Select a bank and product type to continue.
+        </p>
+      </div>
 
-  const LiveResultCard = (
-    <aside className="bg-surface sticky top-0 rounded-xl border border-indigo-200 p-5 lg:top-6 dark:border-indigo-500/30">
-      <div className="text-secondary flex items-center gap-2 text-sm font-semibold">
-        <LineChart className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
-        Live Result
+      {pendingSelectionChange ? (
+        <Alert variant="warning">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{pendingSelectionChange.message}</AlertDescription>
+          <div className="mt-3 flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                setDraftForm(pendingSelectionChange.nextForm);
+                setConfirmedSelection({
+                  bankId: pendingSelectionChange.nextForm.bankId,
+                  productType: pendingSelectionChange.nextForm.productType,
+                });
+                setPendingSelectionChange(null);
+              }}
+            >
+              Confirm change
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setPendingSelectionChange(null)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Alert>
+      ) : null}
+
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="bank" className="flex items-center gap-1">
+          <Landmark className="h-4 w-4" /> Bank <RequiredIndicator />
+        </Label>
+        <div className="relative">
+          <Input
+            id="bank"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={bankOpen}
+            aria-controls="bank-options"
+            aria-invalid={Boolean(errors.bankId)}
+            aria-describedby={errors.bankId ? "error-bank" : undefined}
+            value={bankQuery}
+            onChange={(event) => {
+              const next = event.target.value;
+              setBankActiveIndex(0);
+              setDraftForm((current) => ({
+                ...current,
+                bankName: next,
+                bankId: "",
+                productId: "",
+                productType: "",
+              }));
+              if (!bankOpen) setBankOpen(true);
+            }}
+            onFocus={() => {
+              setBankOpen(true);
+              setBankActiveIndex(0);
+            }}
+            onBlur={() => {
+              window.setTimeout(() => {
+                const next = document.activeElement;
+                if (next && listboxRef.current?.contains(next)) return;
+                setBankOpen(false);
+              }, 120);
+            }}
+            placeholder="Search or select a bank"
+          />
+
+          {bankOpen ? (
+            <div
+              id="bank-options"
+              role="listbox"
+              ref={listboxRef}
+              className="border-border bg-surface absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              <div className="flex flex-col gap-1">
+                {bankOptions.map((option, index) => {
+                  const isCustom = option.id === "__custom__";
+                  const bank = availableBanks.find((item) => item.id === option.id);
+                  return (
+                    <div key={option.id}>
+                      {isCustom ? <div className="border-border my-1 border-t" /> : null}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={safeBankActiveIndex === index}
+                        tabIndex={safeBankActiveIndex === index ? 0 : -1}
+                        ref={(node) => {
+                          optionRefs.current[index] = node;
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
+                          safeBankActiveIndex === index
+                            ? "bg-muted text-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                        onClick={() => {
+                          if (isCustom) {
+                            setCustomBankOpen(true);
+                            const nextErrors = { ...errors };
+                            delete nextErrors.bankId;
+                            delete nextErrors.productType;
+                            onValidate(nextErrors);
+                            setDraftForm((current) => ({
+                              ...current,
+                              bankName: "Custom bank",
+                              bankId: "",
+                              productId: "",
+                              productType: "",
+                            }));
+                            setCustomBankName("");
+                            setBankOpen(false);
+                            return;
+                          }
+
+                          applyBankSelection(option.id, option.label);
+                          setBankOpen(false);
+                        }}
+                      >
+                        <span>{isCustom ? "+ Add custom bank" : option.label}</span>
+                        {!isCustom && bank ? (
+                          <span className="text-muted-foreground text-[11px]">
+                            {bank.pdicMember === false ? "No PDIC" : "PDIC"}
+                          </span>
+                        ) : null}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        <p id="error-bank" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+          {errors.bankId ?? ""}
+        </p>
       </div>
-      <div className="mt-5 space-y-4">
-        <div className="border-subtle bg-surface-soft text-muted rounded-lg border px-3 py-2 text-xs">
-          Accrues{" "}
-          <span className="text-primary font-semibold">{draftForm.compounding}</span>
-          {" · "}
-          Payout{" "}
-          <span className="text-primary font-semibold">{draftForm.payoutFrequency}</span>
-          {" · "}
-          Treatment{" "}
-          <span className="text-primary font-semibold">
-            {draftForm.interestTreatment === "reinvest" ? "reinvested" : "paid out"}
-          </span>
-          . Cashflow shows on payout date.
+
+      {customBankOpen ? (
+        <div className="border-border bg-surface-soft space-y-3 rounded-lg border p-3">
+          <h4 className="text-sm font-semibold">Add custom bank</h4>
+          <div className="space-y-2 text-sm">
+            <Label htmlFor="custom-bank-name">
+              Bank name <RequiredIndicator />
+            </Label>
+            <Input
+              id="custom-bank-name"
+              value={customBankName}
+              onChange={(event) => setCustomBankName(event.target.value)}
+            />
+            <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+              {customBankErrors.name ?? ""}
+            </p>
+          </div>
+          <div className="space-y-2 text-sm">
+            <Label htmlFor="custom-bank-tax">
+              Tax rate (%) <RequiredIndicator />
+            </Label>
+            <Input
+              id="custom-bank-tax"
+              value={customBankTaxRate}
+              onChange={(event) =>
+                setCustomBankTaxRate(normalizeNumericInput(event.target.value, 2))
+              }
+            />
+            <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+              {customBankErrors.taxRate ?? ""}
+            </p>
+          </div>
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="accent-indigo-600"
+              checked={customBankPdicMember}
+              onChange={(event) => setCustomBankPdicMember(event.target.checked)}
+            />
+            PDIC member
+          </label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                const nextErrors: { name?: string; taxRate?: string } = {};
+                if (!customBankName.trim()) {
+                  nextErrors.name = "Bank name is required.";
+                }
+                const tax = toNumber(customBankTaxRate);
+                if (!customBankTaxRate || tax < 0 || tax > 100) {
+                  nextErrors.taxRate = "Tax rate must be between 0 and 100.";
+                }
+                setCustomBankErrors(nextErrors);
+                if (Object.keys(nextErrors).length > 0) return;
+
+                const bankName = customBankName.trim();
+                const nextBankId = toBankId(bankName);
+                const customBank: Bank = {
+                  id: nextBankId,
+                  name: bankName,
+                  taxRate: percentToDecimalString(customBankTaxRate)
+                    ? toNumber(percentToDecimalString(customBankTaxRate))
+                    : 0.2,
+                  pdicMember: customBankPdicMember,
+                };
+                setCustomBanks((current) => {
+                  const exists = current.some((bank) => bank.id === customBank.id);
+                  if (exists) {
+                    return current.map((bank) =>
+                      bank.id === customBank.id ? customBank : bank,
+                    );
+                  }
+                  return [customBank, ...current];
+                });
+                const resetDraft = createFormWithBankReset(
+                  draftForm,
+                  nextBankId,
+                  bankName,
+                );
+                const next = {
+                  ...resetDraft,
+                  taxRate: percentToDecimalString(customBankTaxRate),
+                  notes: customBankPdicMember
+                    ? undefined
+                    : "This bank may not be covered by PDIC.",
+                };
+
+                applyOrQueueSelectionChange(
+                  next,
+                  "Changing the bank will reset product and rate fields. Principal and start date will be kept.",
+                );
+                setCustomBankOpen(false);
+                setCustomBankErrors({});
+              }}
+            >
+              Save bank
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setCustomBankOpen(false);
+                setCustomBankErrors({});
+                setDraftForm((current) => ({
+                  ...current,
+                  bankName: "",
+                  bankId: "",
+                  productId: "",
+                  productType: "",
+                }));
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-foreground">Maturity date</span>
-          <span className="font-financial text-foreground font-semibold">
-            {maturityLabel}
-          </span>
+      ) : null}
+
+      {draftForm.bankId && !customBankOpen ? (
+        <div className="space-y-3 text-sm">
+          <Label id="product-type">
+            Product type <RequiredIndicator />
+          </Label>
+          <ToggleGroup
+            type="single"
+            value={draftForm.productType}
+            aria-labelledby="product-type"
+            onValueChange={(value) => {
+              if (!value) return;
+              applyProductSelection(value as ProductType);
+            }}
+          >
+            {productOptions.map((product) => (
+              <ToggleGroupItem key={product.productType} value={product.productType}>
+                {productTypeLabel(product.productType)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+            {errors.productType ?? ""}
+          </p>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted">Gross interest</span>
-          <span className="font-financial font-semibold">
-            {formatCurrency(previewSummary.grossInterest)}
-          </span>
+      ) : null}
+
+      {warnings.pdic ? (
+        <Alert variant="warning">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertDescription>{warnings.pdic}</AlertDescription>
+        </Alert>
+      ) : null}
+    </section>
+  );
+
+  const StepTwo = (
+    <section className="space-y-5" aria-label="Step 2 Investment Details">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-semibold">Step 2 - Investment Details</h3>
+          <p className="text-muted-foreground text-xs">Only relevant fields are shown.</p>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted">Estimated net interest</span>
-          <span className="font-financial inline-flex items-center gap-1 font-semibold text-indigo-700 dark:text-indigo-400">
-            <TrendingUp className="h-4 w-4" />
-            {formatCurrency(previewSummary.netInterest)}
-          </span>
-        </div>
+        <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>
+          Change
+        </Button>
       </div>
-      <div className="mt-6 flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="hover:bg-muted active:bg-muted flex-1"
-          onClick={() => {
-            setDraftForm(form);
-            onReset();
+
+      {renderStepSummaries()}
+
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="name">
+          Investment name <RequiredIndicator />
+        </Label>
+        <Input
+          id="name"
+          value={draftForm.name}
+          onChange={(event) => setDraftForm({ ...draftForm, name: event.target.value })}
+          onBlur={() => updateFieldError("name", draftForm)}
+          aria-invalid={Boolean(errors.name)}
+          aria-describedby={errors.name ? "error-name" : undefined}
+        />
+        <p id="error-name" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+          {errors.name ?? ""}
+        </p>
+      </div>
+
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="principal">
+          Principal amount <RequiredIndicator />
+        </Label>
+        <Input
+          id="principal"
+          inputMode="decimal"
+          value={draftForm.principal}
+          onFocus={() =>
+            setDraftForm({
+              ...draftForm,
+              principal: unformatCurrencyInput(draftForm.principal),
+            })
+          }
+          onChange={(event) =>
+            setDraftForm({
+              ...draftForm,
+              principal: normalizeNumericInput(
+                unformatCurrencyInput(event.target.value),
+                2,
+              ),
+            })
+          }
+          onBlur={() => {
+            const next = {
+              ...draftForm,
+              principal: formatCurrencyInput(unformatCurrencyInput(draftForm.principal)),
+            };
+            setDraftForm(next);
+            updateFieldError("principal", next);
           }}
+          aria-invalid={Boolean(errors.principal)}
+          aria-describedby={errors.principal ? "error-principal" : undefined}
+        />
+        <p
+          id="error-principal"
+          className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
         >
-          Reset
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-indigo-600 text-white transition-colors duration-150 ease-out hover:bg-indigo-500 active:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400 disabled:text-white/80 disabled:opacity-90"
-          disabled={isSaveDisabled}
-        >
-          Save
-        </Button>
+          {errors.principal ?? ""}
+        </p>
       </div>
-    </aside>
+
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="startDate">
+          Start date <RequiredIndicator />
+        </Label>
+        <DatePicker
+          id="startDate"
+          value={draftForm.startDate}
+          onChange={(value) => {
+            const next = {
+              ...draftForm,
+              startDate: value,
+              endDate:
+                draftForm.termInputMode === "months"
+                  ? convertTermMonthsToEndDate(value, draftForm.termMonths)
+                  : draftForm.endDate,
+            };
+            setDraftForm(next);
+          }}
+          onBlur={() => updateFieldError("startDate", draftForm)}
+          className={
+            errors.startDate ? "border-rose-600 dark:border-rose-400" : undefined
+          }
+        />
+        <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+          {errors.startDate ?? ""}
+        </p>
+        {warnings.startDate ? (
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            {warnings.startDate}
+          </p>
+        ) : null}
+      </div>
+
+      {showOpenEndedToggle ? (
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="accent-indigo-600"
+            checked={draftForm.isOpenEnded}
+            onChange={(event) =>
+              setDraftForm({ ...draftForm, isOpenEnded: event.target.checked })
+            }
+          />
+          No fixed maturity date
+        </label>
+      ) : null}
+
+      {showTermFields ? (
+        <>
+          <div className="space-y-2 text-sm">
+            <Label id="term-mode">Term input mode</Label>
+            <ToggleGroup
+              type="single"
+              value={draftForm.termInputMode}
+              aria-labelledby="term-mode"
+              onValueChange={(value) => {
+                if (!value) return;
+                if (value === "end-date") {
+                  setDraftForm({
+                    ...draftForm,
+                    termInputMode: "end-date",
+                    endDate: convertTermMonthsToEndDate(
+                      draftForm.startDate,
+                      draftForm.termMonths,
+                    ),
+                  });
+                  return;
+                }
+                setDraftForm({
+                  ...draftForm,
+                  termInputMode: "months",
+                  termMonths: convertEndDateToTermMonths(
+                    draftForm.startDate,
+                    draftForm.endDate,
+                  ),
+                });
+              }}
+            >
+              <ToggleGroupItem value="months">Months</ToggleGroupItem>
+              <ToggleGroupItem value="end-date">Pick end date</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
+          {draftForm.termInputMode === "months" ? (
+            <div className="space-y-2 text-sm">
+              <Label htmlFor="termMonths">
+                Term (months) <RequiredIndicator />
+              </Label>
+              <Input
+                id="termMonths"
+                inputMode="decimal"
+                value={draftForm.termMonths}
+                onChange={(event) => {
+                  const nextTerm = normalizeNumericInput(event.target.value, 2);
+                  setDraftForm({
+                    ...draftForm,
+                    termMonths: nextTerm,
+                    endDate: convertTermMonthsToEndDate(draftForm.startDate, nextTerm),
+                  });
+                }}
+                onBlur={() => updateFieldError("termMonths", draftForm)}
+                aria-invalid={Boolean(errors.termMonths)}
+                aria-describedby={errors.termMonths ? "error-term" : undefined}
+              />
+              <div className="flex flex-wrap gap-2">
+                {[1, 3, 6, 12, 24].map((months) => (
+                  <Button
+                    key={months}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const nextMonths = String(months);
+                      setDraftForm({
+                        ...draftForm,
+                        termMonths: nextMonths,
+                        endDate: convertTermMonthsToEndDate(
+                          draftForm.startDate,
+                          nextMonths,
+                        ),
+                      });
+                    }}
+                  >
+                    {months}M
+                  </Button>
+                ))}
+              </div>
+              <p
+                id="error-term"
+                className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
+              >
+                {errors.termMonths ?? ""}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <Label htmlFor="endDate">
+                End date <RequiredIndicator />
+              </Label>
+              <DatePicker
+                id="endDate"
+                value={draftForm.endDate}
+                onChange={(value) => {
+                  setDraftForm({
+                    ...draftForm,
+                    endDate: value,
+                    termMonths: convertEndDateToTermMonths(draftForm.startDate, value),
+                  });
+                }}
+                onBlur={() => updateFieldError("endDate", draftForm)}
+                className={
+                  errors.endDate ? "border-rose-600 dark:border-rose-400" : undefined
+                }
+              />
+              <p className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+                {errors.endDate ?? ""}
+              </p>
+            </div>
+          )}
+        </>
+      ) : null}
+
+      <div className="border-border bg-surface-soft space-y-3 rounded-lg border p-3 text-sm">
+        <Label className="block text-sm font-semibold">Interest Rate</Label>
+
+        {!draftForm.tieredEnabled ? (
+          <>
+            <Label htmlFor="rate" className="block">
+              Annual interest rate <RequiredIndicator />
+            </Label>
+            <div className="relative">
+              <Input
+                id="rate"
+                inputMode="decimal"
+                value={decimalToPercentString(draftForm.rate)}
+                onChange={(event) => {
+                  const normalizedPercent = normalizeNumericInput(event.target.value, 6);
+                  setDraftForm({
+                    ...draftForm,
+                    rate: percentToDecimalString(normalizedPercent),
+                  });
+                }}
+                onBlur={() => updateFieldError("rate", draftForm)}
+                aria-invalid={Boolean(errors.rate)}
+                aria-describedby={errors.rate ? "error-rate" : "rate-help"}
+              />
+              <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
+                %
+              </span>
+            </div>
+            <p id="rate-help" className="text-muted-foreground text-xs">
+              Starting point only — verify with your bank
+              {draftForm.lastUpdated
+                ? ` · Last updated ${labelToMonthYear(draftForm.lastUpdated)}`
+                : ""}
+            </p>
+            {draftForm.notes ? (
+              <p className="text-muted-foreground text-xs">{draftForm.notes}</p>
+            ) : null}
+            {warnings.rate ? (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                {warnings.rate}
+              </p>
+            ) : null}
+            <p
+              id="error-rate"
+              className="min-h-5 text-xs text-rose-600 dark:text-rose-300"
+            >
+              {errors.rate ?? ""}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-muted-foreground text-xs font-semibold">Tier builder</p>
+            {ensureFinalUnlimitedTier(draftForm.tiers).map((tier, index, arr) => {
+              const isLast = index === arr.length - 1;
+              const prevTier = arr[index - 1];
+              const aboveAmount = prevTier?.upTo
+                ? formatCurrency(toNumber(unformatCurrencyInput(prevTier.upTo)))
+                : formatCurrency(0);
+              const canRemove = arr.length > 1;
+
+              return (
+                <div
+                  key={tier.id}
+                  className="grid grid-cols-[1.35fr_1fr_auto] items-start gap-2"
+                >
+                  <div>
+                    <Label
+                      htmlFor={isLast ? undefined : `tier-up-${tier.id}`}
+                      className="text-xs"
+                    >
+                      Tier ceiling
+                    </Label>
+                    {isLast ? (
+                      <div className="border-border bg-muted text-muted-foreground flex h-12 items-center rounded-lg border px-3 text-sm">
+                        Above {aboveAmount}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <Input
+                          id={`tier-up-${tier.id}`}
+                          inputMode="decimal"
+                          value={tier.upTo}
+                          onFocus={() => {
+                            const next = draftForm.tiers.map((item) =>
+                              item.id === tier.id
+                                ? { ...item, upTo: unformatCurrencyInput(item.upTo) }
+                                : item,
+                            );
+                            setDraftForm({
+                              ...draftForm,
+                              tiers: ensureFinalUnlimitedTier(next),
+                            });
+                          }}
+                          onChange={(event) => {
+                            const next = draftForm.tiers.map((item) =>
+                              item.id === tier.id
+                                ? {
+                                    ...item,
+                                    upTo: normalizeNumericInput(
+                                      unformatCurrencyInput(event.target.value),
+                                      2,
+                                    ),
+                                  }
+                                : item,
+                            );
+                            setDraftForm({
+                              ...draftForm,
+                              tiers: ensureFinalUnlimitedTier(next),
+                            });
+                          }}
+                          onBlur={() => {
+                            const next = draftForm.tiers.map((item) =>
+                              item.id === tier.id
+                                ? {
+                                    ...item,
+                                    upTo: formatCurrencyInput(
+                                      unformatCurrencyInput(item.upTo),
+                                    ),
+                                  }
+                                : item,
+                            );
+                            setDraftForm({
+                              ...draftForm,
+                              tiers: ensureFinalUnlimitedTier(next),
+                            });
+                          }}
+                          placeholder="Up to ₱"
+                        />
+                      </div>
+                    )}
+                    <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+                      {errors[`tier-${tier.id}-upTo`] ?? ""}
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`tier-rate-${tier.id}`} className="text-xs">
+                      Tier rate <RequiredIndicator />
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id={`tier-rate-${tier.id}`}
+                        inputMode="decimal"
+                        value={decimalToPercentString(tier.rate)}
+                        onChange={(event) => {
+                          const normalizedPercent = normalizeNumericInput(
+                            event.target.value,
+                            6,
+                          );
+                          const next = draftForm.tiers.map((item) =>
+                            item.id === tier.id
+                              ? {
+                                  ...item,
+                                  rate: percentToDecimalString(normalizedPercent),
+                                }
+                              : item,
+                          );
+                          setDraftForm({
+                            ...draftForm,
+                            tiers: ensureFinalUnlimitedTier(next),
+                          });
+                        }}
+                      />
+                      <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
+                        %
+                      </span>
+                    </div>
+                    <p className="min-h-4 text-xs text-rose-600 dark:text-rose-300">
+                      {errors[`tier-${tier.id}-rate`] ?? ""}
+                    </p>
+                  </div>
+
+                  <div className="pt-1">
+                    {canRemove ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-9 p-0"
+                        aria-label="Remove tier"
+                        onClick={() => {
+                          const next = draftForm.tiers.filter(
+                            (item) => item.id !== tier.id,
+                          );
+                          setDraftForm({
+                            ...draftForm,
+                            tiers: ensureFinalUnlimitedTier(next),
+                          });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+
+            {warnings.tiers ? (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                {warnings.tiers}
+              </p>
+            ) : null}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const next = ensureFinalUnlimitedTier(draftForm.tiers);
+                next.splice(Math.max(next.length - 1, 0), 0, {
+                  id: `tier-${crypto.randomUUID()}`,
+                  upTo: "",
+                  rate: next[0]?.rate || draftForm.rate,
+                });
+                setDraftForm({ ...draftForm, tiers: ensureFinalUnlimitedTier(next) });
+              }}
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add tier
+            </Button>
+          </>
+        )}
+
+        <label className="inline-flex items-center gap-2">
+          <input
+            type="checkbox"
+            className="accent-indigo-600"
+            checked={draftForm.tieredEnabled}
+            onChange={(event) => {
+              if (event.target.checked) {
+                const next = ensureFinalUnlimitedTier(draftForm.tiers);
+                next[0] = {
+                  ...next[0],
+                  rate: draftForm.rate || next[0]?.rate || "",
+                };
+                setDraftForm({
+                  ...draftForm,
+                  tieredEnabled: true,
+                  tiers: next,
+                });
+                return;
+              }
+
+              const firstTierRate =
+                ensureFinalUnlimitedTier(draftForm.tiers)[0]?.rate || draftForm.rate;
+              setDraftForm({
+                ...draftForm,
+                tieredEnabled: false,
+                rate: firstTierRate,
+              });
+            }}
+          />
+          This account uses tiered rates
+        </label>
+      </div>
+
+      {showPayoutFrequency ? (
+        <div className="space-y-2 text-sm">
+          <Label id="payout-label">Payout frequency</Label>
+          <ToggleGroup
+            type="single"
+            value={draftForm.payoutFrequency}
+            aria-labelledby="payout-label"
+            onValueChange={(value) => {
+              if (!value) return;
+              setDraftForm({
+                ...draftForm,
+                payoutFrequency: value as "monthly" | "maturity",
+              });
+            }}
+          >
+            <ToggleGroupItem value="maturity">At maturity</ToggleGroupItem>
+            <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      ) : null}
+
+      <fieldset className="space-y-2 text-sm">
+        <Label id="compounding" className="block">
+          Compounding
+        </Label>
+        <div className="flex flex-col gap-2">
+          <ToggleGroup
+            type="single"
+            value={draftForm.compounding}
+            aria-labelledby="compounding"
+            onValueChange={(value) => {
+              if (!value) return;
+              setDraftForm({ ...draftForm, compounding: value as "daily" | "monthly" });
+            }}
+          >
+            <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
+            <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </fieldset>
+
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="taxRate">Withholding tax (%)</Label>
+        <div className="relative">
+          <Input
+            id="taxRate"
+            inputMode="decimal"
+            value={decimalToPercentString(draftForm.taxRate)}
+            onChange={(event) => {
+              const normalizedPercent = normalizeNumericInput(event.target.value, 6);
+              setDraftForm({
+                ...draftForm,
+                taxRate: percentToDecimalString(normalizedPercent),
+              });
+            }}
+            onBlur={() => updateFieldError("taxRate", draftForm)}
+            aria-invalid={Boolean(errors.taxRate)}
+            aria-describedby={errors.taxRate ? "error-tax" : "tax-help"}
+          />
+          <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs">
+            %
+          </span>
+        </div>
+        <p id="tax-help" className="text-muted-foreground text-xs">
+          Standard PH rate is 20%
+        </p>
+        <p id="error-tax" className="min-h-5 text-xs text-rose-600 dark:text-rose-300">
+          {errors.taxRate ?? ""}
+        </p>
+      </div>
+    </section>
+  );
+
+  const StepThree = (
+    <section className="space-y-5" aria-label="Step 3 Review and Confirm">
+      <div>
+        <h3 className="text-sm font-semibold">Step 3 - Review & Confirm</h3>
+        <p className="text-muted-foreground text-xs">Review your inputs before saving.</p>
+      </div>
+
+      {renderStepSummaries()}
+
+      <div className="border-border bg-surface-soft space-y-2 rounded-lg border p-4 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Investment name</span>
+          <span className="font-medium">{draftForm.name || "-"}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Principal</span>
+          <span className="font-financial font-medium">
+            {formatCurrency(toNumber(unformatCurrencyInput(draftForm.principal)))}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Rate</span>
+          <span className="font-financial font-medium">
+            {decimalToPercentString(draftForm.rate)}%
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Withholding tax</span>
+          <span className="font-financial font-medium">
+            {decimalToPercentString(draftForm.taxRate)}%
+          </span>
+        </div>
+      </div>
+
+      {previewSummary ? (
+        <div className="space-y-2 rounded-lg border border-indigo-300/60 bg-indigo-50/60 p-4 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+          <div className="flex items-center justify-between">
+            <span>Gross interest</span>
+            <span className="font-financial">
+              {formatCurrency(previewSummary.grossInterest)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Tax withheld</span>
+            <span className="font-financial">
+              {formatCurrency(previewSummary.grossInterest - previewSummary.netInterest)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-indigo-900 dark:text-indigo-200">
+            <span className="font-semibold">Net interest</span>
+            <span className="font-financial font-semibold">
+              {formatCurrency(previewSummary.netInterest)}
+            </span>
+          </div>
+          {!draftForm.isOpenEnded ? (
+            <div className="flex items-center justify-between">
+              <span>Maturity date</span>
+              <span className="font-financial">
+                {formatDate(new Date(previewSummary.maturityDate))}
+              </span>
+            </div>
+          ) : null}
+          {draftForm.payoutFrequency === "monthly" ? (
+            <div className="flex items-center justify-between">
+              <span>Monthly net interest</span>
+              <span className="font-financial">{formatCurrency(monthlyNet)}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {warnings.pdic ? (
+        <Alert variant="warning">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertDescription>{warnings.pdic}</AlertDescription>
+        </Alert>
+      ) : null}
+    </section>
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="top-auto right-0 bottom-0 left-0 max-w-5xl translate-x-0 translate-y-0 rounded-t-2xl p-0 sm:top-8 sm:right-auto sm:bottom-auto sm:left-1/2 sm:my-0 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:translate-x-[-50%] sm:translate-y-0 sm:overflow-hidden sm:rounded-2xl">
+      <DialogContent
+        onInteractOutside={(event) => event.preventDefault()}
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => {
+          event.preventDefault();
+          requestClose();
+        }}
+        className="top-auto right-0 bottom-0 left-0 max-w-6xl translate-x-0 translate-y-0 rounded-t-2xl p-0 sm:top-8 sm:right-auto sm:bottom-auto sm:left-1/2 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:translate-x-[-50%] sm:translate-y-0 sm:overflow-hidden sm:rounded-2xl"
+      >
         <div className="flex h-full flex-col">
-          <DialogHeader className="border-subtle border-b px-6 pt-6 pr-12 pb-4">
+          <DialogHeader className="border-border border-b px-6 pt-6 pr-12 pb-4">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
-              Projected net yield updates as you type.
+              Smart investment capture with a guided step-by-step flow.
             </DialogDescription>
+            {StepHeader}
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6">
+          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-24 sm:pb-6">
+            {discardPromptOpen ? (
+              <Alert variant="warning" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Discard changes? Your inputs will be lost.
+                </AlertDescription>
+                <div className="mt-3 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDiscardPromptOpen(false)}
+                  >
+                    Keep editing
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-rose-600 text-white transition-colors duration-150 ease-out hover:bg-rose-700 active:bg-rose-800 dark:bg-rose-500 dark:hover:bg-rose-400 dark:active:bg-rose-300"
+                    onClick={() => {
+                      setDiscardPromptOpen(false);
+                      onValidate({});
+                      onOpenChange(false);
+                    }}
+                  >
+                    Discard
+                  </Button>
+                </div>
+              </Alert>
+            ) : null}
             <form
               onSubmit={(event) => {
                 event.preventDefault();
+                const nextErrors = validateDeposit(draftForm);
+                onValidate(nextErrors);
+                if (Object.keys(nextErrors).length > 0) {
+                  setStep(2);
+                  return;
+                }
                 onSubmit(draftForm);
               }}
               className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]"
             >
-              <div className="order-last lg:order-first">{FormFields}</div>
-              <div className="order-first lg:order-last">{LiveResultCard}</div>
+              <p aria-live="polite" className="sr-only">
+                {previewSummary
+                  ? `Net interest ${formatCurrency(previewSummary.netInterest)}${
+                      draftForm.isOpenEnded
+                        ? ""
+                        : `. Maturity date ${formatDate(new Date(previewSummary.maturityDate))}`
+                    }`
+                  : "Enter principal and rate to see your projection"}
+              </p>
+              <div className="order-last space-y-6 lg:order-first">
+                {step === 1 ? StepOne : null}
+                {step === 2 ? StepTwo : null}
+                {step === 3 ? StepThree : null}
+
+                <div className="border-border flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={resetToBaseline}>
+                      Reset
+                    </Button>
+                    {step > 1 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setStep((current) => (current - 1) as 1 | 2 | 3)}
+                      >
+                        <ArrowLeft className="mr-1 h-4 w-4" /> Back
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  <div className="flex gap-2">
+                    {step < 3 ? (
+                      <Button
+                        type="button"
+                        disabled={
+                          step === 1
+                            ? !stepOneIsReady() || Boolean(pendingSelectionChange)
+                            : !stepTwoHasRequiredValues()
+                        }
+                        onClick={handleNext}
+                      >
+                        Next <ArrowRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button type="submit">
+                        {isEditMode ? "Save changes" : "Add investment"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-first hidden lg:order-last lg:block">
+                {livePreviewCard}
+              </div>
             </form>
           </div>
         </div>
       </DialogContent>
+      {open ? mobileStickyBar : null}
     </Dialog>
   );
 }

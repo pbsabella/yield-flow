@@ -1,28 +1,38 @@
 import type { TimeDeposit } from "@/lib/types";
 
+export type ProductType = "td-maturity" | "td-monthly" | "savings";
+export type TermInputMode = "months" | "end-date";
+
+export type TierInput = {
+  id: string;
+  upTo: string;
+  rate: string;
+};
+
 export type DepositFormState = {
   bankId: string;
   bankName: string;
+  productId: string;
+  productType: ProductType | "";
   name: string;
   principal: string;
   startDate: string;
+  isOpenEnded: boolean;
   termMonths: string;
-  tenurePreset: "30d" | "60d" | "90d" | "1y" | "custom" | "open";
-  termType: "fixed" | "open";
+  endDate: string;
+  termInputMode: TermInputMode;
   payoutFrequency: "monthly" | "maturity";
-  interestMode: "simple" | "tiered";
-  interestTreatment: "reinvest" | "payout";
   compounding: "daily" | "monthly";
   taxRate: string;
-  tier1Cap: string;
-  tier1Rate: string;
-  tier2Rate: string;
-  flatRate: string;
+  rate: string;
+  dayCountConvention: 360 | 365;
+  tieredEnabled: boolean;
+  tiers: TierInput[];
+  lastUpdated?: string;
+  notes?: string;
+  status?: TimeDeposit["status"];
 };
 
 export type DepositFormErrors = Record<string, string>;
 
-export type DepositFormConfig = {
-  initialValues: DepositFormState;
-  toDeposit: (form: DepositFormState, id: string) => TimeDeposit;
-};
+export type DepositFormWarnings = Record<string, string>;

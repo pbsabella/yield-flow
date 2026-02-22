@@ -15,32 +15,43 @@ import MonthlyFlow from "@/components/dashboard/MonthlyFlow";
 import DepositFormDialog from "@/components/dashboard/DepositFormDialog";
 import ConfirmDeleteDialog from "@/components/dashboard/ConfirmDeleteDialog";
 import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
-import { toNumber, validateDeposit } from "@/components/dashboard/utils";
+import {
+  convertTermMonthsToEndDate,
+  parseTierInputs,
+  toNumber,
+  unformatCurrencyInput,
+  validateDeposit,
+} from "@/components/dashboard/utils";
 
 import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
 import { formatMonthLabel, monthKey } from "@/lib/domain/date";
 import { buildDepositSummary } from "@/lib/domain/interest";
-import { banks as demoBanks, deposits as demoDeposits } from "@/lib/demo";
+import { deposits as demoDeposits } from "@/lib/demo";
+import { bankTemplates, getBankProducts } from "@/lib/banks-config";
 import type { Bank, TimeDeposit } from "@/lib/types";
 
 const initialForm: DepositFormState = {
   bankId: "",
   bankName: "",
+  productId: "",
+  productType: "",
   name: "",
   principal: "",
   startDate: "",
+  isOpenEnded: false,
   termMonths: "6",
-  tenurePreset: "30d",
-  termType: "fixed",
+  endDate: "",
+  termInputMode: "months",
   payoutFrequency: "monthly",
-  interestMode: "simple",
-  interestTreatment: "reinvest",
   compounding: "daily",
   taxRate: "0.2",
-  tier1Cap: "1000000",
-  tier1Rate: "0.0325",
-  tier2Rate: "0.0375",
-  flatRate: "0.0325",
+  rate: "",
+  dayCountConvention: 365,
+  tieredEnabled: false,
+  tiers: [
+    { id: "tier-1", upTo: "1000000", rate: "" },
+    { id: "tier-2", upTo: "", rate: "" },
+  ],
 };
 
 const EMPTY_DEPOSITS: TimeDeposit[] = [];
@@ -60,7 +71,9 @@ function resolveBankName(bankId: string, depositName: string) {
 }
 
 export default function DashboardClient() {
-  const [banks, setBanks] = useState<Bank[]>(demoBanks);
+  const [banks, setBanks] = useState<Bank[]>(
+    bankTemplates.map((bank) => ({ ...bank, pdicMember: true })),
+  );
   const [form, setForm] = useState<DepositFormState>(initialForm);
   const [formErrors, setFormErrors] = useState<DepositFormErrors>({});
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -187,38 +200,31 @@ export default function DashboardClient() {
       (bank) => bank.name.toLowerCase() === nextForm.bankName.trim().toLowerCase(),
     );
 
-    const isOpenEnded = nextForm.termType === "open";
-    const payoutFrequency =
-      nextForm.termType === "open" ? "monthly" : nextForm.payoutFrequency;
-    const interestTreatment =
-      payoutFrequency === "monthly" ? "payout" : nextForm.interestTreatment;
+    const isOpenEnded = nextForm.isOpenEnded;
+    const payoutFrequency = isOpenEnded ? "monthly" : nextForm.payoutFrequency;
+    const interestTreatment = payoutFrequency === "monthly" ? "payout" : "reinvest";
     const existingStatus = editingId
       ? deposits.find((item) => item.id === editingId)?.status
       : undefined;
+    const principal = toNumber(unformatCurrencyInput(nextForm.principal));
+    const rate = toNumber(nextForm.rate);
+    const tiers = parseTierInputs(nextForm.tiers);
 
     const newDeposit: TimeDeposit = {
       id: editingId ?? `td-${crypto.randomUUID()}`,
       bankId: bankMatch?.id ?? nextForm.bankId,
       name: nextForm.name.trim(),
-      principal: toNumber(nextForm.principal),
+      principal,
       startDate: nextForm.startDate,
       termMonths: Math.max(0.1, toNumber(nextForm.termMonths)),
-      interestMode: nextForm.interestMode,
+      interestMode: nextForm.tieredEnabled ? "tiered" : "simple",
       interestTreatment,
       compounding: nextForm.compounding,
       taxRateOverride: toNumber(nextForm.taxRate),
-      flatRate: toNumber(nextForm.flatRate),
-      tiers:
-        nextForm.interestMode === "tiered"
-          ? [
-              {
-                upTo: toNumber(nextForm.tier1Cap) || null,
-                rate: toNumber(nextForm.tier1Rate),
-              },
-              { upTo: null, rate: toNumber(nextForm.tier2Rate) },
-            ]
-          : [{ upTo: null, rate: toNumber(nextForm.flatRate) }],
+      flatRate: rate,
+      tiers: nextForm.tieredEnabled ? tiers : [{ upTo: null, rate }],
       payoutFrequency,
+      dayCountConvention: nextForm.dayCountConvention,
       isOpenEnded,
       status: existingStatus ?? "active",
     };
@@ -304,24 +310,51 @@ export default function DashboardClient() {
     const deposit = deposits.find((item) => item.id === id);
     if (!deposit) return;
     setEditingId(id);
+    const isTiered = deposit.interestMode === "tiered";
+    const tiers = deposit.tiers.length
+      ? deposit.tiers.map((tier, index) => ({
+          id: `tier-${index + 1}`,
+          upTo: tier.upTo === null ? "" : String(tier.upTo),
+          rate: String(tier.rate),
+        }))
+      : [
+          { id: "tier-1", upTo: "1000000", rate: String(deposit.flatRate) },
+          { id: "tier-2", upTo: "", rate: String(deposit.flatRate) },
+        ];
+    const resolvedBankName =
+      banks.find((bank) => bank.id === deposit.bankId)?.name ??
+      resolveBankName(deposit.bankId, deposit.name);
+    const productType = deposit.isOpenEnded
+      ? "savings"
+      : deposit.payoutFrequency === "monthly"
+        ? "td-monthly"
+        : "td-maturity";
+    const matchingTemplate = getBankProducts(deposit.bankId).find(
+      (product) => product.productType === productType,
+    );
+    const termMonths = String(deposit.termMonths);
     setForm({
       bankId: deposit.bankId,
-      bankName: banks.find((bank) => bank.id === deposit.bankId)?.name ?? "",
+      bankName: resolvedBankName,
+      productId: matchingTemplate?.id ?? `${deposit.bankId}-${productType}`,
+      productType,
       name: deposit.name,
       principal: String(deposit.principal),
       startDate: deposit.startDate,
-      termMonths: String(deposit.termMonths),
-      tenurePreset: deposit.isOpenEnded ? "open" : "custom",
-      termType: deposit.isOpenEnded ? "open" : "fixed",
+      termMonths,
+      endDate: convertTermMonthsToEndDate(deposit.startDate, termMonths),
+      termInputMode: "months",
+      isOpenEnded: Boolean(deposit.isOpenEnded),
       payoutFrequency: deposit.payoutFrequency,
-      interestMode: deposit.interestMode,
-      interestTreatment: deposit.interestTreatment ?? "reinvest",
       compounding: deposit.compounding ?? "daily",
       taxRate: String(deposit.taxRateOverride ?? 0.2),
-      tier1Cap: String(deposit.tiers[0]?.upTo ?? 1000000),
-      tier1Rate: String(deposit.tiers[0]?.rate ?? 0.03),
-      tier2Rate: String(deposit.tiers[1]?.rate ?? deposit.tiers[0]?.rate ?? 0.03),
-      flatRate: String(deposit.flatRate),
+      rate: String(deposit.flatRate),
+      dayCountConvention: deposit.dayCountConvention ?? 365,
+      tieredEnabled: isTiered,
+      tiers,
+      lastUpdated: matchingTemplate?.lastUpdated,
+      notes: matchingTemplate?.notes,
+      status: deposit.status,
     });
     setFormErrors({});
     setDialogOpen(true);
@@ -433,11 +466,12 @@ export default function DashboardClient() {
               }
               title={editingId ? "Edit investment" : "Add an investment"}
               banks={banks}
+              deposits={deposits}
               form={form}
               errors={formErrors}
               onValidate={setFormErrors}
               onSubmit={handleSubmit}
-              onReset={resetForm}
+              isEditMode={Boolean(editingId)}
             />
           </div>
 

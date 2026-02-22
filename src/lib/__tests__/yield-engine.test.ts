@@ -16,8 +16,8 @@ describe("calculateNetYield", () => {
     });
 
     expect(result.maturityDate).toBe("2026-02-02");
-    expect(result.grossInterest).toBeCloseTo(6562.5, 6);
-    expect(result.netInterest).toBeCloseTo(5250, 6);
+    expect(result.grossInterest).toBeCloseTo(6616.438356, 6);
+    expect(result.netInterest).toBeCloseTo(5293.150685, 6);
   });
 
   it("does not compound when simple mode is set to reinvest", () => {
@@ -46,8 +46,8 @@ describe("calculateNetYield", () => {
     });
 
     expect(payout.maturityDate).toBe("2026-01-24");
-    expect(payout.grossInterest).toBeCloseTo(1375, 6);
-    expect(payout.netInterest).toBeCloseTo(1100, 6);
+    expect(payout.grossInterest).toBeCloseTo(1386.30137, 6);
+    expect(payout.netInterest).toBeCloseTo(1109.041096, 6);
     expect(reinvest.grossInterest).toBeCloseTo(payout.grossInterest, 8);
     expect(reinvest.netInterest).toBeCloseTo(payout.netInterest, 8);
   });
@@ -67,7 +67,37 @@ describe("calculateNetYield", () => {
 
     expect(result.maturityDate).toBe("2026-02-16");
     expect(result.dayCount).toBe(15);
-    expect(result.grossInterest).toBeCloseTo(250, 6);
-    expect(result.netInterest).toBeCloseTo(200, 6);
+    expect(result.grossInterest).toBeCloseTo(246.575342, 6);
+    expect(result.netInterest).toBeCloseTo(197.260274, 6);
+  });
+
+  it("uses day-count convention for daily tiered calculations", () => {
+    const yearly360 = calculateNetYield({
+      principal: 100000,
+      startDate: "2026-01-01",
+      termMonths: 12,
+      flatRate: 0.06,
+      tiers: [{ upTo: null, rate: 0.06 }],
+      interestMode: "tiered",
+      interestTreatment: "payout",
+      compounding: "daily",
+      taxRate: 0.2,
+      dayCountConvention: 360,
+    });
+
+    const yearly365 = calculateNetYield({
+      principal: 100000,
+      startDate: "2026-01-01",
+      termMonths: 12,
+      flatRate: 0.06,
+      tiers: [{ upTo: null, rate: 0.06 }],
+      interestMode: "tiered",
+      interestTreatment: "payout",
+      compounding: "daily",
+      taxRate: 0.2,
+      dayCountConvention: 365,
+    });
+
+    expect(yearly360.grossInterest).toBeGreaterThan(yearly365.grossInterest);
   });
 });

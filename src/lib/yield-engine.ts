@@ -13,6 +13,7 @@ export type YieldInput = {
   interestTreatment?: "reinvest" | "payout";
   compounding?: "daily" | "monthly";
   taxRate: number;
+  dayCountConvention?: 360 | 365;
 };
 
 export type YieldResult = {
@@ -22,7 +23,7 @@ export type YieldResult = {
   dayCount: number;
 };
 
-const DAYS_IN_YEAR = 365;
+const DEFAULT_DAYS_IN_YEAR = 365;
 
 function sortTiers(tiers: InterestTier[]) {
   return [...tiers].sort((a, b) => {
@@ -38,6 +39,7 @@ function calculateTieredCompounded(
   days: number,
   compounding: "daily" | "monthly" = "daily",
   months: number,
+  dayCountConvention: 360 | 365,
 ) {
   const sorted = sortTiers(tiers);
   let remaining = principal;
@@ -52,7 +54,7 @@ function calculateTieredCompounded(
     const gross =
       compounding === "monthly"
         ? portion * Math.pow(1 + tier.rate / 12, months)
-        : portion * Math.pow(1 + tier.rate / DAYS_IN_YEAR, days);
+        : portion * Math.pow(1 + tier.rate / dayCountConvention, days);
     total += gross - portion;
     remaining -= portion;
     lastThreshold = cap;
@@ -90,6 +92,7 @@ export function calculateNetYield(input: YieldInput): YieldResult {
   const maturity = addTermMonths(start, input.termMonths);
   const dayCount = Math.max(1, differenceInCalendarDays(maturity, start));
   const maturityDate = toISODate(maturity);
+  const dayCountConvention = input.dayCountConvention ?? DEFAULT_DAYS_IN_YEAR;
 
   let grossInterest = 0;
 
@@ -97,13 +100,12 @@ export function calculateNetYield(input: YieldInput): YieldResult {
   const cadence = input.compounding ?? "daily";
 
   if (input.interestMode === "simple") {
-    const termMonths = Math.max(input.termMonths, 0.1);
-    // In simple mode, always use pro-rated month-based interest:
-    // gross = principal * annualRate * (termMonths / 12)
-    grossInterest = input.principal * input.flatRate * (termMonths / 12);
+    // Day-count-aware simple interest:
+    // gross = principal * annualRate * (termDays / dayCountConvention)
+    grossInterest = input.principal * input.flatRate * (dayCount / dayCountConvention);
   } else {
     if (isPayout) {
-      const ratePer = cadence === "monthly" ? 1 / 12 : 1 / DAYS_IN_YEAR;
+      const ratePer = cadence === "monthly" ? 1 / 12 : 1 / dayCountConvention;
       const periods = cadence === "monthly" ? input.termMonths : dayCount;
       grossInterest = calculateTieredSimple(
         input.principal,
@@ -118,6 +120,7 @@ export function calculateNetYield(input: YieldInput): YieldResult {
         dayCount,
         cadence,
         input.termMonths,
+        dayCountConvention,
       );
     }
   }

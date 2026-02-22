@@ -1,36 +1,42 @@
 import { screen } from "@testing-library/react";
 import DepositFormDialog from "@/components/dashboard/DepositFormDialog";
-import type { Bank } from "@/lib/types";
+import type { Bank, TimeDeposit } from "@/lib/types";
 import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
 import { renderWithProviders } from "@/components/__tests__/test-utils";
 
 const banks: Bank[] = [
-  { id: "mari", name: "MariBank", taxRate: 0.2 },
+  { id: "maribank", name: "MariBank", taxRate: 0.2 },
   { id: "union", name: "Union Digital", taxRate: 0.2 },
 ];
 
+const deposits: TimeDeposit[] = [];
+
 const baseForm: DepositFormState = {
-  bankId: "mari",
+  bankId: "maribank",
   bankName: "MariBank",
-  name: "",
-  principal: "",
-  startDate: "",
-  termMonths: "1",
-  tenurePreset: "30d",
-  termType: "fixed",
+  productId: "",
+  productType: "savings",
+  name: "Test",
+  principal: "100000",
+  startDate: "2026-02-01",
+  isOpenEnded: true,
+  termMonths: "12",
+  endDate: "",
+  termInputMode: "months",
   payoutFrequency: "monthly",
-  interestMode: "simple",
-  interestTreatment: "reinvest",
   compounding: "daily",
   taxRate: "0.2",
-  tier1Cap: "1000000",
-  tier1Rate: "0.0325",
-  tier2Rate: "0.0375",
-  flatRate: "0.0325",
+  rate: "0.0325",
+  dayCountConvention: 360,
+  tieredEnabled: true,
+  tiers: [
+    { id: "tier-1", upTo: "1000000", rate: "0.0325" },
+    { id: "tier-2", upTo: "", rate: "0.0375" },
+  ],
 };
 
 describe("DepositFormDialog", () => {
-  it("renders required fields and disables save when empty", async () => {
+  it("renders step 1 in add mode", async () => {
     renderWithProviders(
       <DepositFormDialog
         open
@@ -38,51 +44,41 @@ describe("DepositFormDialog", () => {
         trigger={<button type="button">Open</button>}
         title="Add an investment"
         banks={banks}
+        deposits={deposits}
         form={baseForm}
         errors={{}}
         onValidate={() => {}}
         onSubmit={() => {}}
-        onReset={() => {}}
+        isEditMode={false}
       />,
     );
 
-    expect(
-      screen.getByRole("heading", { name: /add an investment/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText(/bank/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/principal/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/start date/i)).toBeInTheDocument();
-
-    const save = screen.getByRole("button", { name: /save/i });
-    expect(save).toBeDisabled();
+    expect(screen.getByText(/step 1 - bank & product/i)).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: /bank/i })).toBeInTheDocument();
   });
 
-  it("shows tiered fields when tiered mode selected", async () => {
-    const form: DepositFormState = { ...baseForm, name: "Test", interestMode: "tiered" };
-
+  it("renders step 2 in edit mode", async () => {
     renderWithProviders(
       <DepositFormDialog
         open
         onOpenChange={() => {}}
         trigger={<button type="button">Open</button>}
-        title="Add an investment"
+        title="Edit investment"
         banks={banks}
-        form={form}
+        deposits={deposits}
+        form={baseForm}
         errors={{} as DepositFormErrors}
         onValidate={() => {}}
         onSubmit={() => {}}
-        onReset={() => {}}
+        isEditMode
       />,
     );
 
-    expect(screen.getByLabelText(/base rate/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/threshold/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/secondary rate/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 2 - investment details/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /change/i }).length).toBeGreaterThan(0);
   });
 
-  it("shows custom tenure input when custom selected", async () => {
-    const form: DepositFormState = { ...baseForm, name: "Test", tenurePreset: "custom" };
-
+  it("shows tier builder when tiered toggle is enabled", async () => {
     renderWithProviders(
       <DepositFormDialog
         open
@@ -90,14 +86,15 @@ describe("DepositFormDialog", () => {
         trigger={<button type="button">Open</button>}
         title="Add an investment"
         banks={banks}
-        form={form}
+        deposits={deposits}
+        form={baseForm}
         errors={{}}
         onValidate={() => {}}
         onSubmit={() => {}}
-        onReset={() => {}}
+        isEditMode
       />,
     );
 
-    expect(screen.getByLabelText(/custom tenure/i)).toBeInTheDocument();
+    expect(screen.getByText(/tier builder/i)).toBeInTheDocument();
   });
 });

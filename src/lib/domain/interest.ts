@@ -12,6 +12,7 @@ export function buildDepositSummary(deposit: TimeDeposit, bank: Bank): DepositSu
     interestTreatment: deposit.interestTreatment,
     compounding: deposit.compounding,
     taxRate: deposit.taxRateOverride ?? bank.taxRate,
+    dayCountConvention: deposit.dayCountConvention ?? 365,
   });
 
   return {

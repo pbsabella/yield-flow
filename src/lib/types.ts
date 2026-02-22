@@ -21,6 +21,7 @@ export type TimeDeposit = {
   flatRate: number;
   tiers: InterestTier[];
   payoutFrequency: PayoutFrequency;
+  dayCountConvention?: 360 | 365;
   isOpenEnded?: boolean;
   status?: "active" | "matured" | "settled";
 };
@@ -30,6 +31,7 @@ export type Bank = {
   name: string;
   taxRate: number;
   notes?: string;
+  pdicMember?: boolean;
 };
 
 export type DepositSummary = {
