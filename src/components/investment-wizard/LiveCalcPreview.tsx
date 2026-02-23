@@ -12,7 +12,6 @@ import {
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { formatDate, toISODate } from "@/lib/domain/date";
 import { formatPhpCurrency } from "@/lib/domain/format";
-import { useMediaQuery } from "@/lib/state/useMediaQuery";
 
 function useDebouncedValue<T>(value: T, delay = 300) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -89,9 +88,6 @@ type LiveCalcPreviewProps = {
 };
 
 export default function LiveCalcPreview({ draftForm, bank }: LiveCalcPreviewProps) {
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const [mobilePreviewExpanded, setMobilePreviewExpanded] = useState(false);
-
   const debouncedForm = useDebouncedValue(draftForm, 300);
 
   const previewDeposit = useMemo(
@@ -194,52 +190,30 @@ export default function LiveCalcPreview({ draftForm, bank }: LiveCalcPreviewProp
     </aside>
   );
 
-  const mobileStickyBar =
-    !isDesktop && previewSummary ? (
-      <div className="border-border bg-surface-base fixed right-0 bottom-0 left-0 z-50 border-t px-4 py-3 shadow-lg">
-        <button
-          type="button"
-          className="flex w-full items-center justify-between text-left"
-          onClick={() => setMobilePreviewExpanded((value) => !value)}
-        >
-          <span className="text-muted-foreground text-xs">
-            Running net interest
-            {!debouncedForm.isOpenEnded ? (
-              <span className="ml-2">
-                · Matures {formatDate(new Date(previewSummary.maturityDate))}
-              </span>
-            ) : null}
-          </span>
-          <span className="text-income-net-fg font-financial text-sm font-semibold">
-            {formatPhpCurrency(previewSummary.netInterest)}
-          </span>
-        </button>
-        {mobilePreviewExpanded ? (
-          <div className="border-border mt-3 space-y-2 border-t pt-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Gross interest</span>
-              <span className="font-financial">
-                {formatPhpCurrency(previewSummary.grossInterest)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Tax withheld</span>
-              <span className="font-financial">
-                {formatPhpCurrency(
-                  previewSummary.grossInterest - previewSummary.netInterest,
-                )}
-              </span>
-            </div>
-            {debouncedForm.payoutFrequency === "monthly" ? (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Monthly net</span>
-                <span className="font-financial">{formatPhpCurrency(monthlyNet)}</span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+  const mobileCard = previewSummary ? (
+    <div className="border-border bg-surface-soft rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between">
+        <span className="text-muted-foreground text-xs">Net interest</span>
+        <span className="text-income-net-fg font-financial text-sm font-semibold">
+          {formatPhpCurrency(previewSummary.netInterest)}
+        </span>
       </div>
-    ) : null;
+      {!debouncedForm.isOpenEnded ? (
+        <div className="text-muted-foreground mt-1 flex items-center justify-between text-xs">
+          <span>Matures</span>
+          <span className="font-financial">
+            {formatDate(new Date(previewSummary.maturityDate))}
+          </span>
+        </div>
+      ) : null}
+      {debouncedForm.payoutFrequency === "monthly" && monthlyNet > 0 ? (
+        <div className="text-muted-foreground mt-1 flex items-center justify-between text-xs">
+          <span>Monthly net</span>
+          <span className="font-financial">{formatPhpCurrency(monthlyNet)}</span>
+        </div>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <>
@@ -252,8 +226,10 @@ export default function LiveCalcPreview({ draftForm, bank }: LiveCalcPreviewProp
             }`
           : "Enter principal and rate to see your projection"}
       </p>
+      {/* Desktop: sticky sidebar in right column */}
       <div className="order-first hidden lg:order-last lg:block">{desktopPanel}</div>
-      {mobileStickyBar}
+      {/* Mobile: inline card above form fields (order-first pushes it above order-last step content) */}
+      {mobileCard ? <div className="order-first lg:hidden">{mobileCard}</div> : null}
     </>
   );
 }

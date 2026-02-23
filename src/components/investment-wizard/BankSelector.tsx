@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ function RequiredIndicator() {
 type BankSelectorProps = {
   banks: Bank[];
   bankName: string;
+  selectedBankId: string;
   errors: DepositFormErrors;
   onBankSelect: (bankId: string, bankName: string) => void;
   onBankNameChange: (value: string) => void;
@@ -45,6 +47,7 @@ type BankSelectorProps = {
 export default function BankSelector({
   banks,
   bankName,
+  selectedBankId,
   errors,
   onBankSelect,
   onBankNameChange,
@@ -98,93 +101,122 @@ export default function BankSelector({
     onCustomBankFormChange?.(false);
   }
 
+  const confirmedBank = banks.find((b) => b.id === selectedBankId);
+
   return (
     <div className="space-y-2 text-sm">
-      <Label htmlFor="bank" className="flex items-center gap-1">
+      <Label
+        htmlFor={selectedBankId ? undefined : "bank"}
+        className="flex items-center gap-1"
+      >
         Bank <RequiredIndicator />
       </Label>
-      <div className="relative">
-        <Input
-          id="bank"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={bankOpen}
-          aria-controls="bank-options"
-          aria-invalid={Boolean(errors.bankId)}
-          aria-describedby={errors.bankId ? "error-bank" : undefined}
-          value={bankName}
-          onChange={(event) => {
-            const next = event.target.value;
-            setBankActiveIndex(0);
-            onBankNameChange(next);
-            if (!bankOpen) setBankOpen(true);
-          }}
-          onFocus={() => {
-            setBankOpen(true);
-            setBankActiveIndex(0);
-          }}
-          onBlur={() => {
-            window.setTimeout(() => {
-              const next = document.activeElement;
-              if (next && listboxRef.current?.contains(next)) return;
-              setBankOpen(false);
-            }, 120);
-          }}
-          placeholder="Search or select a bank"
-        />
 
-        {bankOpen ? (
-          <div
-            id="bank-options"
-            role="listbox"
-            ref={listboxRef}
-            className="border-border bg-surface-base absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
-            onMouseDown={(event) => event.preventDefault()}
-          >
-            <div className="flex flex-col gap-1">
-              {bankOptions.map((option, index) => {
-                const isCustom = option.id === "__custom__";
-                const bank = banks.find((item) => item.id === option.id);
-                return (
-                  <div key={option.id}>
-                    {isCustom ? <div className="border-border my-1 border-t" /> : null}
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={safeBankActiveIndex === index}
-                      tabIndex={safeBankActiveIndex === index ? 0 : -1}
-                      ref={(node) => {
-                        optionRefs.current[index] = node;
-                      }}
-                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition ${
-                        safeBankActiveIndex === index
-                          ? "bg-muted text-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                      onClick={() => {
-                        if (isCustom) {
-                          openCustomBankForm();
-                          setBankOpen(false);
-                          return;
-                        }
-                        onBankSelect(option.id, option.label);
-                        setBankOpen(false);
-                      }}
-                    >
-                      <span>{isCustom ? "+ Add custom bank" : option.label}</span>
-                      {!isCustom && bank ? (
-                        <span className="text-muted-foreground text-badge">
-                          {bank.pdicMember === false ? "No PDIC" : "PDIC"}
-                        </span>
-                      ) : null}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+      {selectedBankId ? (
+        <div className="border-border bg-surface-soft flex h-10 items-center justify-between rounded-md border px-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Check className="text-primary h-3.5 w-3.5 shrink-0" />
+            <span className="truncate font-medium">{bankName}</span>
+            {confirmedBank ? (
+              <span className="text-muted-foreground text-badge shrink-0">
+                {confirmedBank.pdicMember === false ? "No PDIC" : "PDIC"}
+              </span>
+            ) : null}
           </div>
-        ) : null}
-      </div>
+          <button
+            type="button"
+            onClick={() => onBankNameChange("")}
+            className="text-muted-foreground hover:text-foreground ml-2 shrink-0"
+            aria-label="Clear bank selection"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <Input
+            id="bank"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={bankOpen}
+            aria-controls="bank-options"
+            aria-invalid={Boolean(errors.bankId)}
+            aria-describedby={errors.bankId ? "error-bank" : undefined}
+            value={bankName}
+            onChange={(event) => {
+              const next = event.target.value;
+              setBankActiveIndex(0);
+              onBankNameChange(next);
+              if (!bankOpen) setBankOpen(true);
+            }}
+            onFocus={() => {
+              setBankOpen(true);
+              setBankActiveIndex(0);
+            }}
+            onBlur={() => {
+              window.setTimeout(() => {
+                const next = document.activeElement;
+                if (next && listboxRef.current?.contains(next)) return;
+                setBankOpen(false);
+              }, 120);
+            }}
+            placeholder="Search or select a bank"
+          />
+
+          {bankOpen ? (
+            <div
+              id="bank-options"
+              role="listbox"
+              ref={listboxRef}
+              className="border-border bg-surface-base absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              <div className="flex flex-col gap-1">
+                {bankOptions.map((option, index) => {
+                  const isCustom = option.id === "__custom__";
+                  const bank = banks.find((item) => item.id === option.id);
+                  return (
+                    <div key={option.id}>
+                      {isCustom ? <div className="border-border my-1 border-t" /> : null}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={safeBankActiveIndex === index}
+                        tabIndex={safeBankActiveIndex === index ? 0 : -1}
+                        ref={(node) => {
+                          optionRefs.current[index] = node;
+                        }}
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition ${
+                          safeBankActiveIndex === index
+                            ? "bg-muted text-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                        onClick={() => {
+                          if (isCustom) {
+                            openCustomBankForm();
+                            setBankOpen(false);
+                            return;
+                          }
+                          onBankSelect(option.id, option.label);
+                          setBankOpen(false);
+                        }}
+                      >
+                        <span>{isCustom ? "+ Add custom bank" : option.label}</span>
+                        {!isCustom && bank ? (
+                          <span className="text-muted-foreground text-badge">
+                            {bank.pdicMember === false ? "No PDIC" : "PDIC"}
+                          </span>
+                        ) : null}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       <p id="error-bank" className="text-danger-fg min-h-5 text-xs">
         {errors.bankId ?? ""}
       </p>

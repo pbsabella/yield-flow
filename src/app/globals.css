@@ -132,6 +132,7 @@
   --font-mono: var(--font-geist-mono);
 
   --color-ring: hsl(var(--ring));
+
   --color-input: hsl(var(--input));
   --color-border: hsl(var(--color-border-subtle));
   --color-border-subtle: hsl(var(--color-border-subtle));
@@ -240,13 +241,21 @@
     @apply border-border outline-ring/50;
   }
 
-  *:focus-visible {
+  /* *:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 1px;
-  }
+  } */
 
   svg {
     flex-shrink: 0;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  *:disabled {
+    cursor: not-allowed;
   }
 }
 

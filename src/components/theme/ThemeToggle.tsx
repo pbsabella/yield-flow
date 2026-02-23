@@ -44,7 +44,7 @@ export default function ThemeToggle() {
           <ToggleGroupItem
             key={item.value}
             value={item.value}
-            className="text-foreground data-[state=on]:bg-interactive-selected data-[state=on]:border-interactive-selected-border data-[state=on]:text-foreground focus-visible:ring-primary rounded-full focus-visible:ring-3"
+            className="text-foreground data-[state=on]:bg-interactive-selected data-[state=on]:border-interactive-selected-border data-[state=on]:text-foreground rounded-full"
             aria-label={item.label}
           >
             <Icon className="h-4 w-4" />

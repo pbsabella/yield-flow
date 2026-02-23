@@ -36,6 +36,14 @@ function RequiredIndicator() {
   );
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-muted-foreground text-[10.5px] font-semibold tracking-wider uppercase">
+      {children}
+    </p>
+  );
+}
+
 type Step2DetailsProps = {
   form: DepositFormState;
   errors: DepositFormErrors;
@@ -58,31 +66,34 @@ export default function Step2Details({
   const showPayoutFrequency = form.productType !== "savings";
 
   return (
-    <section className="space-y-5" aria-label="Step 2 Investment Details">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h3 className="text-sm font-semibold">Step 2 - Investment Details</h3>
-          <p className="text-muted-foreground text-xs">Only relevant fields are shown.</p>
+    <section className="space-y-6" aria-label="Step 2 Investment Details">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold">Investment Details</h3>
+        <p className="text-muted-foreground text-xs">Only relevant fields are shown.</p>
+      </div>
+
+      {/* Step 1 summary */}
+      <div className="border-border bg-surface-soft flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium">{form.bankName || "—"}</span>
+          <span className="text-muted-foreground shrink-0">·</span>
+          <span className="shrink-0 font-medium">
+            {productTypeLabel(form.productType) || "—"}
+          </span>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onGoToStep1}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-auto shrink-0 py-0 text-xs"
+          onClick={onGoToStep1}
+        >
           Change
         </Button>
       </div>
 
-      {/* Step 1 summary */}
-      <div className="border-border bg-surface-soft space-y-2 rounded-md border p-3 text-xs">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Bank</span>
-          <span className="font-medium">{form.bankName || "-"}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Product</span>
-          <span className="font-medium">{productTypeLabel(form.productType) || "-"}</span>
-        </div>
-      </div>
-
       {/* Investment name */}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1.5">
         <Label htmlFor="name">
           Investment name <RequiredIndicator />
         </Label>
@@ -94,13 +105,13 @@ export default function Step2Details({
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "error-name" : undefined}
         />
-        <p id="error-name" className="text-danger-fg min-h-5 text-xs">
+        <p id="error-name" className="text-danger-fg min-h-4 text-xs">
           {errors.name ?? ""}
         </p>
       </div>
 
       {/* Principal */}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1.5">
         <Label htmlFor="principal">
           Principal amount <RequiredIndicator />
         </Label>
@@ -126,13 +137,13 @@ export default function Step2Details({
           aria-invalid={Boolean(errors.principal)}
           aria-describedby={errors.principal ? "error-principal" : undefined}
         />
-        <p id="error-principal" className="text-danger-fg min-h-5 text-xs">
+        <p id="error-principal" className="text-danger-fg min-h-4 text-xs">
           {errors.principal ?? ""}
         </p>
       </div>
 
       {/* Start date */}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1.5">
         <Label htmlFor="startDate">
           Start date <RequiredIndicator />
         </Label>
@@ -151,7 +162,7 @@ export default function Step2Details({
           onBlur={() => onFieldBlur("startDate")}
           className={errors.startDate ? "border-danger-border" : undefined}
         />
-        <p className="text-danger-fg min-h-5 text-xs">{errors.startDate ?? ""}</p>
+        <p className="text-danger-fg min-h-4 text-xs">{errors.startDate ?? ""}</p>
         {warnings.startDate ? (
           <p className="text-status-warning-fg text-xs">{warnings.startDate}</p>
         ) : null}
@@ -173,42 +184,35 @@ export default function Step2Details({
       {/* Term fields */}
       {showTermFields ? (
         <>
-          <div className="space-y-2 text-sm">
-            <span className="inline-block" id="term-mode">
-              Term input mode
-            </span>
-            <div>
-              <ToggleGroup
-                type="single"
-                value={form.termInputMode}
-                aria-labelledby="term-mode"
-                onValueChange={(value) => {
-                  if (!value) return;
-                  if (value === "end-date") {
-                    onUpdate({
-                      termInputMode: "end-date",
-                      endDate: convertTermMonthsToEndDate(
-                        form.startDate,
-                        form.termMonths,
-                      ),
-                    });
-                    return;
-                  }
+          <div className="space-y-2">
+            <SectionLabel>Term</SectionLabel>
+            <ToggleGroup
+              type="single"
+              value={form.termInputMode}
+              aria-label="Term input mode"
+              onValueChange={(value) => {
+                if (!value) return;
+                if (value === "end-date") {
                   onUpdate({
-                    termInputMode: "months",
-                    termMonths: convertEndDateToTermMonths(form.startDate, form.endDate),
+                    termInputMode: "end-date",
+                    endDate: convertTermMonthsToEndDate(form.startDate, form.termMonths),
                   });
-                }}
-              >
-                <ToggleGroupItem value="months">Months</ToggleGroupItem>
-                <ToggleGroupItem value="end-date">Pick end date</ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+                  return;
+                }
+                onUpdate({
+                  termInputMode: "months",
+                  termMonths: convertEndDateToTermMonths(form.startDate, form.endDate),
+                });
+              }}
+            >
+              <ToggleGroupItem value="months">Months</ToggleGroupItem>
+              <ToggleGroupItem value="end-date">Pick end date</ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           {form.termInputMode === "months" ? (
-            <div className="space-y-2 text-sm">
-              <Label className="inline-block" htmlFor="termMonths">
+            <div className="space-y-1.5">
+              <Label htmlFor="termMonths">
                 Term (months) <RequiredIndicator />
               </Label>
               <Input
@@ -226,7 +230,7 @@ export default function Step2Details({
                 aria-invalid={Boolean(errors.termMonths)}
                 aria-describedby={errors.termMonths ? "error-term" : undefined}
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[1, 3, 6, 12, 24].map((months) => (
                   <Button
                     key={months}
@@ -245,12 +249,12 @@ export default function Step2Details({
                   </Button>
                 ))}
               </div>
-              <p id="error-term" className="text-danger-fg min-h-5 text-xs">
+              <p id="error-term" className="text-danger-fg min-h-4 text-xs">
                 {errors.termMonths ?? ""}
               </p>
             </div>
           ) : (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1.5">
               <Label htmlFor="endDate">
                 End date <RequiredIndicator />
               </Label>
@@ -266,19 +270,19 @@ export default function Step2Details({
                 onBlur={() => onFieldBlur("endDate")}
                 className={errors.endDate ? "border-danger-border" : undefined}
               />
-              <p className="text-danger-fg min-h-5 text-xs">{errors.endDate ?? ""}</p>
+              <p className="text-danger-fg min-h-4 text-xs">{errors.endDate ?? ""}</p>
             </div>
           )}
         </>
       ) : null}
 
       {/* Interest rate group */}
-      <div className="border-border bg-surface-soft space-y-3 rounded-md border p-3 text-sm">
-        <Label className="block text-sm font-semibold">Interest Rate</Label>
+      <div className="border-border bg-surface-soft space-y-4 rounded-lg border p-4">
+        <SectionLabel>Interest rate</SectionLabel>
 
         {!form.tieredEnabled ? (
-          <>
-            <Label htmlFor="rate" className="block">
+          <div className="space-y-1.5">
+            <Label htmlFor="rate">
               Annual interest rate <RequiredIndicator />
             </Label>
             <div className="relative">
@@ -310,10 +314,10 @@ export default function Step2Details({
             {warnings.rate ? (
               <p className="text-status-warning-fg text-xs">{warnings.rate}</p>
             ) : null}
-            <p id="error-rate" className="text-danger-fg min-h-5 text-xs">
+            <p id="error-rate" className="text-danger-fg min-h-4 text-xs">
               {errors.rate ?? ""}
             </p>
-          </>
+          </div>
         ) : (
           <TierBuilder
             tiers={form.tiers}
@@ -323,7 +327,7 @@ export default function Step2Details({
           />
         )}
 
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             className="accent-primary"
@@ -346,12 +350,12 @@ export default function Step2Details({
 
       {/* Payout frequency */}
       {showPayoutFrequency ? (
-        <div className="space-y-2 text-sm">
-          <Label id="payout-label">Payout frequency</Label>
+        <div className="space-y-2">
+          <SectionLabel>Payout frequency</SectionLabel>
           <ToggleGroup
             type="single"
             value={form.payoutFrequency}
-            aria-labelledby="payout-label"
+            aria-label="Payout frequency"
             onValueChange={(value) => {
               if (!value) return;
               onUpdate({ payoutFrequency: value as "monthly" | "maturity" });
@@ -364,14 +368,12 @@ export default function Step2Details({
       ) : null}
 
       {/* Compounding */}
-      <fieldset className="space-y-2 text-sm">
-        <Label id="compounding" className="block">
-          Compounding
-        </Label>
+      <div className="space-y-2">
+        <SectionLabel>Compounding</SectionLabel>
         <ToggleGroup
           type="single"
           value={form.compounding}
-          aria-labelledby="compounding"
+          aria-label="Compounding"
           onValueChange={(value) => {
             if (!value) return;
             onUpdate({ compounding: value as "daily" | "monthly" });
@@ -380,11 +382,11 @@ export default function Step2Details({
           <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
           <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
         </ToggleGroup>
-      </fieldset>
+      </div>
 
       {/* Withholding tax */}
-      <div className="space-y-2 text-sm">
-        <Label htmlFor="taxRate">Withholding tax (%)</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="taxRate">Withholding tax</Label>
         <div className="relative">
           <Input
             id="taxRate"
@@ -405,7 +407,7 @@ export default function Step2Details({
         <p id="tax-help" className="text-muted-foreground text-xs">
           Standard PH rate is 20%
         </p>
-        <p id="error-tax" className="text-danger-fg min-h-5 text-xs">
+        <p id="error-tax" className="text-danger-fg min-h-4 text-xs">
           {errors.taxRate ?? ""}
         </p>
       </div>

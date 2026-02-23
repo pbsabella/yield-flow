@@ -194,7 +194,7 @@ export function useInvestmentWizardState({
   onClose,
   onSubmit,
 }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3>(isEditMode ? 2 : 1);
+  const [step, setStep] = useState<1 | 2>(isEditMode ? 2 : 1);
   const [draftForm, setDraftForm] = useState<DepositFormState>(
     initialForm ?? defaultForm,
   );
@@ -227,7 +227,7 @@ export function useInvestmentWizardState({
       setDraftForm(normalized);
       setDirtyFields(new Set());
       setErrors({});
-      setStep(isEditMode ? 2 : 1);
+      setStep((isEditMode ? 2 : 1) as 1 | 2);
       setPendingSelectionChange(null);
       setDiscardPromptOpen(false);
       setConfirmedSelection({
@@ -410,28 +410,18 @@ export function useInvestmentWizardState({
   }
 
   function handleNext() {
-    if (step === 1) {
-      if (!stepOneIsReady()) {
-        const nextErrors: DepositFormErrors = {};
-        if (!draftForm.bankId) nextErrors.bankId = "Bank is required.";
-        if (!draftForm.productType) nextErrors.productType = "Product type is required.";
-        setErrors((prev) => ({ ...prev, ...nextErrors }));
-        return;
-      }
-      setStep(2);
+    if (!stepOneIsReady()) {
+      const nextErrors: DepositFormErrors = {};
+      if (!draftForm.bankId) nextErrors.bankId = "Bank is required.";
+      if (!draftForm.productType) nextErrors.productType = "Product type is required.";
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
       return;
     }
-
-    if (step === 2) {
-      const nextErrors = validateDeposit(draftForm);
-      setErrors(nextErrors);
-      if (Object.keys(nextErrors).length > 0) return;
-      setStep(3);
-    }
+    setStep(2);
   }
 
   function handleBack() {
-    setStep((current) => (current - 1) as 1 | 2 | 3);
+    setStep((current) => (current - 1) as 1 | 2);
   }
 
   function requestClose() {
@@ -452,10 +442,7 @@ export function useInvestmentWizardState({
   function handleSubmit() {
     const nextErrors = validateDeposit(draftForm);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) {
-      setStep(2);
-      return;
-    }
+    if (Object.keys(nextErrors).length > 0) return;
     onSubmit(draftForm);
     setDirtyFields(new Set());
   }
@@ -475,7 +462,7 @@ export function useInvestmentWizardState({
     setDirtyFields(new Set());
     setErrors({});
     setPendingSelectionChange(null);
-    setStep(isEditMode ? 2 : 1);
+    setStep((isEditMode ? 2 : 1) as 1 | 2);
   }
 
   return {

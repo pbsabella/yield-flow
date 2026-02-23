@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import Step1BankProduct from "./Step1BankProduct";
 import Step2Details from "./Step2Details";
-import Step3Review from "./Step3Review";
 import LiveCalcPreview from "./LiveCalcPreview";
 import { useInvestmentWizardState } from "./useInvestmentWizardState";
 
@@ -79,27 +77,24 @@ export default function WizardShell({
     wizard.requestClose();
   }
 
-  const stepHeader = (
+  const stepIndicator = (
     <div className="space-y-2" aria-label="Wizard steps">
       <p className="text-muted-foreground text-xs font-semibold">
-        Step {wizard.step} of 3
+        Step {wizard.step} of 2
       </p>
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        {[1, 2, 3].map((index) => (
-          <div key={index} className="flex items-center gap-2">
-            <span
-              className={`text-badge inline-flex h-6 w-6 items-center justify-center rounded-full border font-semibold ${
-                wizard.step >= index
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-surface-base text-muted-foreground"
-              }`}
-              aria-current={wizard.step === index ? "step" : undefined}
-            >
-              {wizard.step > index ? <Check className="h-3.5 w-3.5" /> : index}
-            </span>
-            {index < 3 ? <span className="bg-border h-px w-6" /> : null}
-          </div>
-        ))}
+      <div
+        className="flex gap-1.5"
+        role="progressbar"
+        aria-valuenow={wizard.step}
+        aria-valuemin={1}
+        aria-valuemax={2}
+      >
+        <div
+          className={`h-0.5 flex-1 rounded-full transition-colors ${wizard.step >= 1 ? "bg-primary" : "bg-border"}`}
+        />
+        <div
+          className={`h-0.5 flex-1 rounded-full transition-colors ${wizard.step >= 2 ? "bg-primary" : "bg-border"}`}
+        />
       </div>
     </div>
   );
@@ -114,7 +109,7 @@ export default function WizardShell({
           event.preventDefault();
           wizard.requestClose();
         }}
-        className="top-auto right-0 bottom-0 left-0 max-w-6xl translate-x-0 translate-y-0 rounded-t-2xl p-0 sm:top-8 sm:right-auto sm:bottom-auto sm:left-1/2 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:translate-x-[-50%] sm:translate-y-0 sm:overflow-hidden sm:rounded-2xl"
+        className="inset-0 max-h-none max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none p-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:max-w-5xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl"
       >
         <div className="flex h-full flex-col">
           <DialogHeader className="border-border border-b px-6 pt-6 pr-12 pb-4">
@@ -122,10 +117,10 @@ export default function WizardShell({
             <DialogDescription>
               Smart investment capture with a guided step-by-step flow.
             </DialogDescription>
-            {stepHeader}
+            {stepIndicator}
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-24 sm:pb-6">
+          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6">
             {wizard.discardPromptOpen ? (
               <Alert variant="warning" className="mb-4">
                 <AlertTriangle className="h-4 w-4" />
@@ -192,16 +187,6 @@ export default function WizardShell({
                   />
                 ) : null}
 
-                {wizard.step === 3 ? (
-                  <Step3Review
-                    form={wizard.draftForm}
-                    bank={selectedBank}
-                    warnings={wizard.warnings}
-                    isEditMode={isEditMode}
-                    onGoToStep1={() => wizard.setStep(1)}
-                  />
-                ) : null}
-
                 {/* Navigation bar */}
                 <div className="border-border flex flex-wrap items-center justify-between gap-2 border-t pt-4">
                   <div className="flex gap-2">
@@ -220,21 +205,18 @@ export default function WizardShell({
                   </div>
 
                   <div className="flex gap-2">
-                    {wizard.step < 3 ? (
+                    {wizard.step < 2 ? (
                       <Button
                         type="button"
                         disabled={
-                          wizard.step === 1
-                            ? !wizard.stepOneReady ||
-                              Boolean(wizard.pendingSelectionChange)
-                            : !wizard.stepTwoReady
+                          !wizard.stepOneReady || Boolean(wizard.pendingSelectionChange)
                         }
                         onClick={wizard.handleNext}
                       >
                         Next <ArrowRight className="ml-1 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit">
+                      <Button type="submit" disabled={!wizard.stepTwoReady}>
                         {isEditMode ? "Save changes" : "Add investment"}
                       </Button>
                     )}

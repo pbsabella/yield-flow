@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Check } from "lucide-react";
 import { AlertTriangle, TriangleAlert } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import BankSelector from "./BankSelector";
@@ -13,8 +12,13 @@ import type {
   DepositFormWarnings,
   ProductType,
 } from "@/components/dashboard/types";
-import { productTypeLabel } from "@/components/dashboard/utils";
 import type { Bank } from "@/lib/types";
+
+const PRODUCT_META: Record<string, { short: string; desc: string }> = {
+  "td-maturity": { short: "Time Deposit", desc: "Principal + interest at maturity" },
+  "td-monthly": { short: "Monthly Payout", desc: "Interest paid monthly" },
+  savings: { short: "Savings Account", desc: "Open-ended, rolling balance" },
+};
 
 type Step1BankProductProps = {
   form: DepositFormState;
@@ -47,14 +51,12 @@ export default function Step1BankProduct({
   onConfirmSelectionChange,
   onCancelSelectionChange,
 }: Step1BankProductProps) {
-  const [customBankFormOpen, setCustomBankFormOpen] = useState(false);
-
-  const showProductSelector = form.bankId && !customBankFormOpen;
+  const showProductSelector = Boolean(form.bankId);
 
   return (
-    <section className="space-y-5" aria-label="Step 1 Bank and Product">
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Step 1 - Bank &amp; Product</h3>
+    <section className="space-y-6" aria-label="Step 1 Bank and Product">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold">Bank &amp; Product</h3>
         <p className="text-muted-foreground text-xs">
           Select a bank and product type to continue.
         </p>
@@ -83,41 +85,57 @@ export default function Step1BankProduct({
       <BankSelector
         banks={banks}
         bankName={form.bankName}
+        selectedBankId={form.bankId}
         errors={errors}
         onBankSelect={onBankSelect}
         onBankNameChange={onBankNameChange}
         onCustomBankAdd={onCustomBankAdd}
         onCustomBankCancel={onCustomBankCancel}
-        onCustomBankFormChange={setCustomBankFormOpen}
       />
 
       {showProductSelector ? (
-        <div className="space-y-2 text-sm">
-          <span className="inline-block text-sm font-medium" id="product-type">
-            Product type{" "}
-            <span className="text-danger-fg" aria-hidden>
-              *
-            </span>
-            <span className="sr-only"> required</span>
-          </span>
+        <div className="space-y-3">
           <div>
-            <ToggleGroup
-              type="single"
-              value={form.productType}
-              aria-labelledby="product-type"
-              onValueChange={(value) => {
-                if (!value) return;
-                onProductSelect(value as ProductType);
-              }}
-            >
-              {productOptions.map((product) => (
-                <ToggleGroupItem key={product.productType} value={product.productType}>
-                  {productTypeLabel(product.productType)}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <p className="text-muted-foreground text-[10.5px] font-semibold tracking-wider uppercase">
+              Product type{" "}
+              <span className="text-danger-fg" aria-hidden>
+                *
+              </span>
+            </p>
+            {errors.productType ? (
+              <p className="text-danger-fg mt-1 text-xs">{errors.productType}</p>
+            ) : null}
           </div>
-          <p className="text-danger-fg min-h-5 text-xs">{errors.productType ?? ""}</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {productOptions.map((product) => {
+              const isSelected = form.productType === product.productType;
+              const meta = PRODUCT_META[product.productType] ?? {
+                short: product.productType,
+                desc: "",
+              };
+              return (
+                <button
+                  key={product.productType}
+                  type="button"
+                  onClick={() => {
+                    if (!pendingSelectionChange) onProductSelect(product.productType);
+                  }}
+                  aria-pressed={isSelected}
+                  className={`relative flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors ${
+                    isSelected
+                      ? "bg-interactive-selected border-interactive-selected"
+                      : "border-border bg-surface-base hover:bg-interactive-hover"
+                  }`}
+                >
+                  {isSelected ? (
+                    <Check className="text-primary absolute top-2.5 right-2.5 h-3.5 w-3.5" />
+                  ) : null}
+                  <span className="pr-5 text-sm font-semibold">{meta.short}</span>
+                  <span className="text-muted-foreground text-xs">{meta.desc}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       ) : null}
 

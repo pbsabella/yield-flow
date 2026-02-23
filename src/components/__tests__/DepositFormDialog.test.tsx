@@ -50,7 +50,7 @@ describe("AddInvestmentWizard", () => {
       />,
     );
 
-    expect(screen.getByText(/step 1 - bank & product/i)).toBeInTheDocument();
+    expect(screen.getByText(/bank & product/i)).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: /bank/i })).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe("AddInvestmentWizard", () => {
       />,
     );
 
-    expect(screen.getByText(/step 2 - investment details/i)).toBeInTheDocument();
+    expect(screen.getByText(/investment details/i)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /change/i }).length).toBeGreaterThan(0);
   });
 
