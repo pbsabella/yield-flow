@@ -146,7 +146,7 @@ classes from `@theme inline` automatically. Co-location preserved.
 "bg-[var(--color-interactive-hover-bg)]";
 
 // Correct — register in @theme inline first
-"bg-interactive-hover-bg";
+"bg-interactive-hover";
 ```
 
 **Never use inline HSL:**
@@ -287,5 +287,6 @@ When using these skills, structure your internal reasoning as follows:
 - Do not use `bg-[var(--token)]` inline — register in `@theme inline` first
 - Do not add new amber/emerald/rose/indigo classes — check tokens first
 - Do not add a CSS variable without adding it to both `:root` and `.dark`
+  (exception: `--color-gradient-teal` is intentionally dark-mode only)
 - Do not modify shadcn files for look-and-feel — rewrite or use CVA variants
 - Do not duplicate yield calculation logic outside `yield-engine.ts`

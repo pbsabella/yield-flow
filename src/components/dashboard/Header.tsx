@@ -11,7 +11,7 @@ export default function Header() {
         <ThemeToggle />
       </div>
       <div className="order-2 space-y-2 md:order-1">
-        <div className="inline-flex items-center gap-2 rounded-md bg-indigo-100/80 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+        <div className="bg-status-info-bg text-income-net-fg inline-flex items-center gap-2 rounded-md px-3 py-1 text-xs font-semibold">
           Yield ladder intelligence
         </div>
         <h1 className="text-3xl font-semibold md:text-4xl">YieldFlow</h1>

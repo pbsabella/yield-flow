@@ -747,7 +747,7 @@ export default function DepositFormDialog({
             <span
               className={`text-badge inline-flex h-6 w-6 items-center justify-center rounded-full border font-semibold ${
                 step >= index
-                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-surface-base text-muted-foreground"
               }`}
               aria-current={step === index ? "step" : undefined}
@@ -1159,9 +1159,7 @@ export default function DepositFormDialog({
         />
         <p className="text-danger-fg min-h-5 text-xs">{errors.startDate ?? ""}</p>
         {warnings.startDate ? (
-          <p className="text-xs text-amber-700 dark:text-amber-300">
-            {warnings.startDate}
-          </p>
+          <p className="text-status-warning-fg text-xs">{warnings.startDate}</p>
         ) : null}
       </div>
 
@@ -1329,9 +1327,7 @@ export default function DepositFormDialog({
               <p className="text-muted-foreground text-xs">{draftForm.notes}</p>
             ) : null}
             {warnings.rate ? (
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                {warnings.rate}
-              </p>
+              <p className="text-status-warning-fg text-xs">{warnings.rate}</p>
             ) : null}
             <p id="error-rate" className="text-danger-fg min-h-5 text-xs">
               {errors.rate ?? ""}
@@ -1487,9 +1483,7 @@ export default function DepositFormDialog({
             })}
 
             {warnings.tiers ? (
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                {warnings.tiers}
-              </p>
+              <p className="text-status-warning-fg text-xs">{warnings.tiers}</p>
             ) : null}
 
             <Button

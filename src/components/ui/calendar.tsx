@@ -29,7 +29,7 @@ function Calendar({
           "rounded-md transition-colors duration-150 ease-out hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
         dropdown_year:
           "rounded-md transition-colors duration-150 ease-out hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
-        caption_label: "text-sm font-semibold text-primary",
+        caption_label: "text-sm font-semibold text-foreground",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline", size: "sm" }),

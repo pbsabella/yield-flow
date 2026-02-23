@@ -399,7 +399,7 @@ export default function DashboardClient() {
                 anytime in{" "}
                 <a
                   href="#data-management"
-                  className="font-semibold underline underline-offset-4 hover:text-indigo-700 dark:hover:text-indigo-200"
+                  className="hover:text-primary font-semibold underline underline-offset-4"
                   onClick={(event) => {
                     event.preventDefault();
                     document
@@ -587,7 +587,7 @@ export default function DashboardClient() {
         <span>© {new Date().getFullYear()} </span>
         <a
           href="https://pbsabella.github.io/"
-          className="focus-visible:ring-primary/60 text-income-net-fg underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:hover:text-indigo-300 dark:active:text-indigo-200"
+          className="focus-visible:ring-primary/60 text-income-net-fg hover:text-primary active:text-primary/80 underline-offset-4 transition-colors duration-150 ease-out hover:underline focus-visible:ring-2"
           target="_blank"
           rel="noreferrer"
         >
