@@ -33,13 +33,13 @@ function Calendar({
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline", size: "sm" }),
-          "h-7 w-7 bg-surface p-0 opacity-70 transition-opacity duration-150 ease-out hover:opacity-100 active:opacity-90",
+          "h-7 w-7 bg-surface-base p-0 opacity-70 transition-opacity duration-150 ease-out hover:opacity-100 active:opacity-90",
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell: "text-muted rounded-md w-9 font-normal text-[0.7rem]",
+        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.7rem]",
         row: "mt-2 flex w-full",
         cell: "h-9 w-9 text-center text-sm p-0 relative",
         day: cn(
@@ -50,8 +50,8 @@ function Calendar({
           "bg-indigo-600 text-white hover:bg-indigo-600/90 active:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400 dark:active:bg-indigo-600",
         day_today:
           "bg-indigo-500/10 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200",
-        day_outside: "text-muted opacity-50",
-        day_disabled: "text-muted opacity-50",
+        day_outside: "text-muted-foreground opacity-50",
+        day_disabled: "text-muted-foreground opacity-50",
         day_hidden: "invisible",
         ...classNames,
       }}

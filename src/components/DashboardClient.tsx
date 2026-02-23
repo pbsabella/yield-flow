@@ -378,7 +378,7 @@ export default function DashboardClient() {
   const emptyStateCtaLabel = "Load sample data";
 
   return (
-    <div className="bg-page text-primary min-h-screen">
+    <div className="bg-surface-page text-foreground min-h-screen">
       <header className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-10 pb-10 md:px-10">
         <Alert variant="warning">
           <BellRing className="h-4 w-4" />
@@ -436,7 +436,7 @@ export default function DashboardClient() {
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 md:px-10">
-        <section className="bg-portfolio-surface border-subtle rounded-2xl border p-6">
+        <section className="bg-surface-base border-border-subtle rounded-2xl border p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Portfolio actions</h2>
@@ -466,7 +466,7 @@ export default function DashboardClient() {
           </div>
 
           {!isReady ? (
-            <div className="border-subtle bg-surface-soft text-muted mt-6 rounded-2xl border p-6 text-sm">
+            <div className="border-border-subtle bg-surface-soft text-muted-foreground mt-6 rounded-2xl border p-6 text-sm">
               Loading your portfolio...
             </div>
           ) : deposits.length === 0 ? (
@@ -481,7 +481,7 @@ export default function DashboardClient() {
                   </TabsList>
                 </div>
                 <TabsContent value="ladder" className="mt-4">
-                  <label className="border-subtle bg-surface text-muted mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
+                  <label className="border-border-subtle bg-surface-base text-muted-foreground mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
                     <input
                       type="checkbox"
                       className="accent-primary"
@@ -512,18 +512,20 @@ export default function DashboardClient() {
 
         <section
           id="data-management"
-          className="border-subtle bg-surface rounded-2xl border p-6"
+          className="border-border-subtle bg-surface-base rounded-2xl border p-6"
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Data Management</h2>
-              <p className="text-muted text-sm">Your data stays on your device</p>
+              <p className="text-muted-foreground text-sm">
+                Your data stays on your device
+              </p>
             </div>
-            <span className="border-subtle bg-surface-soft text-muted rounded-lg border px-3 py-1 text-xs">
+            <span className="border-border-subtle bg-surface-soft text-muted-foreground rounded-lg border px-3 py-1 text-xs">
               {hasSavedToBrowser ? "Saved to Browser" : "Not saved yet"}
             </span>
           </div>
-          <p className="text-muted mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm">
             Everything is stored privately on this device — no accounts, no servers, no
             tracking. Use the backup option to keep a copy safe.
           </p>
@@ -567,7 +569,7 @@ export default function DashboardClient() {
             </Button>
           </div>
           {importMessage ? (
-            <p className="text-muted mt-3 text-xs">{importMessage}</p>
+            <p className="text-muted-foreground mt-3 text-xs">{importMessage}</p>
           ) : null}
         </section>
       </main>
@@ -581,11 +583,11 @@ export default function DashboardClient() {
           setDeleteId(null);
         }}
       />
-      <footer className="border-subtle bg-surface/60 text-muted mt-10 border-t px-6 py-6 text-center text-xs md:px-10">
+      <footer className="border-border-subtle bg-surface-base/60 text-muted-foreground mt-10 border-t px-6 py-6 text-center text-xs md:px-10">
         <span>© {new Date().getFullYear()} </span>
         <a
           href="https://pbsabella.github.io/"
-          className="focus-visible:ring-primary/60 text-income-net underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:hover:text-indigo-300 dark:active:text-indigo-200"
+          className="focus-visible:ring-primary/60 text-income-net-fg underline-offset-4 transition-colors duration-150 ease-out hover:text-indigo-700 hover:underline focus-visible:ring-2 active:text-indigo-800 dark:hover:text-indigo-300 dark:active:text-indigo-200"
           target="_blank"
           rel="noreferrer"
         >

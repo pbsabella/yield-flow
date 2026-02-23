@@ -15,7 +15,7 @@ export default function Header() {
           Yield ladder intelligence
         </div>
         <h1 className="text-3xl font-semibold md:text-4xl">YieldFlow</h1>
-        <p className="text-secondary max-w-xl text-sm md:text-base">
+        <p className="text-muted-foreground max-w-xl text-sm md:text-base">
           Track your fixed-income investments, visualize maturity timing, and see your
           passive income clearly.
         </p>

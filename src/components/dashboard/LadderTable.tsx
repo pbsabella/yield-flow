@@ -101,7 +101,7 @@ export default function LadderTable({
         <div className="relative">
           <div className="from-surface pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r to-transparent" />
           <div className="from-surface pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l to-transparent" />
-          <div className="border-subtle bg-surface w-full overflow-x-auto overflow-y-hidden rounded-2xl border">
+          <div className="border-border-subtle bg-surface-base w-full overflow-x-auto overflow-y-hidden rounded-2xl border">
             <div className="min-w-[900px]">
               <Table wrapperClassName="overflow-visible rounded-none border-0">
                 <TableHeader>
@@ -125,7 +125,7 @@ export default function LadderTable({
                             <ChevronDown className="h-3 w-3 shrink-0" />
                           )
                         ) : (
-                          <ChevronsUpDown className="text-muted h-3 w-3 shrink-0" />
+                          <ChevronsUpDown className="text-muted-foreground h-3 w-3 shrink-0" />
                         )}
                       </button>
                     </TableHead>
@@ -143,7 +143,7 @@ export default function LadderTable({
                             <ChevronDown className="h-3 w-3 shrink-0" />
                           )
                         ) : (
-                          <ChevronsUpDown className="text-muted h-3 w-3 shrink-0" />
+                          <ChevronsUpDown className="text-muted-foreground h-3 w-3 shrink-0" />
                         )}
                       </button>
                     </TableHead>
@@ -161,7 +161,7 @@ export default function LadderTable({
                             <ChevronDown className="h-3 w-3 shrink-0" />
                           )
                         ) : (
-                          <ChevronsUpDown className="text-muted h-3 w-3 shrink-0" />
+                          <ChevronsUpDown className="text-muted-foreground h-3 w-3 shrink-0" />
                         )}
                       </button>
                     </TableHead>
@@ -179,7 +179,7 @@ export default function LadderTable({
                             <ChevronDown className="h-3 w-3 shrink-0" />
                           )
                         ) : (
-                          <ChevronsUpDown className="text-muted h-3 w-3 shrink-0" />
+                          <ChevronsUpDown className="text-muted-foreground h-3 w-3 shrink-0" />
                         )}
                       </button>
                     </TableHead>
@@ -197,7 +197,7 @@ export default function LadderTable({
                             <ChevronDown className="h-3 w-3 shrink-0" />
                           )
                         ) : (
-                          <ChevronsUpDown className="text-muted h-3 w-3 shrink-0" />
+                          <ChevronsUpDown className="text-muted-foreground h-3 w-3 shrink-0" />
                         )}
                       </button>
                     </TableHead>
@@ -221,17 +221,17 @@ export default function LadderTable({
                       <TableRow
                         key={summary.deposit.id}
                         className={`${
-                          isDue ? "bg-overdue [&>td]:bg-overdue" : ""
+                          isDue ? "bg-status-overdue-bg [&>td]:bg-status-overdue-bg" : ""
                         } ${isSettled ? "opacity-50" : ""} last:[&>td:first-child]:rounded-bl-2xl`}
                       >
                         <TableCell
                           className={`sticky left-0 z-10 font-semibold ${
-                            isDue ? "bg-overdue-sticky" : "bg-surface"
+                            isDue ? "bg-status-overdue-sticky" : "bg-surface-base"
                           }`}
                         >
                           {summary.deposit.name}
                         </TableCell>
-                        <TableCell className="text-bank-name">
+                        <TableCell className="text-bank-name-fg">
                           {summary.bank.name}
                         </TableCell>
                         <TableCell className="font-financial">
@@ -239,7 +239,7 @@ export default function LadderTable({
                         </TableCell>
                         <TableCell>
                           {summary.deposit.isOpenEnded ? (
-                            <span className="text-muted text-sm font-semibold">
+                            <span className="text-muted-foreground text-sm font-semibold">
                               Open-ended
                             </span>
                           ) : (
@@ -262,7 +262,7 @@ export default function LadderTable({
                             />
                           )}
                         </TableCell>
-                        <TableCell className="text-income-net font-financial font-semibold">
+                        <TableCell className="text-income-net-fg font-financial font-semibold">
                           {formatPhpCurrency(summary.netInterest)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -350,12 +350,12 @@ export default function LadderTable({
                   return next;
                 })
               }
-              className={`group border-subtle bg-item-card rounded-xl border p-4 transition-colors duration-200 ease-out ${
-                isDue ? "bg-overdue" : ""
+              className={`group border-border-subtle bg-surface-item-card rounded-xl border p-4 transition-colors duration-200 ease-out ${
+                isDue ? "bg-status-overdue-bg" : ""
               } ${isSettled ? "opacity-50" : ""}`}
             >
               <div
-                className="hover:bg-surface/60 focus-visible:ring-primary/60 active:bg-surface-strong flex cursor-pointer items-start justify-between gap-3 rounded-md px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
+                className="hover:bg-surface-base/60 focus-visible:ring-primary/60 active:bg-surface-raised flex cursor-pointer items-start justify-between gap-3 rounded-md px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
@@ -386,7 +386,7 @@ export default function LadderTable({
               >
                 <div>
                   <p className="text-sm font-semibold">{summary.deposit.name}</p>
-                  <p className="text-bank-name text-xs">{summary.bank.name}</p>
+                  <p className="text-bank-name-fg text-xs">{summary.bank.name}</p>
                 </div>
                 <div className="flex items-start gap-2">
                   {isDue && isMatured ? (
@@ -446,26 +446,28 @@ export default function LadderTable({
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <div className="text-muted text-xs">
+                <div className="text-muted-foreground text-xs">
                   {summary.deposit.isOpenEnded
                     ? "Maturity —"
                     : `Maturity ${formatDate(new Date(summary.maturityDate))}`}
                 </div>
-                <div className="text-income-net font-financial text-sm font-semibold">
+                <div className="text-income-net-fg font-financial text-sm font-semibold">
                   {formatPhpCurrency(summary.netInterest)}
                 </div>
               </div>
-              <CollapsibleContent className="text-muted mt-4 grid gap-2 text-xs">
+              <CollapsibleContent className="text-muted-foreground mt-4 grid gap-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span>Principal</span>
-                  <span className="text-primary font-financial">
+                  <span className="text-foreground font-financial">
                     {formatPhpCurrency(summary.deposit.principal)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Maturity</span>
                   {summary.deposit.isOpenEnded ? (
-                    <span className="text-muted text-xs font-semibold">Open-ended</span>
+                    <span className="text-muted-foreground text-xs font-semibold">
+                      Open-ended
+                    </span>
                   ) : (
                     <span className="font-financial text-foreground">
                       {formatDate(new Date(summary.maturityDate))}
@@ -487,7 +489,7 @@ export default function LadderTable({
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Net interest</span>
-                  <span className="text-income-net font-financial">
+                  <span className="text-income-net-fg font-financial">
                     {formatPhpCurrency(summary.netInterest)}
                   </span>
                 </div>

@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Calculator,
   Check,
-  Landmark,
   Plus,
   Trash2,
   TriangleAlert,
@@ -627,7 +626,7 @@ export default function DepositFormDialog({
 
   const mobileStickyBar =
     !isDesktop && previewSummary ? (
-      <div className="border-border bg-surface fixed right-0 bottom-0 left-0 z-50 border-t px-4 py-3 shadow-lg">
+      <div className="border-border bg-surface-base fixed right-0 bottom-0 left-0 z-50 border-t px-4 py-3 shadow-lg">
         <button
           type="button"
           className="flex w-full items-center justify-between text-left"
@@ -641,7 +640,7 @@ export default function DepositFormDialog({
               </span>
             ) : null}
           </span>
-          <span className="text-income-net font-financial text-sm font-semibold">
+          <span className="text-income-net-fg font-financial text-sm font-semibold">
             {formatPhpCurrency(previewSummary.netInterest)}
           </span>
         </button>
@@ -673,9 +672,9 @@ export default function DepositFormDialog({
     ) : null;
 
   const livePreviewCard = (
-    <aside className="bg-surface border-subtle sticky top-0 rounded-xl border p-5 lg:top-6">
+    <aside className="bg-surface-base border-border-subtle sticky top-0 rounded-xl border p-5 lg:top-6">
       <div className="text-secondary-foreground flex items-center gap-2 text-sm font-semibold">
-        <Calculator className="text-income-net h-4 w-4" />
+        <Calculator className="text-income-net-fg h-4 w-4" />
         Live calculation preview
       </div>
       {!previewSummary ? (
@@ -698,9 +697,9 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="bg-status-info flex items-center justify-between rounded-md px-3 py-2">
+          <div className="bg-status-info-bg flex items-center justify-between rounded-md px-3 py-2">
             <span className="text-status-info-fg font-medium">Net interest</span>
-            <span className="text-income-net font-financial font-semibold">
+            <span className="text-income-net-fg font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}
             </span>
           </div>
@@ -749,7 +748,7 @@ export default function DepositFormDialog({
               className={`text-badge inline-flex h-6 w-6 items-center justify-center rounded-full border font-semibold ${
                 step >= index
                   ? "border-indigo-600 bg-indigo-600 text-white"
-                  : "border-border bg-surface text-muted-foreground"
+                  : "border-border bg-surface-base text-muted-foreground"
               }`}
               aria-current={step === index ? "step" : undefined}
             >
@@ -847,7 +846,7 @@ export default function DepositFormDialog({
               id="bank-options"
               role="listbox"
               ref={listboxRef}
-              className="border-border bg-surface absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
+              className="border-border bg-surface-base absolute z-40 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border p-2 shadow-sm"
               onMouseDown={(event) => event.preventDefault()}
             >
               <div className="flex flex-col gap-1">
@@ -1651,7 +1650,7 @@ export default function DepositFormDialog({
       </div>
 
       {previewSummary ? (
-        <div className="border-status-info bg-status-info space-y-2 rounded-md border p-4 text-sm">
+        <div className="border-status-info-border bg-status-info-bg space-y-2 rounded-md border p-4 text-sm">
           <div className="flex items-center justify-between">
             <span>Gross interest</span>
             <span className="font-financial">
@@ -1666,7 +1665,7 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="text-income-net flex items-center justify-between">
+          <div className="text-income-net-fg flex items-center justify-between">
             <span className="font-semibold">Net interest</span>
             <span className="font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}

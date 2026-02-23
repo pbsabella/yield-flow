@@ -173,6 +173,12 @@ classes from `@theme inline` automatically. Co-location preserved.
 "accent-primary";
 ```
 
+**Text utility meaning (do not remap):**
+
+- `text-foreground` — body text
+- `text-primary` — brand indigo (`--primary`)
+- `text-muted-foreground` — secondary/muted text
+
 ---
 
 ## shadcn/ui Customization

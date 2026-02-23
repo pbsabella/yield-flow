@@ -10,7 +10,7 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, wrapperClassName, ...props }, ref) => (
     <div
       className={cn(
-        "border-subtle w-full overflow-hidden rounded-2xl border",
+        "border-border-subtle w-full overflow-hidden rounded-2xl border",
         wrapperClassName,
       )}
     >
@@ -31,7 +31,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      "bg-surface-soft text-muted text-left text-xs font-semibold",
+      "bg-surface-soft text-muted-foreground text-left text-xs font-semibold",
       className,
     )}
     {...props}
@@ -51,7 +51,7 @@ const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
 >(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn("border-subtle border-b", className)} {...props} />
+  <tr ref={ref} className={cn("border-border-subtle border-b", className)} {...props} />
 ));
 TableRow.displayName = "TableRow";
 

@@ -11,7 +11,8 @@
   --foreground: 240 10% 3.9%;
   --primary: 247 92% 60%;
   --card: 0 0% 100%;
-  --border: 240 5% 90%;
+  --color-border-subtle: 240 5% 90%;
+  --border: var(--color-border-subtle);
   --muted-foreground: 240 5% 38%;
   --radius: 0.5rem;
 
@@ -60,7 +61,7 @@
   --color-status-success-bg: 142 60% 95%;
   --color-status-success-fg: 142 60% 25%;
   --color-status-success-border: 142 50% 82%;
-  --color-danger-bg: 0 84% 50%;
+  --color-danger-solid: 0 84% 50%;
   --color-danger-border: 0 84% 75%;
   --color-income-net-fg: 243 75% 45%;
   --color-interactive-hover-bg: 243 75% 59% / 0.08;
@@ -82,13 +83,14 @@
   --foreground: 0 0% 98%;
   --primary: 247 92% 60%;
   --card: 228 12% 14%;
-  --border: 228 12% 18%;
+  --color-border-subtle: 228 12% 18%;
+  --border: var(--color-border-subtle);
   --muted-foreground: 240 6% 72%;
 
   --card-foreground: 0 0% 98%;
   --popover: 228 18% 11%;
   --popover-foreground: 0 0% 98%;
-  --primary-foreground: 240 10% 3.9%;
+  /* --primary-foreground: 240 10% 3.9%; */
   --secondary: 228 15% 18%;
   --secondary-foreground: 0 0% 98%;
   --muted: 228 22% 28%;
@@ -130,7 +132,7 @@
   --color-status-success-bg: 142 30% 12%;
   --color-status-success-fg: 142 60% 70%;
   --color-status-success-border: 142 30% 22%;
-  --color-danger-bg: 0 72% 45%;
+  --color-danger-solid: 0 72% 45%;
   --color-danger-border: 0 72% 40%;
   --color-income-net-fg: 239 84% 72%;
   --color-interactive-hover-bg: 239 84% 67% / 0.12;
@@ -166,7 +168,8 @@
   --color-chart-1: hsl(var(--chart-1));
   --color-ring: hsl(var(--ring));
   --color-input: hsl(var(--input));
-  --color-border: hsl(var(--border));
+  --color-border: hsl(var(--color-border-subtle));
+  --color-border-subtle: hsl(var(--color-border-subtle));
   --color-destructive: hsl(var(--destructive));
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-accent: hsl(var(--accent));
@@ -180,13 +183,31 @@
   --color-popover: hsl(var(--popover));
   --color-card-foreground: hsl(var(--card-foreground));
   --color-card: hsl(var(--card));
+  --color-surface-page: hsl(var(--color-surface-page));
+  --color-surface-base: hsl(var(--color-surface-base));
+  --color-surface-soft: hsl(var(--color-surface-soft));
+  --color-surface-raised: hsl(var(--color-surface-raised));
+  --color-surface-item-card: hsl(var(--color-surface-item-card));
+  --color-status-overdue-bg: hsl(var(--color-status-overdue-bg));
+  --color-status-overdue-sticky: hsl(var(--color-status-overdue-sticky));
+  --color-status-overdue-fg: hsl(var(--color-status-overdue-fg));
+  --color-status-overdue-border: hsl(var(--color-status-overdue-border));
+  --color-status-warning-bg: hsl(var(--color-status-warning-bg));
+  --color-status-warning-fg: hsl(var(--color-status-warning-fg));
+  --color-status-warning-border: hsl(var(--color-status-warning-border));
+  --color-status-success-bg: hsl(var(--color-status-success-bg));
+  --color-status-info-bg: hsl(var(--color-status-info-bg));
+  --color-danger-fg: hsl(var(--color-danger-fg));
+  --color-bank-name-fg: hsl(var(--color-bank-name-fg));
+  --color-income-net-fg: hsl(var(--color-income-net-fg));
+  --color-overlay: hsl(var(--color-overlay));
   --color-status-info: hsl(var(--color-status-info-bg));
   --color-status-info-fg: hsl(var(--color-status-info-fg));
   --color-status-info-border: hsl(var(--color-status-info-border));
   --color-status-success: hsl(var(--color-status-success-bg));
   --color-status-success-fg: hsl(var(--color-status-success-fg));
   --color-status-success-border: hsl(var(--color-status-success-border));
-  --color-danger-solid: hsl(var(--color-danger-bg));
+  --color-danger-solid: hsl(var(--color-danger-solid));
   --color-danger-border: hsl(var(--color-danger-border));
   --color-interactive-selected-border: hsl(var(--color-interactive-selected-border));
   --color-interactive-selected: hsl(var(--color-interactive-selected-bg));
@@ -260,122 +281,8 @@
 }
 
 @layer utilities {
-  .bg-page {
-    background: hsl(var(--color-surface-page));
-  }
-  .bg-surface {
-    background: hsl(var(--color-surface-base));
-  }
-  .bg-surface-soft {
-    background: hsl(var(--color-surface-soft));
-  }
-  .bg-surface-strong {
-    background: hsl(var(--color-surface-raised));
-  }
-  .bg-item-card {
-    background: hsl(var(--color-surface-item-card));
-  }
-  .bg-portfolio-surface {
-    background: hsl(var(--color-surface-base));
-  }
-  .bg-overdue {
-    background: hsl(var(--color-status-overdue-bg));
-  }
-  .bg-overdue-sticky {
-    background: hsl(var(--color-status-overdue-sticky));
-  }
-  .text-overdue {
-    color: hsl(var(--color-status-overdue-fg));
-  }
-  .border-overdue {
-    border-color: hsl(var(--color-status-overdue-border));
-  }
-  .bg-warning {
-    background: hsl(var(--color-status-warning-bg));
-  }
-  .bg-status-warning {
-    background: hsl(var(--color-status-warning-bg));
-  }
-  .text-warning {
-    color: hsl(var(--color-status-warning-fg));
-  }
-  .text-status-warning-fg {
-    color: hsl(var(--color-status-warning-fg));
-  }
-  .border-warning {
-    border-color: hsl(var(--color-status-warning-border));
-  }
-  .border-status-warning {
-    border-color: hsl(var(--color-status-warning-border));
-  }
-  .ring-status-warning-border {
-    --tw-ring-color: hsl(var(--color-status-warning-border));
-  }
-  .bg-status-success {
-    background: hsl(var(--color-status-success-bg));
-  }
-  .text-status-success-fg {
-    color: hsl(var(--color-status-success-fg));
-  }
-  .ring-status-success-border {
-    --tw-ring-color: hsl(var(--color-status-success-border));
-  }
-  .bg-status-info {
-    background: hsl(var(--color-status-info-bg));
-  }
-  .border-status-info {
-    border-color: hsl(var(--color-status-info-border));
-  }
-  .text-status-info-fg {
-    color: hsl(var(--color-status-info-fg));
-  }
-  .text-danger-fg {
-    color: hsl(var(--color-danger-fg));
-  }
-  .border-danger-border {
-    border-color: hsl(var(--color-danger-border));
-  }
-  .bg-danger-solid {
-    background: hsl(var(--color-danger-bg));
-  }
-  .text-bank-name {
-    color: hsl(var(--color-bank-name-fg));
-  }
-  .border-interactive-selected-border {
-    border-color: hsl(var(--color-interactive-selected-border));
-  }
-  .text-income-net {
-    color: hsl(var(--color-income-net-fg));
-  }
-  .bg-sample-banner {
-    background: hsl(var(--color-status-info-bg));
-    border-color: hsl(var(--color-status-info-border));
-  }
-  .text-primary {
-    color: hsl(var(--foreground));
-  }
-  .text-secondary {
-    color: hsl(var(--muted-foreground));
-  }
-  .text-muted {
-    color: hsl(var(--muted-foreground));
-  }
-  .border-subtle {
-    border-color: hsl(var(--border));
-  }
-  .text-accent {
-    color: hsl(var(--primary));
-  }
-  .bg-accent {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-  }
-  .bg-accent-soft {
-    background: hsl(var(--primary) / 0.12);
-    color: hsl(var(--primary));
-  }
-  .bg-overlay {
-    background: hsl(var(--color-overlay));
+  .font-financial {
+    font-variant-numeric: tabular-nums;
   }
   .glass {
     background: color-mix(in srgb, hsl(var(--surface-1)), transparent 12%);
@@ -384,6 +291,21 @@
 }
 
 @layer components {
+  .bg-sample-banner {
+    background: hsl(var(--color-status-info-bg));
+    border-color: hsl(var(--color-status-info-border));
+  }
+
+  .bg-accent {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .bg-accent-soft {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
   .table-sort-btn {
     @apply text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2;
     background: transparent;

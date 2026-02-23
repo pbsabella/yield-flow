@@ -53,7 +53,7 @@ export default function MonthlyFlow({
         return (
           <div key={item.monthKey}>
             {hasEntries ? (
-              <div className="border-subtle bg-item-card overflow-hidden rounded-xl border">
+              <div className="border-border-subtle bg-surface-item-card overflow-hidden rounded-xl border">
                 <button
                   type="button"
                   onClick={() =>
@@ -61,7 +61,7 @@ export default function MonthlyFlow({
                       current === item.monthKey ? null : item.monthKey,
                     )
                   }
-                  className="hover:bg-surface focus-visible:ring-primary/60 active:bg-surface-strong flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-3 text-left transition-colors duration-150 ease-out focus-visible:ring-2"
+                  className="hover:bg-surface-base focus-visible:ring-primary/60 active:bg-surface-raised flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-3 text-left transition-colors duration-150 ease-out focus-visible:ring-2"
                 >
                   <div>
                     <p className="text-sm font-semibold">{item.label}</p>
@@ -69,18 +69,18 @@ export default function MonthlyFlow({
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="text-right">
-                      <p className="text-income-net font-financial text-lg font-semibold">
+                      <p className="text-income-net-fg font-financial text-lg font-semibold">
                         {formatPhpCurrency(item.net)}
                       </p>
                       {isCurrentMonth ? (
                         <div className="text-badge mt-2 flex flex-wrap justify-end gap-2 font-semibold">
                           {pendingNet > 0 ? (
-                            <span className="bg-status-warning text-status-warning-fg ring-status-warning-border inline-flex items-center rounded-full px-2 py-1 ring-1">
+                            <span className="bg-status-warning-bg text-status-warning-fg ring-status-warning-border inline-flex items-center rounded-full px-2 py-1 ring-1">
                               {formatPhpCurrency(pendingNet)} pending
                             </span>
                           ) : null}
                           {settledNet > 0 ? (
-                            <span className="bg-status-success text-status-success-fg ring-status-success-border inline-flex items-center rounded-full px-2 py-1 ring-1">
+                            <span className="bg-status-success-bg text-status-success-fg ring-status-success-border inline-flex items-center rounded-full px-2 py-1 ring-1">
                               {formatPhpCurrency(settledNet)} settled
                             </span>
                           ) : null}
@@ -90,8 +90,8 @@ export default function MonthlyFlow({
                   </div>
                 </button>
                 {isOpen ? (
-                  <div className="border-subtle bg-surface border-t px-4 py-3">
-                    <div className="text-muted mb-2 text-xs uppercase">
+                  <div className="border-border-subtle bg-surface-base border-t px-4 py-3">
+                    <div className="text-muted-foreground mb-2 text-xs uppercase">
                       Monthly payouts
                     </div>
                     <div className="space-y-2">
@@ -110,7 +110,7 @@ export default function MonthlyFlow({
                                 Net interest
                               </div>
                             </div>
-                            <div className="text-income-net font-financial text-right font-semibold">
+                            <div className="text-income-net-fg font-financial text-right font-semibold">
                               {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
@@ -118,10 +118,12 @@ export default function MonthlyFlow({
                       {(item.entries?.filter(
                         (entry) => entry.payoutFrequency === "monthly",
                       ).length ?? 0) === 0 ? (
-                        <p className="text-muted text-xs">No monthly payouts.</p>
+                        <p className="text-muted-foreground text-xs">
+                          No monthly payouts.
+                        </p>
                       ) : null}
                     </div>
-                    <div className="text-muted mt-4 mb-2 text-xs uppercase">
+                    <div className="text-muted-foreground mt-4 mb-2 text-xs uppercase">
                       Maturity payouts
                     </div>
                     <div className="space-y-2">
@@ -140,7 +142,7 @@ export default function MonthlyFlow({
                                 Net interest
                               </div>
                             </div>
-                            <div className="text-income-net font-financial text-right font-semibold">
+                            <div className="text-income-net-fg font-financial text-right font-semibold">
                               {formatPhpCurrency(entry.amountNet)}
                             </div>
                           </div>
@@ -148,14 +150,16 @@ export default function MonthlyFlow({
                       {(item.entries?.filter(
                         (entry) => entry.payoutFrequency === "maturity",
                       ).length ?? 0) === 0 ? (
-                        <p className="text-muted text-xs">No maturity payouts.</p>
+                        <p className="text-muted-foreground text-xs">
+                          No maturity payouts.
+                        </p>
                       ) : null}
                     </div>
                   </div>
                 ) : null}
               </div>
             ) : (
-              <div className="border-subtle bg-item-card text-muted rounded-xl border px-4 py-3 text-sm">
+              <div className="border-border-subtle bg-surface-item-card text-muted-foreground rounded-xl border px-4 py-3 text-sm">
                 No payouts in {item.label}
               </div>
             )}

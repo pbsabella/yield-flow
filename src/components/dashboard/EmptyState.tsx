@@ -9,10 +9,10 @@ type Props = {
 
 export default function EmptyState({ onSeed, ctaLabel }: Props) {
   return (
-    <div className="border-subtle bg-surface-soft mt-6 flex flex-col items-start gap-4 rounded-2xl border border-dashed p-6 transition-colors duration-200 ease-out">
+    <div className="border-border-subtle bg-surface-soft mt-6 flex flex-col items-start gap-4 rounded-2xl border border-dashed p-6 transition-colors duration-200 ease-out">
       <div>
         <p className="text-sm font-semibold">No investments yet</p>
-        <p className="text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Load sample data to explore YieldFlow instantly.
         </p>
       </div>

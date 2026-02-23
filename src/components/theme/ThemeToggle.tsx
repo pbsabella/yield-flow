@@ -35,7 +35,7 @@ export default function ThemeToggle() {
         setTheme(next);
         applyTheme(next);
       }}
-      className="bg-card border-subtle flex-nowrap rounded-full border p-1 px-1"
+      className="bg-card border-border-subtle flex-nowrap rounded-full border p-1 px-1"
       aria-label="Theme switcher"
     >
       {themes.map((item) => {
