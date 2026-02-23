@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
-import DepositFormDialog from "@/components/dashboard/DepositFormDialog";
+import { AddInvestmentWizard } from "@/components/investment-wizard";
 import type { Bank, TimeDeposit } from "@/lib/types";
-import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
+import type { DepositFormState } from "@/components/dashboard/types";
 import { renderWithProviders } from "@/components/__tests__/test-utils";
 
 const banks: Bank[] = [
@@ -35,21 +35,18 @@ const baseForm: DepositFormState = {
   ],
 };
 
-describe("DepositFormDialog", () => {
+describe("AddInvestmentWizard", () => {
   it("renders step 1 in add mode", async () => {
     renderWithProviders(
-      <DepositFormDialog
+      <AddInvestmentWizard
         open
         onOpenChange={() => {}}
         trigger={<button type="button">Open</button>}
-        title="Add an investment"
         banks={banks}
         deposits={deposits}
-        form={baseForm}
-        errors={{}}
-        onValidate={() => {}}
-        onSubmit={() => {}}
         isEditMode={false}
+        onSubmit={() => {}}
+        onCustomBankAdd={() => {}}
       />,
     );
 
@@ -59,18 +56,16 @@ describe("DepositFormDialog", () => {
 
   it("renders step 2 in edit mode", async () => {
     renderWithProviders(
-      <DepositFormDialog
+      <AddInvestmentWizard
         open
         onOpenChange={() => {}}
         trigger={<button type="button">Open</button>}
-        title="Edit investment"
         banks={banks}
         deposits={deposits}
-        form={baseForm}
-        errors={{} as DepositFormErrors}
-        onValidate={() => {}}
-        onSubmit={() => {}}
+        initialForm={baseForm}
         isEditMode
+        onSubmit={() => {}}
+        onCustomBankAdd={() => {}}
       />,
     );
 
@@ -80,18 +75,16 @@ describe("DepositFormDialog", () => {
 
   it("shows tier builder when tiered toggle is enabled", async () => {
     renderWithProviders(
-      <DepositFormDialog
+      <AddInvestmentWizard
         open
         onOpenChange={() => {}}
         trigger={<button type="button">Open</button>}
-        title="Add an investment"
         banks={banks}
         deposits={deposits}
-        form={baseForm}
-        errors={{}}
-        onValidate={() => {}}
-        onSubmit={() => {}}
+        initialForm={baseForm}
         isEditMode
+        onSubmit={() => {}}
+        onCustomBankAdd={() => {}}
       />,
     );
 

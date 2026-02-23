@@ -99,8 +99,6 @@ export default function LadderTable({
     <div>
       <div className="hidden md:block">
         <div className="relative">
-          <div className="from-surface pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r to-transparent" />
-          <div className="from-surface pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l to-transparent" />
           <div className="border-border-subtle bg-surface-base w-full overflow-x-auto overflow-y-hidden rounded-2xl border">
             <div className="min-w-[900px]">
               <Table wrapperClassName="overflow-visible rounded-none border-0">

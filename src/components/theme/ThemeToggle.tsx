@@ -35,7 +35,7 @@ export default function ThemeToggle() {
         setTheme(next);
         applyTheme(next);
       }}
-      className="bg-card border-border-subtle flex-nowrap rounded-full border p-1 px-1"
+      className="bg-card flex-nowrap rounded-full border p-1 px-1"
       aria-label="Theme switcher"
     >
       {themes.map((item) => {
@@ -44,7 +44,7 @@ export default function ThemeToggle() {
           <ToggleGroupItem
             key={item.value}
             value={item.value}
-            className="data-[state=on]:bg-interactive-selected data-[state=on]:text-foreground rounded-full px-3 py-2 text-xs font-semibold"
+            className="text-foreground data-[state=on]:bg-interactive-selected data-[state=on]:border-interactive-selected-border data-[state=on]:text-foreground focus-visible:ring-primary rounded-full focus-visible:ring-3"
             aria-label={item.label}
           >
             <Icon className="h-4 w-4" />

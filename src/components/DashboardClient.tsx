@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { BellRing, X } from "lucide-react";
+import { BellRing } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,15 +12,14 @@ import StatsGrid from "@/components/dashboard/StatsGrid";
 import EmptyState from "@/components/dashboard/EmptyState";
 import LadderTable from "@/components/dashboard/LadderTable";
 import MonthlyFlow from "@/components/dashboard/MonthlyFlow";
-import DepositFormDialog from "@/components/dashboard/DepositFormDialog";
+import { AddInvestmentWizard } from "@/components/investment-wizard";
 import ConfirmDeleteDialog from "@/components/dashboard/ConfirmDeleteDialog";
-import type { DepositFormErrors, DepositFormState } from "@/components/dashboard/types";
+import type { DepositFormState } from "@/components/dashboard/types";
 import {
   convertTermMonthsToEndDate,
   parseTierInputs,
   toNumber,
   unformatCurrencyInput,
-  validateDeposit,
 } from "@/components/dashboard/utils";
 
 import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
@@ -105,7 +104,6 @@ export default function DashboardClient() {
     bankTemplates.map((bank) => ({ ...bank, pdicMember: true })),
   );
   const [form, setForm] = useState<DepositFormState>(initialForm);
-  const [formErrors, setFormErrors] = useState<DepositFormErrors>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formSession, setFormSession] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -188,7 +186,6 @@ export default function DashboardClient() {
 
   function resetForm() {
     setForm(initialForm);
-    setFormErrors({});
     setEditingId(null);
   }
 
@@ -199,10 +196,6 @@ export default function DashboardClient() {
   }
 
   function handleSubmit(nextForm: DepositFormState) {
-    const errors = validateDeposit(nextForm);
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-
     const bankMatch = banks.find(
       (bank) => bank.name.toLowerCase() === nextForm.bankName.trim().toLowerCase(),
     );
@@ -241,10 +234,12 @@ export default function DashboardClient() {
       : [newDeposit, ...deposits];
     setSampleDataActive(false);
     persistDeposits(nextDeposits);
-
-    resetForm();
-    setDialogOpen(false);
   }
+
+  const handleCustomBankAdd = useCallback(
+    (bank: Bank) => setBanks((prev) => [...prev, bank]),
+    [],
+  );
 
   const seedDemoData = useCallback(() => {
     setSampleDataActive(true);
@@ -355,7 +350,6 @@ export default function DashboardClient() {
       notes: matchingTemplate?.notes,
       status: deposit.status,
     });
-    setFormErrors({});
     setDialogOpen(true);
     setFormSession((current) => current + 1);
   }
@@ -380,7 +374,7 @@ export default function DashboardClient() {
   return (
     <div className="bg-surface-page text-foreground min-h-screen">
       <header className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-10 pb-10 md:px-10">
-        <Alert variant="warning">
+        <Alert variant="info">
           <BellRing className="h-4 w-4" />
           <AlertTitle>Work in progress</AlertTitle>
           <AlertDescription>
@@ -390,40 +384,6 @@ export default function DashboardClient() {
             different interest conventions (for example, day-count basis like /365).
           </AlertDescription>
         </Alert>
-        {showSampleBanner ? (
-          <Alert variant="info" className="flex items-start gap-3 pr-10">
-            <div>
-              <AlertTitle>Using sample data</AlertTitle>
-              <AlertDescription>
-                This is pre-filled test data so you can explore YieldFlow. Clear it
-                anytime in{" "}
-                <a
-                  href="#data-management"
-                  className="hover:text-primary font-semibold underline underline-offset-4"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    document
-                      .getElementById("data-management")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  Data Management
-                </a>{" "}
-                below.
-              </AlertDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              className="absolute top-1 right-2 rounded-md"
-              onClick={() => setSampleBannerDismissed(true)}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Dismiss</span>
-            </Button>
-          </Alert>
-        ) : null}
         <Header />
         <StatsGrid
           totalPrincipal={totalPrincipal}
@@ -441,7 +401,7 @@ export default function DashboardClient() {
             <div>
               <h2 className="text-lg font-semibold">Portfolio actions</h2>
             </div>
-            <DepositFormDialog
+            <AddInvestmentWizard
               key={`${editingId ?? "new"}-${formSession}`}
               open={dialogOpen}
               onOpenChange={(open) => {
@@ -454,16 +414,39 @@ export default function DashboardClient() {
                   Add investment
                 </Button>
               }
-              title={editingId ? "Edit investment" : "Add an investment"}
               banks={banks}
               deposits={deposits}
-              form={form}
-              errors={formErrors}
-              onValidate={setFormErrors}
-              onSubmit={handleSubmit}
+              initialForm={editingId ? form : undefined}
               isEditMode={Boolean(editingId)}
+              onSubmit={handleSubmit}
+              onCustomBankAdd={handleCustomBankAdd}
             />
           </div>
+
+          {showSampleBanner ? (
+            <Alert variant="warning" className="mt-6 flex items-start gap-3 pr-10">
+              <div>
+                <AlertTitle>Using sample data</AlertTitle>
+                <AlertDescription>
+                  This is pre-filled test data so you can explore YieldFlow. Clear it
+                  anytime in{" "}
+                  <a
+                    href="#data-management"
+                    className="hover:text-primary font-semibold underline underline-offset-4"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      document
+                        .getElementById("data-management")
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  >
+                    Data Management
+                  </a>{" "}
+                  below.
+                </AlertDescription>
+              </div>
+            </Alert>
+          ) : null}
 
           {!isReady ? (
             <div className="border-border-subtle bg-surface-soft text-muted-foreground mt-6 rounded-2xl border p-6 text-sm">
