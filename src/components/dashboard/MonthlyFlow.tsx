@@ -2,6 +2,7 @@ import type { MonthlyAllowance } from "@/lib/types";
 import { addMonths, formatMonthLabel, monthKey } from "@/lib/domain/date";
 import { formatPhpCurrency } from "@/lib/domain/format";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   items: MonthlyAllowance[];
@@ -162,13 +163,9 @@ export default function MonthlyFlow({
         );
       })}
       {!showAll ? (
-        <button
-          type="button"
-          className="text-muted hover:text-foreground hover:bg-muted/40 inline-flex items-center rounded-sm px-3 py-2 text-xs font-semibold transition-colors duration-150 ease-out"
-          onClick={() => setShowAll(true)}
-        >
+        <Button type="button" size="sm" variant="ghost" onClick={() => setShowAll(true)}>
           Show all
-        </button>
+        </Button>
       ) : null}
     </div>
   );

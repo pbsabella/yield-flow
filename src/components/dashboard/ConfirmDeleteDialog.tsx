@@ -26,11 +26,12 @@ export default function ConfirmDeleteDialog({ open, onOpenChange, onConfirm }: P
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
             onClick={onConfirm}
+            type="button"
             className="bg-danger-solid hover:bg-danger-solid/90 active:bg-danger-solid/80 text-white transition-colors duration-150 ease-out"
           >
             Delete

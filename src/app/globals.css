@@ -9,7 +9,7 @@
   --theme: light;
   --background: 220 25% 97%;
   --foreground: 240 10% 3.9%;
-  --primary: 243 75% 59%;
+  --primary: 247 92% 60%;
   --card: 0 0% 100%;
   --border: 240 5% 90%;
   --muted-foreground: 240 5% 38%;
@@ -35,44 +35,44 @@
   --focus-ring: hsl(var(--ring));
   --shadow: 0 0 0 transparent;
 
-  --page-bg: hsl(220 25% 97%);
-  --page-bg-2: hsl(220 36% 97%);
-  --surface-1: hsl(0 0% 100%);
-  --surface-2: hsl(220 20% 96%);
-  --surface-3: hsl(220 15% 92%);
-  --text-1: hsl(var(--foreground));
-  --text-2: hsl(240 5% 38%);
-  --text-3: hsl(240 5% 38%);
-  --color-surface-page: hsl(220 25% 97%);
-  --color-surface-base: hsl(0 0% 100%);
-  --color-surface-soft: hsl(220 20% 96%);
-  --color-surface-raised: hsl(220 15% 92%);
-  --color-status-overdue-bg: hsl(38 80% 96%);
-  --color-status-overdue-sticky: hsl(38 80% 96%);
-  --color-status-overdue-fg: hsl(32 80% 30%);
-  --color-status-overdue-border: hsl(38 60% 85%);
-  --color-status-info-bg: hsl(243 60% 97%);
-  --color-status-info-fg: hsl(243 60% 25%);
-  --color-status-info-border: hsl(243 40% 88%);
-  --color-status-warning-bg: hsl(48 96% 95%);
-  --color-status-warning-fg: hsl(32 80% 30%);
-  --color-status-warning-border: hsl(48 80% 82%);
-  --color-status-success-bg: hsl(142 60% 95%);
-  --color-status-success-fg: hsl(142 60% 25%);
-  --color-status-success-border: hsl(142 50% 82%);
-  --color-danger-bg: hsl(0 84% 50%);
-  --color-danger-border: hsl(0 84% 75%);
-  --color-income-net-fg: hsl(243 75% 45%);
-  --color-interactive-hover-bg: hsl(243 75% 59% / 0.08);
-  --color-interactive-active-bg: hsl(243 75% 59% / 0.14);
-  --color-interactive-selected-bg: hsl(243 75% 59% / 0.12);
-  --color-interactive-selected-border: hsl(243 75% 70%);
-  --color-danger-fg: hsl(0 84% 50%);
-  --color-danger-hover: hsl(0 84% 60% / 0.1);
-  --color-danger-active: hsl(0 84% 60% / 0.18);
-  --color-bank-name-fg: hsl(199 89% 35%);
-  --color-surface-item-card: hsl(222 45% 98%);
-  --color-overlay: hsl(228 20% 5% / 0.6);
+  --page-bg: 220 25% 97%;
+  --page-bg-2: 220 36% 97%;
+  --surface-1: 0 0% 100%;
+  --surface-2: 220 20% 96%;
+  --surface-3: 220 15% 92%;
+  --text-1: var(--foreground);
+  --text-2: 240 5% 38%;
+  --text-3: 240 5% 38%;
+  --color-surface-page: 220 25% 97%;
+  --color-surface-base: 0 0% 100%;
+  --color-surface-soft: 220 20% 96%;
+  --color-surface-raised: 220 15% 92%;
+  --color-status-overdue-bg: 38 80% 96%;
+  --color-status-overdue-sticky: 38 80% 96%;
+  --color-status-overdue-fg: 32 80% 30%;
+  --color-status-overdue-border: 38 60% 85%;
+  --color-status-info-bg: 243 60% 97%;
+  --color-status-info-fg: 243 60% 25%;
+  --color-status-info-border: 243 40% 88%;
+  --color-status-warning-bg: 48 96% 95%;
+  --color-status-warning-fg: 32 80% 30%;
+  --color-status-warning-border: 48 80% 82%;
+  --color-status-success-bg: 142 60% 95%;
+  --color-status-success-fg: 142 60% 25%;
+  --color-status-success-border: 142 50% 82%;
+  --color-danger-bg: 0 84% 50%;
+  --color-danger-border: 0 84% 75%;
+  --color-income-net-fg: 243 75% 45%;
+  --color-interactive-hover-bg: 243 75% 59% / 0.08;
+  --color-interactive-active-bg: 243 75% 59% / 0.14;
+  --color-interactive-selected-bg: 243 75% 59% / 0.12;
+  --color-interactive-selected-border: 243 75% 70%;
+  --color-danger-fg: 0 84% 50%;
+  --color-danger-hover: 0 84% 60% / 0.1;
+  --color-danger-active: 0 84% 60% / 0.18;
+  --color-bank-name-fg: 199 89% 35%;
+  --color-surface-item-card: 222 45% 98%;
+  --color-overlay: 228 20% 5% / 0.6;
 }
 
 .dark {
@@ -80,7 +80,7 @@
   --theme: dark;
   --background: 228 20% 9%;
   --foreground: 0 0% 98%;
-  --primary: 239 84% 67%;
+  --primary: 247 92% 60%;
   --card: 228 12% 14%;
   --border: 228 12% 18%;
   --muted-foreground: 240 6% 72%;
@@ -105,98 +105,100 @@
   --focus-ring: hsl(var(--ring));
   --shadow: 0 0 0 transparent;
 
-  --page-bg: hsl(228 20% 9%);
-  --page-bg-2: hsl(228 24% 7%);
-  --surface-1: hsl(228 12% 14%);
-  --surface-2: hsl(228 10% 18%);
-  --surface-3: hsl(228 8% 22%);
-  --text-1: hsl(var(--foreground));
-  --text-2: hsl(240 6% 72%);
-  --text-3: hsl(240 5% 60%);
-  --color-surface-page: hsl(228 20% 9%);
-  --color-surface-base: hsl(228 12% 14%);
-  --color-surface-soft: hsl(228 10% 18%);
-  --color-surface-raised: hsl(228 8% 22%);
-  --color-status-overdue-bg: hsl(38 55% 15%);
-  --color-status-overdue-sticky: hsl(38 55% 15%);
-  --color-status-overdue-fg: hsl(38 80% 70%);
-  --color-status-overdue-border: hsl(38 40% 25%);
-  --color-status-info-bg: hsl(243 30% 15%);
-  --color-status-info-fg: hsl(243 60% 85%);
-  --color-status-info-border: hsl(243 25% 25%);
-  --color-status-warning-bg: hsl(38 40% 14%);
-  --color-status-warning-fg: hsl(38 80% 70%);
-  --color-status-warning-border: hsl(38 30% 22%);
-  --color-status-success-bg: hsl(142 30% 12%);
-  --color-status-success-fg: hsl(142 60% 70%);
-  --color-status-success-border: hsl(142 30% 22%);
-  --color-danger-bg: hsl(0 72% 45%);
-  --color-danger-border: hsl(0 72% 40%);
-  --color-income-net-fg: hsl(239 84% 72%);
-  --color-interactive-hover-bg: hsl(239 84% 67% / 0.12);
-  --color-interactive-active-bg: hsl(239 84% 67% / 0.2);
-  --color-interactive-selected-bg: hsl(239 84% 67% / 0.16);
-  --color-interactive-selected-border: hsl(239 84% 60%);
-  --color-danger-fg: hsl(0 72% 60%);
-  --color-danger-hover: hsl(0 72% 60% / 0.12);
-  --color-danger-active: hsl(0 72% 60% / 0.2);
-  --color-bank-name-fg: hsl(199 89% 60%);
-  --color-surface-item-card: hsl(232 22% 16%);
-  --color-overlay: hsl(228 20% 5% / 0.6);
+  --page-bg: 228 20% 9%;
+  --page-bg-2: 228 24% 7%;
+  --surface-1: 228 12% 14%;
+  --surface-2: 228 10% 18%;
+  --surface-3: 228 8% 22%;
+  --text-1: var(--foreground);
+  --text-2: 240 6% 72%;
+  --text-3: 240 5% 60%;
+  --color-surface-page: 228 20% 9%;
+  --color-surface-base: 228 12% 14%;
+  --color-surface-soft: 228 10% 18%;
+  --color-surface-raised: 228 8% 22%;
+  --color-status-overdue-bg: 38 55% 15%;
+  --color-status-overdue-sticky: 38 55% 15%;
+  --color-status-overdue-fg: 38 80% 70%;
+  --color-status-overdue-border: 38 40% 25%;
+  --color-status-info-bg: 243 30% 15%;
+  --color-status-info-fg: 243 60% 85%;
+  --color-status-info-border: 243 25% 25%;
+  --color-status-warning-bg: 38 40% 14%;
+  --color-status-warning-fg: 38 80% 70%;
+  --color-status-warning-border: 38 30% 22%;
+  --color-status-success-bg: 142 30% 12%;
+  --color-status-success-fg: 142 60% 70%;
+  --color-status-success-border: 142 30% 22%;
+  --color-danger-bg: 0 72% 45%;
+  --color-danger-border: 0 72% 40%;
+  --color-income-net-fg: 239 84% 72%;
+  --color-interactive-hover-bg: 239 84% 67% / 0.12;
+  --color-interactive-active-bg: 239 84% 67% / 0.2;
+  --color-interactive-selected-bg: 239 84% 67% / 0.16;
+  --color-interactive-selected-border: 239 84% 60%;
+  --color-danger-fg: 0 72% 60%;
+  --color-danger-hover: 0 72% 60% / 0.12;
+  --color-danger-active: 0 72% 60% / 0.2;
+  --color-bank-name-fg: 199 89% 60%;
+  --color-surface-item-card: 232 22% 16%;
+  --color-overlay: 228 20% 5% / 0.6;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-status-info: var(--color-status-info-bg);
-  --color-status-info-fg: var(--color-status-info-fg);
-  --color-status-info-border: var(--color-status-info-border);
-  --color-status-success: var(--color-status-success-bg);
-  --color-status-success-fg: var(--color-status-success-fg);
-  --color-status-success-border: var(--color-status-success-border);
-  --color-danger-solid: var(--color-danger-bg);
-  --color-danger-border: var(--color-danger-border);
-  --color-interactive-selected-border: var(--color-interactive-selected-border);
-  --color-interactive-selected: var(--color-interactive-selected-bg);
-  --color-interactive-hover: var(--color-interactive-hover-bg);
-  --color-interactive-active: var(--color-interactive-active-bg);
-  --color-bank-name: var(--color-bank-name-fg);
-  --color-surface-item: var(--color-surface-item-card);
-  --color-income-net: var(--color-income-net-fg);
-  --color-status-overdue: var(--color-status-overdue-bg);
-  --color-danger: var(--color-danger-fg);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-ring: hsl(var(--ring));
+  --color-input: hsl(var(--input));
+  --color-border: hsl(var(--border));
+  --color-destructive: hsl(var(--destructive));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: hsl(var(--card));
+  --color-status-info: hsl(var(--color-status-info-bg));
+  --color-status-info-fg: hsl(var(--color-status-info-fg));
+  --color-status-info-border: hsl(var(--color-status-info-border));
+  --color-status-success: hsl(var(--color-status-success-bg));
+  --color-status-success-fg: hsl(var(--color-status-success-fg));
+  --color-status-success-border: hsl(var(--color-status-success-border));
+  --color-danger-solid: hsl(var(--color-danger-bg));
+  --color-danger-border: hsl(var(--color-danger-border));
+  --color-interactive-selected-border: hsl(var(--color-interactive-selected-border));
+  --color-interactive-selected: hsl(var(--color-interactive-selected-bg));
+  --color-interactive-hover: hsl(var(--color-interactive-hover-bg));
+  --color-interactive-active: hsl(var(--color-interactive-active-bg));
+  --color-bank-name: hsl(var(--color-bank-name-fg));
+  --color-surface-item: hsl(var(--color-surface-item-card));
+  --color-income-net: hsl(var(--color-income-net-fg));
+  --color-status-overdue: hsl(var(--color-status-overdue-bg));
+  --color-danger: hsl(var(--color-danger-fg));
+  --color-danger-hover: hsl(var(--color-danger-hover));
+  --color-danger-active: hsl(var(--color-danger-active));
   --text-badge: 0.6875rem;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -224,7 +226,7 @@
         transparent 60%
       ),
       radial-gradient(700px 420px at 0% 15%, hsl(var(--primary) / 0.08), transparent 55%),
-      linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);
+      linear-gradient(180deg, hsl(var(--page-bg)) 0%, hsl(var(--page-bg-2)) 100%);
     @apply bg-background text-foreground;
   }
 
@@ -236,224 +238,160 @@
         transparent 62%
       ),
       radial-gradient(760px 520px at 10% 18%, hsl(201 100% 60% / 0.08), transparent 58%),
-      linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);
+      linear-gradient(180deg, hsl(var(--page-bg)) 0%, hsl(var(--page-bg-2)) 100%);
   }
 
   table {
     font-variant-numeric: tabular-nums;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
 
   *:focus-visible {
-    outline: 2px solid var(--focus-ring);
+    outline: 2px solid hsl(var(--focus-ring));
     outline-offset: 1px;
   }
 
-  button,
-  a,
-  summary,
-  [role="button"],
-  select,
-  input[type="checkbox"],
-  input[type="radio"] {
-    cursor: pointer;
-  }
-
-  [disabled],
-  [aria-disabled="true"] {
-    cursor: not-allowed;
-  }
-
-  input[type="date"].date-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 5.25h13.5a1.5 1.5 0 0 1 1.5 1.5v11.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V6.75a1.5 1.5 0 0 1 1.5-1.5Z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 1.1rem 1.1rem;
-    padding-right: 2.5rem;
+  svg {
+    flex-shrink: 0;
   }
 }
 
 @layer utilities {
   .bg-page {
-    background: var(--color-surface-page);
+    background: hsl(var(--color-surface-page));
   }
-
   .bg-surface {
-    background: var(--color-surface-base);
+    background: hsl(var(--color-surface-base));
   }
-
   .bg-surface-soft {
-    background: var(--color-surface-soft);
+    background: hsl(var(--color-surface-soft));
   }
-
   .bg-surface-strong {
-    background: var(--color-surface-raised);
+    background: hsl(var(--color-surface-raised));
   }
-
   .bg-item-card {
-    background: var(--color-surface-item-card);
+    background: hsl(var(--color-surface-item-card));
   }
-
   .bg-portfolio-surface {
-    background: var(--color-surface-base);
+    background: hsl(var(--color-surface-base));
   }
-
   .bg-overdue {
-    background: var(--color-status-overdue-bg);
+    background: hsl(var(--color-status-overdue-bg));
   }
-
   .bg-overdue-sticky {
-    background: var(--color-status-overdue-sticky);
+    background: hsl(var(--color-status-overdue-sticky));
   }
-
   .text-overdue {
-    color: var(--color-status-overdue-fg);
+    color: hsl(var(--color-status-overdue-fg));
   }
-
   .border-overdue {
-    border-color: var(--color-status-overdue-border);
+    border-color: hsl(var(--color-status-overdue-border));
   }
-
   .bg-warning {
-    background: var(--color-status-warning-bg);
+    background: hsl(var(--color-status-warning-bg));
   }
-
   .bg-status-warning {
-    background: var(--color-status-warning-bg);
+    background: hsl(var(--color-status-warning-bg));
   }
-
   .text-warning {
-    color: var(--color-status-warning-fg);
+    color: hsl(var(--color-status-warning-fg));
   }
-
   .text-status-warning-fg {
-    color: var(--color-status-warning-fg);
+    color: hsl(var(--color-status-warning-fg));
   }
-
   .border-warning {
-    border-color: var(--color-status-warning-border);
+    border-color: hsl(var(--color-status-warning-border));
   }
-
   .border-status-warning {
-    border-color: var(--color-status-warning-border);
+    border-color: hsl(var(--color-status-warning-border));
   }
-
   .ring-status-warning-border {
-    --tw-ring-color: var(--color-status-warning-border);
+    --tw-ring-color: hsl(var(--color-status-warning-border));
   }
-
   .bg-status-success {
-    background: var(--color-status-success-bg);
+    background: hsl(var(--color-status-success-bg));
   }
-
   .text-status-success-fg {
-    color: var(--color-status-success-fg);
+    color: hsl(var(--color-status-success-fg));
   }
-
   .ring-status-success-border {
-    --tw-ring-color: var(--color-status-success-border);
+    --tw-ring-color: hsl(var(--color-status-success-border));
   }
-
   .bg-status-info {
-    background: var(--color-status-info-bg);
+    background: hsl(var(--color-status-info-bg));
   }
-
   .border-status-info {
-    border-color: var(--color-status-info-border);
+    border-color: hsl(var(--color-status-info-border));
   }
-
   .text-status-info-fg {
-    color: var(--color-status-info-fg);
+    color: hsl(var(--color-status-info-fg));
   }
-
   .text-danger-fg {
-    color: var(--color-danger-fg);
+    color: hsl(var(--color-danger-fg));
   }
-
   .border-danger-border {
-    border-color: var(--color-danger-border);
+    border-color: hsl(var(--color-danger-border));
   }
-
   .bg-danger-solid {
-    background: var(--color-danger-bg);
+    background: hsl(var(--color-danger-bg));
   }
-
   .text-bank-name {
-    color: var(--color-bank-name-fg);
+    color: hsl(var(--color-bank-name-fg));
   }
-
   .border-interactive-selected-border {
-    border-color: var(--color-interactive-selected-border);
+    border-color: hsl(var(--color-interactive-selected-border));
   }
-
   .text-income-net {
-    color: var(--color-income-net-fg);
+    color: hsl(var(--color-income-net-fg));
   }
-
   .bg-sample-banner {
-    background: var(--color-status-info-bg);
-    border-color: var(--color-status-info-border);
+    background: hsl(var(--color-status-info-bg));
+    border-color: hsl(var(--color-status-info-border));
   }
-
   .text-primary {
     color: hsl(var(--foreground));
   }
-
   .text-secondary {
     color: hsl(var(--muted-foreground));
   }
-
   .text-muted {
     color: hsl(var(--muted-foreground));
   }
-
   .border-subtle {
     border-color: hsl(var(--border));
   }
-
   .text-accent {
     color: hsl(var(--primary));
   }
-
   .bg-accent {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
-
   .bg-accent-soft {
     background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
   }
-
-  .shadow-float {
-    box-shadow: var(--shadow);
-  }
-
   .bg-overlay {
-    background: var(--color-overlay);
+    background: hsl(var(--color-overlay));
   }
-
   .glass {
-    background: color-mix(in srgb, var(--surface-1), transparent 12%);
+    background: color-mix(in srgb, hsl(var(--surface-1)), transparent 12%);
     backdrop-filter: blur(14px);
-  }
-  .font-financial {
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
-    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
   .table-sort-btn {
-    @apply text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2;
+    @apply text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2;
     background: transparent;
     &:hover {
-      background: var(--color-interactive-hover-bg);
+      background: hsl(var(--color-interactive-hover-bg));
     }
     &:active {
-      background: var(--color-interactive-active-bg);
+      background: hsl(var(--color-interactive-active-bg));
     }
   }
 
@@ -461,39 +399,35 @@
     @apply h-9 w-9 rounded-md p-0 transition-colors duration-150;
     background: transparent;
     &:hover {
-      background: var(--color-interactive-hover-bg);
+      background: hsl(var(--color-interactive-hover-bg));
     }
     &:active {
-      background: var(--color-interactive-active-bg);
+      background: hsl(var(--color-interactive-active-bg));
     }
   }
 
   .danger-ghost-btn {
     @apply justify-start rounded-md px-2 py-1.5 text-sm font-medium transition-colors duration-150;
-    color: var(--color-danger-fg);
+    color: hsl(var(--color-danger-fg));
     &:hover {
-      background: var(--color-danger-hover);
+      background: hsl(var(--color-danger-hover));
     }
     &:active {
-      background: var(--color-danger-active);
+      background: hsl(var(--color-danger-active));
     }
-  }
-
-  .status-pill {
-    @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
   }
 
   .status-pill-neutral {
     @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
-    background: var(--color-surface-soft);
+    background: hsl(var(--color-surface-soft));
     border-color: hsl(var(--border));
     color: hsl(var(--muted-foreground));
   }
 
   .status-pill-overdue {
     @apply text-badge inline-flex items-center rounded-full border px-2 py-1 font-semibold;
-    background: var(--color-status-overdue-bg);
-    border-color: var(--color-status-overdue-border);
-    color: var(--color-status-overdue-fg);
+    background: hsl(var(--color-status-overdue-bg));
+    border-color: hsl(var(--color-status-overdue-border));
+    color: hsl(var(--color-status-overdue-fg));
   }
 }

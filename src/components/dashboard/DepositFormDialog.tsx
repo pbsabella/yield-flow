@@ -604,7 +604,7 @@ export default function DepositFormDialog({
     if (step === 1) return null;
 
     return (
-      <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-3 text-xs">
+      <div className="border-border bg-surface-soft space-y-2 rounded-md border p-3 text-xs">
         <div className="flex items-center justify-between">
           <p className="text-foreground font-semibold">Step 1 summary</p>
           <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>
@@ -698,7 +698,7 @@ export default function DepositFormDialog({
               )}
             </span>
           </div>
-          <div className="bg-status-info flex items-center justify-between rounded-sm px-3 py-2">
+          <div className="bg-status-info flex items-center justify-between rounded-md px-3 py-2">
             <span className="text-status-info-fg font-medium">Net interest</span>
             <span className="text-income-net font-financial font-semibold">
               {formatPhpCurrency(previewSummary.netInterest)}
@@ -720,7 +720,7 @@ export default function DepositFormDialog({
           ) : null}
 
           {previewTierBreakdown.length > 0 ? (
-            <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-3">
+            <div className="border-border bg-surface-soft space-y-2 rounded-md border p-3">
               <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                 Tier allocation
               </p>
@@ -804,7 +804,7 @@ export default function DepositFormDialog({
 
       <div className="space-y-2 text-sm">
         <Label htmlFor="bank" className="flex items-center gap-1">
-          <Landmark className="h-4 w-4" /> Bank <RequiredIndicator />
+          Bank <RequiredIndicator />
         </Label>
         <div className="relative">
           <Input
@@ -865,7 +865,7 @@ export default function DepositFormDialog({
                         ref={(node) => {
                           optionRefs.current[index] = node;
                         }}
-                        className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition ${
                           safeBankActiveIndex === index
                             ? "bg-muted text-foreground"
                             : "hover:bg-muted"
@@ -913,7 +913,7 @@ export default function DepositFormDialog({
       </div>
 
       {customBankOpen ? (
-        <div className="border-border bg-surface-soft space-y-3 rounded-sm border p-3">
+        <div className="border-border bg-surface-soft space-y-3 rounded-md border p-3">
           <h4 className="text-sm font-semibold">Add custom bank</h4>
           <div className="space-y-2 text-sm">
             <Label htmlFor="custom-bank-name">
@@ -1033,25 +1033,27 @@ export default function DepositFormDialog({
       ) : null}
 
       {draftForm.bankId && !customBankOpen ? (
-        <div className="space-y-3 text-sm">
-          <Label id="product-type">
+        <div className="space-y-2 text-sm">
+          <Label className="inline-block" id="product-type">
             Product type <RequiredIndicator />
           </Label>
-          <ToggleGroup
-            type="single"
-            value={draftForm.productType}
-            aria-labelledby="product-type"
-            onValueChange={(value) => {
-              if (!value) return;
-              applyProductSelection(value as ProductType);
-            }}
-          >
-            {productOptions.map((product) => (
-              <ToggleGroupItem key={product.productType} value={product.productType}>
-                {productTypeLabel(product.productType)}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
+          <div>
+            <ToggleGroup
+              type="single"
+              value={draftForm.productType}
+              aria-labelledby="product-type"
+              onValueChange={(value) => {
+                if (!value) return;
+                applyProductSelection(value as ProductType);
+              }}
+            >
+              {productOptions.map((product) => (
+                <ToggleGroupItem key={product.productType} value={product.productType}>
+                  {productTypeLabel(product.productType)}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
           <p className="text-danger-fg min-h-5 text-xs">{errors.productType ?? ""}</p>
         </div>
       ) : null}
@@ -1181,42 +1183,46 @@ export default function DepositFormDialog({
       {showTermFields ? (
         <>
           <div className="space-y-2 text-sm">
-            <Label id="term-mode">Term input mode</Label>
-            <ToggleGroup
-              type="single"
-              value={draftForm.termInputMode}
-              aria-labelledby="term-mode"
-              onValueChange={(value) => {
-                if (!value) return;
-                if (value === "end-date") {
+            <Label className="inline-block" id="term-mode">
+              Term input mode
+            </Label>
+            <div>
+              <ToggleGroup
+                type="single"
+                value={draftForm.termInputMode}
+                aria-labelledby="term-mode"
+                onValueChange={(value) => {
+                  if (!value) return;
+                  if (value === "end-date") {
+                    setDraftForm({
+                      ...draftForm,
+                      termInputMode: "end-date",
+                      endDate: convertTermMonthsToEndDate(
+                        draftForm.startDate,
+                        draftForm.termMonths,
+                      ),
+                    });
+                    return;
+                  }
                   setDraftForm({
                     ...draftForm,
-                    termInputMode: "end-date",
-                    endDate: convertTermMonthsToEndDate(
+                    termInputMode: "months",
+                    termMonths: convertEndDateToTermMonths(
                       draftForm.startDate,
-                      draftForm.termMonths,
+                      draftForm.endDate,
                     ),
                   });
-                  return;
-                }
-                setDraftForm({
-                  ...draftForm,
-                  termInputMode: "months",
-                  termMonths: convertEndDateToTermMonths(
-                    draftForm.startDate,
-                    draftForm.endDate,
-                  ),
-                });
-              }}
-            >
-              <ToggleGroupItem value="months">Months</ToggleGroupItem>
-              <ToggleGroupItem value="end-date">Pick end date</ToggleGroupItem>
-            </ToggleGroup>
+                }}
+              >
+                <ToggleGroupItem value="months">Months</ToggleGroupItem>
+                <ToggleGroupItem value="end-date">Pick end date</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
           </div>
 
           {draftForm.termInputMode === "months" ? (
             <div className="space-y-2 text-sm">
-              <Label htmlFor="termMonths">
+              <Label className="inline-block" htmlFor="termMonths">
                 Term (months) <RequiredIndicator />
               </Label>
               <Input
@@ -1286,7 +1292,7 @@ export default function DepositFormDialog({
         </>
       ) : null}
 
-      <div className="border-border bg-surface-soft space-y-3 rounded-sm border p-3 text-sm">
+      <div className="border-border bg-surface-soft space-y-3 rounded-md border p-3 text-sm">
         <Label className="block text-sm font-semibold">Interest Rate</Label>
 
         {!draftForm.tieredEnabled ? (
@@ -1356,7 +1362,7 @@ export default function DepositFormDialog({
                       Tier ceiling
                     </Label>
                     {isLast ? (
-                      <div className="border-border bg-muted text-muted-foreground flex h-12 items-center rounded-sm border px-3 text-sm">
+                      <div className="border-border bg-muted text-muted-foreground flex h-12 items-center rounded-md border px-3 text-sm">
                         Above {aboveAmount}
                       </div>
                     ) : (
@@ -1501,12 +1507,12 @@ export default function DepositFormDialog({
                 setDraftForm({ ...draftForm, tiers: ensureFinalUnlimitedTier(next) });
               }}
             >
-              <Plus className="mr-1 h-3.5 w-3.5" /> Add tier
+              <Plus className="h-4 w-4" /> Add tier
             </Button>
           </>
         )}
 
-        <label className="inline-flex items-center gap-2">
+        <label className="flex items-center gap-2">
           <input
             type="checkbox"
             className="accent-primary"
@@ -1564,20 +1570,18 @@ export default function DepositFormDialog({
         <Label id="compounding" className="block">
           Compounding
         </Label>
-        <div className="flex flex-col gap-2">
-          <ToggleGroup
-            type="single"
-            value={draftForm.compounding}
-            aria-labelledby="compounding"
-            onValueChange={(value) => {
-              if (!value) return;
-              setDraftForm({ ...draftForm, compounding: value as "daily" | "monthly" });
-            }}
-          >
-            <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
-            <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+        <ToggleGroup
+          type="single"
+          value={draftForm.compounding}
+          aria-labelledby="compounding"
+          onValueChange={(value) => {
+            if (!value) return;
+            setDraftForm({ ...draftForm, compounding: value as "daily" | "monthly" });
+          }}
+        >
+          <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
+          <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+        </ToggleGroup>
       </fieldset>
 
       <div className="space-y-2 text-sm">
@@ -1621,7 +1625,7 @@ export default function DepositFormDialog({
 
       {renderStepSummaries()}
 
-      <div className="border-border bg-surface-soft space-y-2 rounded-sm border p-4 text-sm">
+      <div className="border-border bg-surface-soft space-y-2 rounded-md border p-4 text-sm">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Investment name</span>
           <span className="font-medium">{draftForm.name || "-"}</span>
@@ -1647,7 +1651,7 @@ export default function DepositFormDialog({
       </div>
 
       {previewSummary ? (
-        <div className="border-status-info bg-status-info space-y-2 rounded-sm border p-4 text-sm">
+        <div className="border-status-info bg-status-info space-y-2 rounded-md border p-4 text-sm">
           <div className="flex items-center justify-between">
             <span>Gross interest</span>
             <span className="font-financial">
@@ -1723,6 +1727,7 @@ export default function DepositFormDialog({
                 </AlertDescription>
                 <div className="mt-3 flex justify-end gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setDiscardPromptOpen(false)}
@@ -1730,8 +1735,9 @@ export default function DepositFormDialog({
                     Keep editing
                   </Button>
                   <Button
+                    type="button"
                     size="sm"
-                    className="bg-danger-solid hover:bg-danger-solid/90 active:bg-danger-solid/80 text-white transition-colors duration-150 ease-out"
+                    variant="alert"
                     onClick={() => {
                       setDiscardPromptOpen(false);
                       onValidate({});

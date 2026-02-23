@@ -14,7 +14,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "bg-muted/70 border-subtle inline-flex flex-wrap items-center gap-1 rounded-lg border p-1 dark:border-indigo-500/30",
+      "border-subtle dark:border-interactive-selected-border inline-flex flex-wrap items-center gap-1 rounded-lg border p-1",
       className,
     )}
     {...props}
@@ -29,7 +29,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground hover:bg-interactive-hover active:bg-interactive-active data-[state=active]:border-interactive-selected-border data-[state=active]:bg-interactive-selected data-[state=active]:text-income-net rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2 active:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent dark:hover:text-indigo-200 dark:active:text-indigo-100",
+      "text-muted-foreground focus-visible:ring-primary/60 data-[disabled]:hover:text-muted-foreground hover:bg-interactive-hover active:bg-interactive-active data-[state=active]:border-interactive-selected-border data-[state=active]:bg-interactive-selected data-[state=active]:text-income-net cursor-pointer rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2 active:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent dark:hover:text-indigo-200 dark:active:text-indigo-100",
       className,
     )}
     {...props}

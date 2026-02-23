@@ -140,55 +140,250 @@ formatPhpCurrency(value: number): string
 
 ---
 
-## Tailwind conventions
+## Tailwind v4 — how it works
 
-### Use semantic utilities, not palette classes directly:
+This project uses **Tailwind CSS v4**. There is no `tailwind.config.ts` for colors.
+All theme configuration lives in `globals.css` inside `@theme inline`.
+
+**The token chain:**
 
 ```
-// Correct
-className="bg-surface text-primary border-subtle"
-
-// Avoid
-className="bg-slate-800 text-white border-gray-700"
+:root / .dark          — raw HSL values (source of truth)
+     ↓
+@theme inline          — exposes tokens to Tailwind as utility classes
+     ↓
+@layer utilities       — single-property semantic utilities (.bg-surface, .text-income-net)
+@layer components      — multi-property reusable patterns (.table-sort-btn, .status-pill)
+     ↓
+CVA / className        — consumed in components
 ```
 
-### Surface layer tokens (globals.css):
+**To add a new token:**
 
-| Token                               | Usage                                |
-| ----------------------------------- | ------------------------------------ |
-| `bg-surface` / `--surface-1`        | Cards, containers                    |
-| `bg-surface-soft` / `--surface-2`   | Table headers, secondary backgrounds |
-| `bg-surface-strong` / `--surface-3` | Hover states, tertiary backgrounds   |
-| `border-subtle`                     | All borders                          |
+1. Add raw value to `:root` and `.dark`
+2. Expose in `@theme inline` so Tailwind generates the utility
+3. Use as a Tailwind class in components
 
-### Overdue/status colors — use solid tokens only:
+**Never use `bg-[var(--token)]` inline** — if you need a CSS variable as a
+Tailwind class, register it in `@theme inline` first. Then use the generated class.
 
-```css
-.bg-overdue        /* light: hsl(38 80% 96%)  dark: hsl(38 55% 15%) */
-.bg-overdue-sticky /* must match .bg-overdue exactly — used on sticky column cells */
-```
+---
 
-**Never use opacity-based colors on sticky or fixed positioned elements.**
-Opacity causes text bleed-through when content scrolls beneath sticky columns.
-This is a known bug pattern in this codebase.
+## Token naming convention
 
-### Semantic color naming convention:
+All tokens follow:
 
 ```
 --color-{role}-{variant}-{property}
-Examples:
-  --color-surface-card-bg
-  --color-status-overdue-bg
-  --color-status-overdue-fg
-  --color-income-net-fg
 ```
 
-### Shared component classes (add to `@layer components`):
+Examples:
 
-- `.table-sort-btn` — sort header button in LadderTable
-- `.action-menu-btn` — kebab menu trigger
-- `.danger-ghost-btn` — destructive ghost button (Delete)
-- `.status-pill` — Days to Maturity badge
+```
+--color-surface-card-bg
+--color-status-overdue-bg
+--color-status-overdue-fg
+--color-status-overdue-border
+--color-income-net-fg
+--color-interactive-hover-bg
+--color-interactive-active-bg
+--color-interactive-selected-bg
+--color-interactive-selected-border
+--color-bank-name-fg
+--color-danger-bg
+--color-danger-fg
+--color-danger-border
+--color-danger-hover
+--color-danger-active
+```
+
+Token names are **identical** across light and dark — only values swap inside `.dark`.
+
+---
+
+## Token reference
+
+### Surface layers
+
+| Utility             | Token                       | Usage                       |
+| ------------------- | --------------------------- | --------------------------- |
+| `bg-page`           | `--color-surface-page`      | Page background             |
+| `bg-surface`        | `--color-surface-base`      | Cards, containers           |
+| `bg-surface-soft`   | `--color-surface-soft`      | Table headers, secondary bg |
+| `bg-surface-strong` | `--color-surface-raised`    | Hover states, tertiary bg   |
+| `bg-item-card`      | `--color-surface-item-card` | Individual investment cards |
+| `border-subtle`     | `--border`                  | All borders                 |
+
+### Status colors
+
+| Utility                                                         | Usage                                       |
+| --------------------------------------------------------------- | ------------------------------------------- |
+| `bg-overdue` / `bg-overdue-sticky`                              | Overdue investment rows                     |
+| `text-overdue` / `border-overdue`                               | Overdue text and borders                    |
+| `bg-status-info` / `text-status-info-fg` / `border-status-info` | Indigo tint — wizard preview, sample banner |
+| `bg-warning` / `text-warning` / `border-warning`                | Amber warning states                        |
+| `bg-status-success` / `text-status-success-fg`                  | Emerald success states                      |
+
+### Interactive states
+
+| Utility                              | Usage                                      |
+| ------------------------------------ | ------------------------------------------ |
+| `bg-interactive-hover`               | Hover background on tabs, toggles, buttons |
+| `bg-interactive-active`              | Press/active background                    |
+| `bg-interactive-selected`            | Selected state background                  |
+| `border-interactive-selected-border` | Selected state border (tabs)               |
+
+### Semantic colors
+
+| Utility                | Usage                                            |
+| ---------------------- | ------------------------------------------------ |
+| `text-income-net`      | Net interest values — indigo, all views          |
+| `text-bank-name`       | Bank name labels — sky/teal, all views           |
+| `bg-danger-solid`      | Solid danger button bg (Delete, Discard)         |
+| `text-danger-fg`       | Danger text (error messages, destructive labels) |
+| `border-danger-border` | Danger input borders (validation errors)         |
+
+### Typography
+
+| Utility          | Usage                              |
+| ---------------- | ---------------------------------- |
+| `text-badge`     | 11px — badge labels, pill text     |
+| `font-financial` | Tabular nums — all currency values |
+
+---
+
+## Token rules — never break these
+
+**1. Never hardcode palette classes for semantic meaning:**
+
+```typescript
+// Wrong — hardcoded, breaks dark mode, hard to maintain
+className = "text-indigo-700 dark:text-indigo-400";
+
+// Correct — semantic token, dark mode automatic
+className = "text-income-net";
+```
+
+**2. Never use `bg-[var(--token)]` inline:**
+
+```typescript
+// Wrong
+className = "bg-[var(--color-interactive-hover-bg)]";
+
+// Correct — register in @theme inline first
+className = "bg-interactive-hover";
+```
+
+**3. Never use opacity-based colors on sticky/fixed elements:**
+
+```typescript
+// Wrong — text bleeds through on scroll
+className = "bg-amber-50/60 sticky left-0";
+
+// Correct — solid token only
+className = "bg-overdue-sticky sticky left-0";
+```
+
+**4. Never use inline HSL in utility classes:**
+
+```css
+/* Wrong */
+.bg-item-card {
+  background: hsl(222 45% 98%);
+}
+
+/* Correct — reference a token */
+.bg-item-card {
+  background: var(--color-surface-item-card);
+}
+```
+
+**5. All accent/indigo usages must go through tokens:**
+
+```typescript
+// Wrong
+"accent-indigo-600";
+"text-indigo-600 dark:text-indigo-400";
+
+// Correct
+"accent-primary";
+"text-income-net"; // or text-primary depending on context
+```
+
+**6. All danger/rose usages must go through tokens:**
+
+```typescript
+// Wrong
+"text-rose-600 dark:text-rose-300";
+"bg-rose-600 hover:bg-rose-700";
+
+// Correct
+"text-danger-fg";
+"bg-danger-solid hover:bg-danger-solid/90";
+```
+
+**7. All status colors must go through tokens:**
+
+```typescript
+// Wrong
+"bg-amber-50 text-amber-700 dark:bg-amber-500/10";
+"bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10";
+
+// Correct
+"bg-warning text-warning";
+"bg-status-success text-status-success-fg";
+```
+
+---
+
+## shadcn/ui customization patterns
+
+`/components/ui` files are copied from shadcn — they can be overwritten by
+`npx shadcn add`. Two patterns for customizing them:
+
+**Pattern 1 — CVA variant addition** (new semantic variants, keep shadcn structure):
+
+- Add variants to the `cva()` call directly
+- Extract custom variant values to `/lib/ui/variants.ts` — this file is never overwritten
+- Spread into the CVA variants: `...alertCustomVariants`
+- On shadcn upgrade: re-add the one-line spread import
+
+**Pattern 2 — Full look-and-feel rewrite** (different visual design, same Radix behavior):
+
+- Rewrite the file entirely, keep only the Radix primitive import
+- You now own the file — shadcn upgrades don't apply
+- Track Radix changelog for behavior changes, not shadcn
+- Document rewrites in this file so the team knows
+
+**Currently rewritten (own these files, ignore shadcn upgrades):**
+
+- `tabs.tsx` — full rewrite, uses `@radix-ui/react-tabs` directly
+- `toggle-group.tsx` — full rewrite
+
+**Currently using CVA variants (re-apply spread on upgrade):**
+
+- `alert.tsx` — custom `info` and `warning` variants
+
+**Adding new components:**
+
+- Install Radix directly: `npm install @radix-ui/react-[component]`
+- Create `/components/ui/[component].tsx` with your own styles
+- Do not rely on shadcn for look-and-feel — only for behavior reference
+
+---
+
+## Shared component classes (`@layer components`)
+
+Do not repeat these class combinations inline — use the shared class:
+
+| Class                  | Usage                              |
+| ---------------------- | ---------------------------------- |
+| `.table-sort-btn`      | Sort header buttons in LadderTable |
+| `.action-menu-btn`     | Kebab menu trigger buttons         |
+| `.danger-ghost-btn`    | Destructive ghost buttons (Delete) |
+| `.status-pill`         | Base pill styles                   |
+| `.status-pill-neutral` | Days to Maturity — normal state    |
+| `.status-pill-overdue` | Days to Maturity — overdue state   |
 
 ---
 
@@ -213,12 +408,27 @@ Examples:
 
 ## What NOT to do
 
+**Product:**
+
 - Do not add gross values to dashboard, timeline, or cash flow views
 - Do not auto-settle investments — only the user can trigger settlement
-- Do not use opacity-based colors on sticky/fixed elements
-- Do not add direct `localStorage` calls — use `useLocalStorage`
-- Do not add inline `Intl.NumberFormat` — use `formatPhpCurrency`
 - Do not add tooltips to dashboard cards — fix the label instead
 - Do not show principal return as income anywhere
 - Do not skip wizard steps programmatically
 - Do not close the wizard dialog on outside click — data loss risk
+
+**Storage:**
+
+- Do not add direct `localStorage` calls — use `useLocalStorage`
+- Do not add inline `Intl.NumberFormat` — use `formatPhpCurrency`
+
+**Styling — never do these:**
+
+- Do not hardcode palette classes for semantic meaning (`text-indigo-700`, `bg-rose-600`)
+- Do not use `bg-[var(--token)]` inline — register in `@theme inline` first
+- Do not use opacity-based colors on sticky or fixed positioned elements
+- Do not use inline HSL values in `@layer utilities` — reference a CSS variable
+- Do not use `accent-indigo-600` — use `accent-primary`
+- Do not add new amber/emerald/rose/indigo classes — check token reference first
+- Do not add a new utility class without a corresponding CSS variable in `:root` and `.dark`
+- Do not modify shadcn files for look-and-feel — rewrite them or use CVA variants

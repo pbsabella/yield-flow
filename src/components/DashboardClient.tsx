@@ -412,14 +412,16 @@ export default function DashboardClient() {
                 below.
               </AlertDescription>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              className="text-muted-foreground focus-visible:ring-primary/60 absolute top-3 right-3 rounded-md p-1 transition-colors duration-150 ease-out hover:text-indigo-700 focus-visible:ring-2"
+              className="absolute top-1 right-2 rounded-md"
               onClick={() => setSampleBannerDismissed(true)}
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Dismiss</span>
-            </button>
+            </Button>
           </Alert>
         ) : null}
         <Header />
@@ -448,10 +450,7 @@ export default function DashboardClient() {
                 if (open) setFormSession((current) => current + 1);
               }}
               trigger={
-                <Button
-                  size="sm"
-                  className="bg-indigo-600 text-white shadow-sm transition-colors duration-150 ease-out hover:bg-indigo-500 active:bg-indigo-700"
-                >
+                <Button type="button" size="sm">
                   Add investment
                 </Button>
               }
@@ -529,11 +528,7 @@ export default function DashboardClient() {
             tracking. Use the backup option to keep a copy safe.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button
-              variant="outline"
-              className="hover:bg-muted active:bg-muted"
-              onClick={downloadBackup}
-            >
+            <Button variant="outline" type="button" onClick={downloadBackup}>
               Download Backup (JSON)
             </Button>
             <label htmlFor="import-json" className="sr-only">
@@ -554,14 +549,13 @@ export default function DashboardClient() {
             <Button
               variant="outline"
               type="button"
-              className="hover:bg-muted active:bg-muted"
               onClick={() => importInputRef.current?.click()}
             >
               Import JSON
             </Button>
             <Button
-              variant="ghost"
-              className="text-rose-700 hover:bg-rose-500/10 active:bg-rose-500/20 active:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:active:bg-rose-400/30 dark:active:text-rose-100"
+              variant="alert"
+              type="button"
               onClick={() => {
                 setDeposits([]);
                 setSampleDataActive(false);

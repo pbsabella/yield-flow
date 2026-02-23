@@ -5,16 +5,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/70 disabled:text-muted-foreground disabled:opacity-70 cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/70 disabled:text-muted-foreground disabled:opacity-70 cursor-pointer",
   {
     variants: {
       variant: {
         default:
           "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
         outline:
-          "border border-border bg-card text-foreground hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
+          "border bg-card text-foreground hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15",
         ghost:
-          "text-muted-foreground hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15 active:text-foreground",
+          "text-foreground hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15 active:text-foreground",
+        alert: "text-danger-fg hover:bg-danger-hover active:bg-danger-active",
       },
       size: {
         default: "h-10 px-4",

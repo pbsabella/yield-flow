@@ -16,7 +16,7 @@ export default function EmptyState({ onSeed, ctaLabel }: Props) {
           Load sample data to explore YieldFlow instantly.
         </p>
       </div>
-      <Button size="sm" onClick={onSeed}>
+      <Button variant="outline" type="button" size="sm" onClick={onSeed}>
         <Database className="h-4 w-4" />
         {ctaLabel}
       </Button>

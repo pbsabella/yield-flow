@@ -269,6 +269,7 @@ export default function LadderTable({
                           <div className="flex justify-end gap-2">
                             {isDue && isMatured ? (
                               <Button
+                                type="button"
                                 size="sm"
                                 variant="outline"
                                 onClick={() => onMarkMatured(summary.deposit.id)}
@@ -279,6 +280,7 @@ export default function LadderTable({
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
+                                  type="button"
                                   size="sm"
                                   variant="ghost"
                                   className="action-menu-btn"
@@ -293,18 +295,20 @@ export default function LadderTable({
                               <PopoverContent align="end" className="w-40 p-2">
                                 <div className="flex flex-col gap-1">
                                   <Button
+                                    type="button"
                                     size="sm"
                                     variant="ghost"
-                                    className="hover:bg-interactive-hover active:bg-interactive-active justify-start"
+                                    className="justify-start"
                                     onClick={() => onEdit(summary.deposit.id)}
                                   >
                                     <Pencil className="h-4 w-4" />
                                     Edit
                                   </Button>
                                   <Button
+                                    type="button"
                                     size="sm"
-                                    variant="ghost"
-                                    className="danger-ghost-btn px-3"
+                                    variant="alert"
+                                    className="justify-start"
                                     onClick={() => onDeleteRequest(summary.deposit.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -351,7 +355,7 @@ export default function LadderTable({
               } ${isSettled ? "opacity-50" : ""}`}
             >
               <div
-                className="hover:bg-surface/60 focus-visible:ring-primary/60 active:bg-surface-strong flex cursor-pointer items-start justify-between gap-3 rounded-sm px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
+                className="hover:bg-surface/60 focus-visible:ring-primary/60 active:bg-surface-strong flex cursor-pointer items-start justify-between gap-3 rounded-md px-1 py-1 transition-colors duration-150 ease-out focus-visible:ring-2"
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
@@ -387,6 +391,7 @@ export default function LadderTable({
                 <div className="flex items-start gap-2">
                   {isDue && isMatured ? (
                     <Button
+                      type="button"
                       size="sm"
                       variant="outline"
                       className="h-8"
@@ -404,6 +409,7 @@ export default function LadderTable({
                       <Button
                         size="sm"
                         variant="outline"
+                        type="button"
                         className="action-menu-btn h-8 w-8"
                         onClick={(event) => event.stopPropagation()}
                         onPointerDown={(event) => event.stopPropagation()}
@@ -417,6 +423,7 @@ export default function LadderTable({
                         <Button
                           size="sm"
                           variant="ghost"
+                          type="button"
                           className="justify-start"
                           onClick={() => onEdit(summary.deposit.id)}
                         >
@@ -425,8 +432,9 @@ export default function LadderTable({
                         </Button>
                         <Button
                           size="sm"
-                          variant="ghost"
-                          className="danger-ghost-btn px-3"
+                          variant="alert"
+                          type="button"
+                          className="justify-start"
                           onClick={() => onDeleteRequest(summary.deposit.id)}
                         >
                           <Trash2 className="h-4 w-4" />
