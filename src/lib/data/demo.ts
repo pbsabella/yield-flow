@@ -39,7 +39,7 @@ export const deposits: TimeDeposit[] = [
   {
     id: "td-overdue-settled-001",
     bankId: "cimb",
-    name: "CIMB - 3M (Settled)",
+    name: "CIMB - 3M",
     principal: 250000,
     startDate: monthsAgo(3),
     termMonths: 3,
@@ -61,7 +61,7 @@ export const deposits: TimeDeposit[] = [
   {
     id: "td-overdue-pending-001",
     bankId: "tonik",
-    name: "Tonik - 6M (Overdue)",
+    name: "Tonik - 6M",
     principal: 100000,
     startDate: monthsAgo(6),
     termMonths: 6,
@@ -168,6 +168,22 @@ export const deposits: TimeDeposit[] = [
     payoutFrequency: "maturity",
     status: "active",
   },
+  {
+    id: "td-mid-004",
+    bankId: "maya",
+    name: "Maya - 6M",
+    principal: 100000,
+    startDate: daysAgo(18),
+    termMonths: 6,
+    interestMode: "simple",
+    interestTreatment: "reinvest",
+    compounding: undefined,
+    taxRateOverride: 0.2,
+    flatRate: 0.048,
+    tiers: [{ upTo: null, rate: 0.048 }],
+    payoutFrequency: "maturity",
+    status: "active",
+  },
 
   // ─────────────────────────────────────────────
   // LONG TERM — 12+ months, flat rate, maturity payout
@@ -181,7 +197,7 @@ export const deposits: TimeDeposit[] = [
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "reinvest",
-    compounding: "monthly",
+    compounding: undefined,
     taxRateOverride: 0.2,
     flatRate: 0.065,
     tiers: [{ upTo: null, rate: 0.065 }],
@@ -226,7 +242,7 @@ export const deposits: TimeDeposit[] = [
     termMonths: 24,
     interestMode: "simple",
     interestTreatment: "payout",
-    compounding: "monthly",
+    compounding: undefined,
     taxRateOverride: 0.2,
     flatRate: 0.05,
     tiers: [{ upTo: null, rate: 0.05 }],
@@ -261,7 +277,7 @@ export const deposits: TimeDeposit[] = [
   {
     id: "td-open-002",
     bankId: "maribank",
-    name: "MariBank - Daily Saver",
+    name: "MariBank - SA",
     principal: 1150000,
     startDate: monthsAgo(1),
     termMonths: 12,

@@ -51,7 +51,7 @@ Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts
 | `references/PRODUCT.md`        | What to build and why            |
 | `references/ENGINEERING.md`    | How to build it                  |
 | `globals.css`                  | Token source of truth            |
-| `lib/yield-engine.ts`          | Interest calc — do not duplicate |
-| `lib/banks-config.ts`          | Bank/product templates           |
+| `lib/data/banks-config.ts`     | Bank/product templates           |
+| `lib/domain/yield-engine.ts`   | Interest calc — do not duplicate |
 | `lib/domain/format.ts`         | formatPhpCurrency                |
-| `lib/state/useLocalStorage.ts` | Storage abstraction              |
+| `lib/hooks/useLocalStorage.ts` | Storage abstraction              |

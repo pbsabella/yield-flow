@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Info, LayoutList, TrendingUp } from "lucide-react";
+import { Info, LayoutList, Plus, TrendingUp } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +113,7 @@ export default function DashboardShell() {
           </Alert>
 
           {/* Page intro */}
-          <h1 className="text-3xl font-semibold md:text-4xl mb-2">Dashboard</h1>
+          <h1 className="text-3xl font-semibold md:text-4xl mb-2">Yield Overview</h1>
           <p className="text-sm text-muted-foreground">
             Track your fixed-income investments, visualize maturity timing, and see your passive income clearly.
           </p>
@@ -134,11 +134,13 @@ export default function DashboardShell() {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <CardTitle className="text-3xl font-semibold"><h2>Portfolio</h2></CardTitle>
+                        {/* TODO: Make this X active deposits */}
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {portfolio.summaries.length} deposits tracked
                         </p>
                       </div>
                       <Button size="default" variant="default" disabled={!isReady}>
+                        <Plus />
                         Add investment
                       </Button>
                     </div>

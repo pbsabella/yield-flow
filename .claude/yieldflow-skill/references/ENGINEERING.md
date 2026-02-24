@@ -8,14 +8,14 @@
 ## Stack
 
 Next.js App Router · TypeScript · Tailwind CSS v4 · shadcn/ui + Radix UI · lucide-react
-Storage: `useLocalStorage` · Calc: `lib/yield-engine.ts` · Templates: `lib/banks-config.ts`
+Storage: `useLocalStorage` · Calc: `lib/domain/yield-engine.ts` · Templates: `lib/data/banks-config.ts`
 
 ---
 
 ## Storage
 
 `useLocalStorage` only. No direct `localStorage` calls.
-`persistDeposits` = single helper on top of the hook.
+`usePersistedDeposit` = single helper on top of the hook.
 
 ---
 
@@ -53,7 +53,7 @@ No `tailwind.config.ts` for colors. No `@layer utilities` for color tokens.
 
 ## shadcn/ui
 
-**CVA variant addition:** extract to `lib/ui/variants.ts`, spread into `cva()`. Re-add spread on upgrade.
+**CVA variant addition:** extract to `components/ui/variants.ts`, spread into `cva()`. Re-add spread on upgrade.
 
 New components: `npx shadcn@latest add [component]`
 

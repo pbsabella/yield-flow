@@ -24,7 +24,6 @@ export const bankTemplates = [
   { id: "maya", name: "Maya", taxRate: 0.2 },
   { id: "maribank", name: "MariBank", taxRate: 0.2 },
   { id: "cimb", name: "CIMB", taxRate: 0.2 },
-  { id: "seabank", name: "SeaBank", taxRate: 0.2 },
   { id: "netbank", name: "Netbank", taxRate: 0.2 },
   { id: "gotyme", name: "GoTyme", taxRate: 0.2 },
   { id: "ownbank", name: "OwnBank", taxRate: 0.2 },

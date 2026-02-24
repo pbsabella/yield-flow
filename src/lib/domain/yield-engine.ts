@@ -1,6 +1,10 @@
 import { addTermMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
 import type { InterestTier } from "@/types";
 
+/**
+ * simple: One flat rate for the whole amount.
+ * tiered: Rates change based on how much you have (e.g., first 1M is 6%, rest is 3%).
+ */
 export type InterestMode = "simple" | "tiered";
 
 export type YieldInput = {
@@ -10,6 +14,10 @@ export type YieldInput = {
   flatRate: number;
   tiers: InterestTier[];
   interestMode: InterestMode;
+  /**
+   * reinvest: Interest is added to the pile (Principal grows).
+   * payout: Interest is sent to your wallet (Principal stays same).
+   */
   interestTreatment?: "reinvest" | "payout";
   compounding?: "daily" | "monthly";
   taxRate: number;
@@ -33,6 +41,11 @@ function sortTiers(tiers: InterestTier[]) {
   });
 }
 
+/**
+ * THE SNOWBALL:
+ * Every day/month, the interest is added back to the principal.
+ * You earn interest on your interest.
+ */
 function calculateTieredCompounded(
   principal: number,
   tiers: InterestTier[],
@@ -51,10 +64,12 @@ function calculateTieredCompounded(
     const cap = tier.upTo ?? Infinity;
     const available = Math.max(cap - lastThreshold, 0);
     const portion = Math.min(remaining, available);
+
     const gross =
       compounding === "monthly"
         ? portion * Math.pow(1 + tier.rate / 12, months)
         : portion * Math.pow(1 + tier.rate / dayCountConvention, days);
+
     total += gross - portion;
     remaining -= portion;
     lastThreshold = cap;
@@ -63,6 +78,11 @@ function calculateTieredCompounded(
   return total;
 }
 
+/**
+ * THE BUCKET:
+ * Money is split into "brackets." Each bracket calculates interest
+ * separately, but the interest is NOT added back to the principal.
+ */
 function calculateTieredSimple(
   principal: number,
   tiers: InterestTier[],
@@ -79,6 +99,7 @@ function calculateTieredSimple(
     const cap = tier.upTo ?? Infinity;
     const available = Math.max(cap - lastThreshold, 0);
     const portion = Math.min(remaining, available);
+
     total += portion * tier.rate * ratePerPeriod * periods;
     remaining -= portion;
     lastThreshold = cap;
@@ -99,21 +120,32 @@ export function calculateNetYield(input: YieldInput): YieldResult {
   const isPayout = input.interestTreatment === "payout";
   const cadence = input.compounding ?? "daily";
 
+  /**
+   * BRANCH 1: FLAT RATE
+   * Used when the rate is the same regardless of the amount.
+   * Example: A 6-month Time Deposit.
+   */
   if (input.interestMode === "simple") {
-    // Day-count-aware simple interest:
-    // gross = principal * annualRate * (termDays / dayCountConvention)
     grossInterest = input.principal * input.flatRate * (dayCount / dayCountConvention);
-  } else {
+  }
+  /**
+   * BRANCH 2: TIERED RATE (Brackets)
+   * Used when different slices of your money earn different rates.
+   */
+  else {
     if (isPayout) {
+      /**
+       * Interest is removed from the account regularly.
+       * Principal stays the same size for the whole term.
+       */
       const ratePer = cadence === "monthly" ? 1 / 12 : 1 / dayCountConvention;
       const periods = cadence === "monthly" ? input.termMonths : dayCount;
-      grossInterest = calculateTieredSimple(
-        input.principal,
-        input.tiers,
-        periods,
-        ratePer,
-      );
+      grossInterest = calculateTieredSimple(input.principal, input.tiers, periods, ratePer);
     } else {
+      /**
+       * Interest is rolled back into the principal.
+       * The "pile" of money grows larger over time.
+       */
       grossInterest = calculateTieredCompounded(
         input.principal,
         input.tiers,
@@ -125,6 +157,7 @@ export function calculateNetYield(input: YieldInput): YieldResult {
     }
   }
 
+  // Final step: Deduct the government's share (Tax)
   const netInterest = grossInterest * (1 - input.taxRate);
 
   return {

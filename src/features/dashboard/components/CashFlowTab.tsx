@@ -229,11 +229,11 @@ function MonthRow({
         <CardHeader className="p-0">
           <CollapsibleTrigger
             className={cn(
-              "w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-muted transition-colors",
+              "w-full flex items-center justify-between px-4 py-3 gap-2 text-sm font-medium hover:bg-muted transition-colors",
               open && "bg-primary/5",
             )}
           >
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <span>{month.label}</span>
               {isCurrent && (
                 <Badge variant="info" className="font-normal">
@@ -241,7 +241,7 @@ function MonthRow({
                 </Badge>
               )}
             </span>
-            <span className="flex items-center gap-2 tabular-nums">
+            <span className="flex items-center gap-2 tabular-nums ml-auto">
               <span className={cn(isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
                 {formatPhpCurrency(displayNet)}
               </span>
