@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DatePicker } from "@/components/ui/date-picker"
 import {
   Card,
   CardAction,
@@ -67,6 +66,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { PlusIcon, BluetoothIcon, MoreVerticalIcon, FileIcon, FolderIcon, FolderOpenIcon, FileCodeIcon, MoreHorizontalIcon, FolderSearchIcon, SaveIcon, DownloadIcon, EyeIcon, LayoutIcon, PaletteIcon, SunIcon, MoonIcon, MonitorIcon, UserIcon, CreditCardIcon, SettingsIcon, KeyboardIcon, LanguagesIcon, BellIcon, MailIcon, ShieldIcon, HelpCircleIcon, FileTextIcon, LogOutIcon } from "lucide-react"
+import { Calendar } from '@/components/ui/calendar'
 
 export function ComponentExample() {
   return (
@@ -483,11 +483,11 @@ function FormExample() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="date-picker">Date</FieldLabel>
-                <DatePicker
+                <Calendar
+                  mode="single"
                   selected={date}
                   onSelect={setDate}
-                  id="date-picker"
+                  className="rounded-lg border"
                 />
               </Field>
               <Field orientation="horizontal">
