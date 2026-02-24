@@ -1,6 +1,6 @@
 // Precondition: summaries must NOT include settled deposits.
 // Filter them out in the caller (e.g. usePortfolioData) before passing here.
-import type { MonthlyAllowance, DepositSummary } from "@/lib/types";
+import type { MonthlyAllowance, DepositSummary } from "@/types";
 import { addMonths, formatMonthLabel, monthKey } from "@/lib/domain/date";
 
 // Rolling window for open-ended deposit projections.

@@ -5,7 +5,7 @@
  * Re-add this spread after any shadcn component upgrade.
  *
  * Example:
- *   import { badgeStatusVariants } from "@/lib/ui/variants"
+ *   import { badgeStatusVariants } from "@/components/ui/variants"
  *   const badgeVariants = cva(base, {
  *     variants: { variant: { ...shadcnVariants, ...badgeStatusVariants } }
  *   })

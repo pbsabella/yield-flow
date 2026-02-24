@@ -1,5 +1,5 @@
-import type { Bank, DepositSummary, TimeDeposit } from "@/lib/types";
-import { calculateNetYield } from "@/lib/yield-engine";
+import type { Bank, DepositSummary, TimeDeposit } from "@/types";
+import { calculateNetYield } from "@/lib/domain/yield-engine";
 
 // Projection window for open-ended deposits (rolling 12 months).
 const OPEN_ENDED_PROJECTION_MONTHS = 12;

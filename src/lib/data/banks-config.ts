@@ -1,4 +1,4 @@
-import type { InterestTier } from "@/lib/types";
+import type { InterestTier } from "@/types";
 
 export type BankProduct = {
   id: string;

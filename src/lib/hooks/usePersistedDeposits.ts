@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocalStorage } from "@/lib/state/useLocalStorage";
-import type { TimeDeposit } from "@/lib/types";
+import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
+import type { TimeDeposit } from "@/types";
 
 const DEPOSITS_KEY = "yf:deposits";
 

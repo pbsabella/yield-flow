@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
 import { monthKey } from "@/lib/domain/date";
-import type { Bank, DepositSummary, TimeDeposit } from "@/lib/types";
+import type { Bank, DepositSummary, TimeDeposit } from "@/types";
 
 export type EnrichedSummary = DepositSummary & {
   // Derived-only status for UI display. Never written back to storage.

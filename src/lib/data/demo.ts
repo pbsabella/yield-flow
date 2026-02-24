@@ -1,4 +1,4 @@
-import type { Bank, TimeDeposit } from "@/lib/types";
+import type { Bank, TimeDeposit } from "@/types";
 
 const today = new Date();
 

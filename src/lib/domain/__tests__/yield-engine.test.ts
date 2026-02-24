@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateNetYield } from "@/lib/yield-engine";
+import { calculateNetYield } from "@/lib/domain/yield-engine";
 
 describe("calculateNetYield", () => {
   it("uses month-based simple-interest math (spreadsheet parity)", () => {

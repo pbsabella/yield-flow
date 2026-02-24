@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/pbsabella/Work/startover/yield-flow/yield-flow && npx tsc --noEmit 2>&1)"
+    ]
+  }
+}

@@ -1,7 +1,5 @@
-// import { ComponentExample } from "@/components/component-example";
-import DashboardClient from "@/components/DashboardClient";
+import DashboardShell from "@/features/dashboard/components/DashboardShell";
 
 export default function Page() {
-// return <ComponentExample />;
-  return <DashboardClient />;
+  return <DashboardShell />;
 }

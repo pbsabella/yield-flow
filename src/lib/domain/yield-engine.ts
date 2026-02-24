@@ -1,5 +1,5 @@
 import { addTermMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
-import type { InterestTier } from "@/lib/types";
+import type { InterestTier } from "@/types";
 
 export type InterestMode = "simple" | "tiered";
 

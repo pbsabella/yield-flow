@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPhpCurrency } from "@/lib/domain/format";
 import { formatDate, formatMonthLabel } from "@/lib/domain/date";
-import type { CurrentMonthBreakdown, NextMaturity } from "@/hooks/usePortfolioData";
+import type { CurrentMonthBreakdown, NextMaturity } from "@/features/dashboard/hooks/usePortfolioData";
 
 type KpiCardsProps = {
   totalPrincipal: number;

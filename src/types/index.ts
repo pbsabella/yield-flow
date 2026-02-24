@@ -1,4 +1,4 @@
-import type { InterestMode } from "@/lib/yield-engine";
+import type { InterestMode } from "@/lib/domain/yield-engine";
 
 export type PayoutFrequency = "monthly" | "maturity";
 

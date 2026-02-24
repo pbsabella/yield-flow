@@ -5,13 +5,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from '@/components/ui/skeleton';
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { KpiCards } from "@/components/dashboard/KpiCards";
-import { usePersistedDeposits } from "@/lib/state/persistDeposits";
-import { usePortfolioData } from "@/hooks/usePortfolioData";
-import { bankTemplates } from "@/lib/banks-config";
-import { deposits as demoDeposits, banks as demoBanks } from "@/lib/demo";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { KpiCards } from "@/features/dashboard/components/KpiCards";
+import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
+import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
+import { bankTemplates } from "@/lib/data/banks-config";
+import { deposits as demoDeposits, banks as demoBanks } from "@/lib/data/demo";
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -58,7 +58,7 @@ function DashboardSkeleton() {
 
 const isDev = process.env.NODE_ENV === "development";
 
-export default function DashboardClient() {
+export default function DashboardShell() {
   const { deposits: storedDeposits, isReady } = usePersistedDeposits();
 
   // In development with no stored data, seed the UI with demo deposits so
@@ -137,7 +137,7 @@ export default function DashboardClient() {
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
-                          {/* TimelineSection — Phase 3 */}
+                          {/* InvestmentsPanel — Phase 3 */}
                           Timeline coming soon ({deposits.length} investments)
                         </p>
                       )}
@@ -147,7 +147,7 @@ export default function DashboardClient() {
                   <TabsContent value="cashflow">
                     <CardContent className="pt-4 pb-6">
                       <p className="text-sm text-muted-foreground">
-                        {/* CashFlowSection — Phase 4 */}
+                        {/* CashFlowPanel — Phase 4 */}
                         12-month cash flow coming soon
                       </p>
                     </CardContent>
