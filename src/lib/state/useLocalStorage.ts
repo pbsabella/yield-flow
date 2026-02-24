@@ -16,7 +16,11 @@ export function useLocalStorage<T>(
   initialValue: T,
   options?: UseLocalStorageOptions<T>,
 ) {
-  const [value, setValue] = useState<T>(initialValue);
+  // Stabilize initialValue so callers can pass literals (e.g. []) without
+  // triggering infinite hydration loops from a new reference each render.
+  const initialValueRef = useRef(initialValue);
+
+  const [value, setValue] = useState<T>(initialValueRef.current);
   const [isReady, setIsReady] = useState(false);
   const hasHandledInitialWrite = useRef(false);
   const persistWhen = options?.persistWhen;
@@ -32,15 +36,16 @@ export function useLocalStorage<T>(
         try {
           setValue(JSON.parse(stored) as T);
         } catch {
-          setValue(initialValue);
+          setValue(initialValueRef.current);
         }
       }
     }
     setIsReady(true);
-  }, [key, initialValue, hydrate]);
+  }, [key, hydrate]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!isReady) return;
     if (skipInitialWrite && !hasHandledInitialWrite.current) {
       hasHandledInitialWrite.current = true;

@@ -23,7 +23,7 @@ export type TimeDeposit = {
   payoutFrequency: PayoutFrequency;
   dayCountConvention?: 360 | 365;
   isOpenEnded?: boolean;
-  status?: "active" | "matured" | "settled";
+  status: "active" | "matured" | "settled";
 };
 
 export type Bank = {
@@ -36,7 +36,7 @@ export type Bank = {
 export type DepositSummary = {
   deposit: TimeDeposit;
   bank: Bank;
-  maturityDate: string;
+  maturityDate: string | null;
   grossInterest: number;
   netInterest: number;
   grossTotal: number;
@@ -47,13 +47,13 @@ export type MonthlyAllowance = {
   monthKey: string;
   label: string;
   net: number;
-  entries?: Array<{
+  entries: Array<{
     depositId: string;
     name: string;
     bankName: string;
     payoutFrequency: PayoutFrequency;
     amountNet: number;
     principalReturned?: number;
-    status?: "active" | "matured" | "settled";
+    status: "active" | "matured" | "settled";
   }>;
 };
