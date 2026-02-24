@@ -78,6 +78,12 @@ Priority chain: Domain Rules → Engineering Tokens → External Skill suggestio
 
 ---
 
+## Accessibility
+
+**WCAG AA minimum for all text:** 4.5:1 normal text, 3:1 large text and UI components.
+
+---
+
 ## What NOT to Do
 
 - Show gross values in any primary view
@@ -89,3 +95,4 @@ Priority chain: Domain Rules → Engineering Tokens → External Skill suggestio
 - Hardcode palette classes
 - Duplicate yield calc logic outside `yield-engine.ts`
 - Modify shadcn files for look-and-feel — rewrite or CVA
+- Add a token to `:root` without a matching entry in `.dark`

@@ -21,7 +21,7 @@ Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts
 
 ## Use Cases
 
-**Yield Ladder Visibility** — sort ASC, amber overdue badges, tabular-nums
+**Yield Ladder Visibility** — sort ASC, amber overdue badges
 **Cash Flow Projection** — group by month, net interest only, pending/settled pills
 **Smart Investment Capture** — 2-step wizard, pre-fill templates, live calc preview
 

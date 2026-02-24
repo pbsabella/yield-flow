@@ -20,11 +20,20 @@ export type NextMaturity = {
   netProceeds: number;
 };
 
+export type CurrentMonthBreakdown = {
+  net: number;
+  // Net amount from matured (unsettled) deposits with a payout this month.
+  pendingNet: number;
+  // Net amount from settled deposits with a payout this month.
+  settledNet: number;
+};
+
 export type PortfolioData = {
   summaries: EnrichedSummary[];
   totalPrincipal: number;
-  incomeThisMonth: number;
+  currentMonthBreakdown: CurrentMonthBreakdown;
   nextMaturity: NextMaturity | null;
+  // Projection: excludes settled deposits. Used for 12-month cash flow view.
   monthlyAllowance: ReturnType<typeof buildMonthlyAllowance>;
 };
 
@@ -73,12 +82,20 @@ export function usePortfolioData(
       .reduce((sum, s) => sum + s.deposit.principal, 0);
   }, [summaries]);
 
-  const incomeThisMonth = useMemo(() => {
+  // Current month: use ALL summaries (including settled) so the Income This Month
+  // card reflects the full picture — settled payouts are confirmed income.
+  const currentMonthBreakdown = useMemo<CurrentMonthBreakdown>(() => {
     const todayKey = monthKey(new Date());
-    const activeSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
-    const allowance = buildMonthlyAllowance(activeSummaries);
-    const thisMonth = allowance.find((m) => m.monthKey === todayKey);
-    return thisMonth?.net ?? 0;
+    const allAllowance = buildMonthlyAllowance(summaries);
+    const thisMonth = allAllowance.find((m) => m.monthKey === todayKey);
+    if (!thisMonth) return { net: 0, pendingNet: 0, settledNet: 0 };
+    const pendingNet = thisMonth.entries
+      .filter((e) => e.status === "matured")
+      .reduce((sum, e) => sum + e.amountNet, 0);
+    const settledNet = thisMonth.entries
+      .filter((e) => e.status === "settled")
+      .reduce((sum, e) => sum + e.amountNet, 0);
+    return { net: thisMonth.net, pendingNet, settledNet };
   }, [summaries]);
 
   const nextMaturity = useMemo<NextMaturity | null>(() => {
@@ -107,10 +124,10 @@ export function usePortfolioData(
   }, [summaries]);
 
   const monthlyAllowance = useMemo(() => {
-    // Exclude settled deposits — their cash has already been received.
-    const activeSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
-    return buildMonthlyAllowance(activeSummaries);
+    // Projection excludes settled — their cash has already been received.
+    const projectionSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
+    return buildMonthlyAllowance(projectionSummaries);
   }, [summaries]);
 
-  return { summaries, totalPrincipal, incomeThisMonth, nextMaturity, monthlyAllowance };
+  return { summaries, totalPrincipal, currentMonthBreakdown, nextMaturity, monthlyAllowance };
 }
