@@ -291,7 +291,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
-              <ul role="list" className="space-y-2">
+              <ul role="list" className="space-y-3">
                 {items.map((s) => (
                   <DepositCard
                     key={s.deposit.id}

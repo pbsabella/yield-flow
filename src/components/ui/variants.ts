@@ -12,6 +12,8 @@
  */
 
 export const badgeStatusVariants = {
+  info:
+    "bg-status-info-bg border-status-info-border text-status-info-fg",
   warning:
     "bg-status-warning-bg border-status-warning-border text-status-warning-fg",
   success:

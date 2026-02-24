@@ -35,6 +35,8 @@ export type PortfolioData = {
   nextMaturity: NextMaturity | null;
   // Projection: excludes settled deposits. Used for 12-month cash flow view.
   monthlyAllowance: ReturnType<typeof buildMonthlyAllowance>;
+  // Full current-month picture: includes active + matured + settled entries.
+  currentMonthFull: ReturnType<typeof buildMonthlyAllowance>[number] | null;
 };
 
 function deriveEffectiveStatus(
@@ -129,5 +131,11 @@ export function usePortfolioData(
     return buildMonthlyAllowance(projectionSummaries);
   }, [summaries]);
 
-  return { summaries, totalPrincipal, currentMonthBreakdown, nextMaturity, monthlyAllowance };
+  const currentMonthFull = useMemo(() => {
+    const todayKey = monthKey(new Date());
+    const allAllowance = buildMonthlyAllowance(summaries);
+    return allAllowance.find((m) => m.monthKey === todayKey) ?? null;
+  }, [summaries]);
+
+  return { summaries, totalPrincipal, currentMonthBreakdown, nextMaturity, monthlyAllowance, currentMonthFull };
 }

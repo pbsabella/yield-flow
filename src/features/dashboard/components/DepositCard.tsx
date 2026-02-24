@@ -46,7 +46,6 @@ function MaturityLabel({
   today.setHours(0, 0, 0, 0);
   const days = differenceInCalendarDays(new Date(maturityDate), today);
 
-  /* TODO: Replace color tokens */
   if (days > 30)
     return (
       <span className="text-xs text-muted-foreground">
@@ -55,13 +54,13 @@ function MaturityLabel({
     );
   if (days > 0)
     return (
-      <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+      <span className="text-xs font-medium text-status-warning-fg">
         Due in {days}d
       </span>
     );
   if (days === 0)
     return (
-      <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+      <span className="text-xs font-medium text-status-warning-fg">
         Due today
       </span>
     );
@@ -92,7 +91,7 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick }: Props) {
           <Collapsible open={open} onOpenChange={setOpen}>
             {/* Trigger row */}
             <CardHeader className="p-0">
-              <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 p-4 hover:bg-muted">
+              <CollapsibleTrigger className={`flex w-full items-center justify-between gap-2 px-4 py-3 hover:bg-muted${open ? " bg-primary/5" : ""}`}>
                 <div className="flex items-center gap-2">
                   {statusBadge}
                   <h3

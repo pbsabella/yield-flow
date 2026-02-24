@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Info } from "lucide-react";
+import { Info, LayoutList, TrendingUp } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
+import { CashFlowTab } from "@/features/dashboard/components/CashFlowTab";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { bankTemplates } from "@/lib/data/banks-config";
@@ -112,6 +113,7 @@ export default function DashboardShell() {
           </Alert>
 
           {/* Page intro */}
+          <h1 className="text-3xl font-semibold md:text-4xl mb-2">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
             Track your fixed-income investments, visualize maturity timing, and see your passive income clearly.
           </p>
@@ -129,9 +131,9 @@ export default function DashboardShell() {
               <Card className="pt-8">
                 <Tabs defaultValue="investments">
                   <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
-                        <CardTitle className="text-3xl font-semibold">Portfolio</CardTitle>
+                        <CardTitle className="text-3xl font-semibold"><h2>Portfolio</h2></CardTitle>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {portfolio.summaries.length} deposits tracked
                         </p>
@@ -143,8 +145,14 @@ export default function DashboardShell() {
                   </CardHeader>
                   <CardContent className="pt-8 pb-2">
                     <TabsList>
-                      <TabsTrigger value="investments">Investments</TabsTrigger>
-                      <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
+                      <TabsTrigger value="investments">
+                        <LayoutList className="size-4" />
+                        Investments
+                      </TabsTrigger>
+                      <TabsTrigger value="cashflow">
+                        <TrendingUp className="size-4" />
+                        Cash Flow
+                      </TabsTrigger>
                     </TabsList>
                   </CardContent>
 
@@ -160,10 +168,10 @@ export default function DashboardShell() {
 
                   <TabsContent value="cashflow" tabIndex={-1}>
                     <CardContent className="pt-4 pb-6">
-                      <p className="text-sm text-muted-foreground">
-                        {/* CashFlowPanel — Phase 4 */}
-                        12-month cash flow coming soon
-                      </p>
+                      <CashFlowTab
+                        monthlyAllowance={portfolio.monthlyAllowance}
+                        currentMonthFull={portfolio.currentMonthFull}
+                      />
                     </CardContent>
                   </TabsContent>
                 </Tabs>

@@ -54,9 +54,9 @@ function DaysCell({ maturityDate }: { maturityDate: string | null }) {
   /* TODO: Replace color tokens */
   if (days > 30) return <span>{days}d</span>;
   if (days > 0)
-    return <span className="font-medium text-amber-700 dark:text-amber-400">{days}d</span>;
+    return <span className="font-medium text-status-warning-fg">{days}d</span>;
   if (days === 0)
-    return <span className="font-medium text-amber-700 dark:text-amber-400">Today</span>;
+    return <span className="font-medium text-status-warning-fg">Today</span>;
   return (
     <span className="font-medium text-status-warning-fg">{Math.abs(days)}d ago</span>
   );
@@ -217,7 +217,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
   // 9. Actions
   {
     id: "actions",
-    header: "",
+    header: () => <span className="block text-right">Actions</span>,
     enableSorting: false,
     cell: ({ row, table }) => {
       const summary = row.original;
