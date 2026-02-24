@@ -126,7 +126,7 @@ export default function DashboardShell() {
               />
 
               {/* Investments + Cash Flow in a single tabbed card */}
-              <Card>
+              <Card className="pt-8">
                 <Tabs defaultValue="investments">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-4">
@@ -136,7 +136,7 @@ export default function DashboardShell() {
                           {portfolio.summaries.length} deposits tracked
                         </p>
                       </div>
-                      <Button size="sm" variant="default" disabled={!isReady}>
+                      <Button size="default" variant="default" disabled={!isReady}>
                         Add investment
                       </Button>
                     </div>
@@ -148,7 +148,7 @@ export default function DashboardShell() {
                     </TabsList>
                   </CardContent>
 
-                  <TabsContent value="investments">
+                  <TabsContent value="investments" tabIndex={-1}>
                     <CardContent className="pt-4 pb-6">
                       <InvestmentsTab
                         summaries={portfolio.summaries}
@@ -158,7 +158,7 @@ export default function DashboardShell() {
                     </CardContent>
                   </TabsContent>
 
-                  <TabsContent value="cashflow">
+                  <TabsContent value="cashflow" tabIndex={-1}>
                     <CardContent className="pt-4 pb-6">
                       <p className="text-sm text-muted-foreground">
                         {/* CashFlowPanel — Phase 4 */}

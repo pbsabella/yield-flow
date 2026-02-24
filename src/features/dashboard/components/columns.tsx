@@ -96,6 +96,8 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
   // 3. Rate
   {
     id: "rate",
+    accessorFn: (row) =>
+      row.deposit.interestMode === "tiered" ? -1 : row.deposit.flatRate,
     header: ({ column }) => <SortableHeader column={column} label="Rate" />,
     enableSorting: true,
     sortingFn: (a, b) => {
@@ -128,6 +130,13 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
   // 5. Days to maturity (default sort)
   {
     id: "daysToMaturity",
+    accessorFn: (row) => {
+      if (!row.maturityDate || row.deposit.isOpenEnded || row.effectiveStatus === "settled")
+        return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return differenceInCalendarDays(new Date(row.maturityDate), today);
+    },
     header: ({ column }) => <SortableHeader column={column} label="Days left" />,
     enableSorting: true,
     sortingFn: (a, b) => {
@@ -157,7 +166,9 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
     header: ({ column }) => <SortableHeader column={column} label="Net interest" />,
     enableSorting: true,
     sortingFn: "basic",
-    cell: ({ row }) => formatPhpCurrency(row.original.netInterest),
+    cell: ({ row }) => {
+      return <span className="text-primary dark:text-primary-subtle font-semibold">{ formatPhpCurrency(row.original.netInterest) }</span>
+    },
   },
 
   // 7. Payout frequency

@@ -1,4 +1,7 @@
 "use client";
+// Opt out of React Compiler memoization: useReactTable() returns unstable
+// function references that the compiler cannot safely cache.
+"use no memo";
 
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -176,6 +179,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
   );
 
   // TanStack table instance (desktop only)
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filtered,
     columns,

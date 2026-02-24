@@ -20,20 +20,20 @@ export function useLocalStorage<T>(
   // triggering infinite hydration loops from a new reference each render.
   const initialValueRef = useRef(initialValue);
 
-  const [value, setValue] = useState<T>(initialValueRef.current);
+  const [value, setValue] = useState<T>(initialValue);
   const [isReady, setIsReady] = useState(false);
   const hasHandledInitialWrite = useRef(false);
   const persistWhen = options?.persistWhen;
   const hydrate = options?.hydrate ?? true;
   const skipInitialWrite = options?.skipInitialWrite ?? false;
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (hydrate) {
       const stored = window.localStorage.getItem(key);
       if (stored) {
         try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setValue(JSON.parse(stored) as T);
         } catch {
           setValue(initialValueRef.current);
@@ -42,7 +42,6 @@ export function useLocalStorage<T>(
     }
     setIsReady(true);
   }, [key, hydrate]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (typeof window === "undefined") return;
