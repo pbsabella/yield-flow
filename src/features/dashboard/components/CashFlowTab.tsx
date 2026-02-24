@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { ChevronDown, Info } from "lucide-react";
+import { ChevronDown, Info, TrendingUp } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,6 +18,7 @@ import { monthKey } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { MonthlyAllowance } from "@/types";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { EmptyState } from "@/features/dashboard/components/EmptyState";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -291,10 +292,11 @@ export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabP
 
   if (monthlyAllowance.length === 0 || futureMonths.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No active deposits to project. Add an investment to see your 12-month
-        income schedule.
-      </p>
+      <EmptyState
+        icon={TrendingUp}
+        title="No upcoming cash flow"
+        description="Add active deposits in the Investments tab to see your 12-month income projection."
+      />
     );
   }
 

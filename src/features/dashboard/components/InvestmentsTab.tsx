@@ -34,6 +34,8 @@ import { columns } from "@/features/dashboard/components/columns";
 import { DepositCard } from "@/features/dashboard/components/DepositCard";
 import { DeleteConfirmDialog } from "@/features/dashboard/components/DeleteConfirmDialog";
 import { SettleConfirmDialog } from "@/features/dashboard/components/SettleConfirmDialog";
+import { Wallet, SearchX } from "lucide-react";
+import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -71,19 +73,6 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
     if (!b.maturityDate) return -1;
     return a.maturityDate.localeCompare(b.maturityDate);
   });
-}
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="text-sm text-muted-foreground">No investments yet.</p>
-      <p className="text-xs text-muted-foreground max-w-xs">
-        Add your first time deposit or savings account to start tracking your yield ladder.
-      </p>
-    </div>
-  );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -193,7 +182,8 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
     },
   });
 
-  const isEmpty = filtered.length === 0;
+  const noDeposits = summaries.length === 0;
+  const noResults = summaries.length > 0 && filtered.length === 0;
 
   return (
     <div className="space-y-6">
@@ -229,8 +219,20 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
       </div>
 
       {/* Content */}
-      {isEmpty ? (
-        <EmptyState />
+      {noDeposits ? (
+        <EmptyState
+          icon={Wallet}
+          title="No investments tracked yet"
+          description="Add your first time deposit or savings account to start tracking your yield ladder."
+          action={{ label: "+ Add investment", disabled: true }}
+        />
+      ) : noResults ? (
+        <EmptyState
+          icon={SearchX}
+          title="No matching deposits"
+          description="Try adjusting the bank filter or enabling settled deposits."
+          action={{ label: "Clear filters", onClick: () => setBankFilter("all") }}
+        />
       ) : isMd ? (
         /* ── Desktop table (horizontally scrollable, Deposit column frozen) ── */
         <div className="border rounded-md overflow-x-auto">

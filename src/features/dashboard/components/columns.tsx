@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef, type Column, type RowData } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -253,11 +253,15 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <Pencil />
+                Edit
+              </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(deposit.id)}
               >
+                <Trash />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
