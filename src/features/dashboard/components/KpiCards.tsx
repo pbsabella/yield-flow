@@ -45,7 +45,7 @@ export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }
           </div>
           <p className="text-xs text-muted-foreground mt-1">Net interest · {monthLabel}</p>
           {hasPills && (
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
               {pendingNet > 0 && (
                 <Badge variant="warning">{formatPhpCurrency(pendingNet)} pending</Badge>
               )}

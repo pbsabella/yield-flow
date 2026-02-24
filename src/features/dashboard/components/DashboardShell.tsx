@@ -1,13 +1,15 @@
 "use client";
 
+import { useCallback } from "react";
 import { Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
+import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { bankTemplates } from "@/lib/data/banks-config";
@@ -59,29 +61,40 @@ function DashboardSkeleton() {
 const isDev = process.env.NODE_ENV === "development";
 
 export default function DashboardShell() {
-  const { deposits: storedDeposits, isReady } = usePersistedDeposits();
+  const { deposits: storedDeposits, setDeposits, isReady } = usePersistedDeposits();
 
   // In development with no stored data, seed the UI with demo deposits so
   // every section renders meaningfully without manual data entry.
   const usingDemo = isDev && storedDeposits.length === 0;
   const deposits = usingDemo ? demoDeposits : storedDeposits;
-  const banks = usingDemo
-    ? [...demoBanks]
-    : [...bankTemplates];
+  const banks = usingDemo ? [...demoBanks] : [...bankTemplates];
 
   const portfolio = usePortfolioData(deposits, banks);
+
+  const handleSettle = useCallback(
+    (id: string) => {
+      const base = usingDemo ? demoDeposits : storedDeposits;
+      setDeposits(base.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
+    },
+    [usingDemo, storedDeposits, setDeposits],
+  );
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      const base = usingDemo ? demoDeposits : storedDeposits;
+      setDeposits(base.filter((d) => d.id !== id));
+    },
+    [usingDemo, storedDeposits, setDeposits],
+  );
 
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 h-14 border-b border-border bg-background/80 backdrop-blur-sm">
+      <header className="h-12 border-b border-border ">
         <Container className="flex h-full items-center justify-between">
-          <span className="text-primary font-semibold tracking-tight">YieldFlow</span>
+          <span className="text-primary dark:text-primary-subtle font-semibold tracking-tight">YieldFlow</span>
           <nav className="flex items-center gap-2">
             <ThemeToggle />
-            <Button size="sm" disabled={!isReady}>
-              Add Investment
-            </Button>
           </nav>
         </Container>
       </header>
@@ -115,7 +128,20 @@ export default function DashboardShell() {
               {/* Investments + Cash Flow in a single tabbed card */}
               <Card>
                 <Tabs defaultValue="investments">
-                  <CardContent className="pt-4 pb-0">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-3xl font-semibold">Portfolio</CardTitle>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {portfolio.summaries.length} deposits tracked
+                        </p>
+                      </div>
+                      <Button size="sm" variant="default" disabled={!isReady}>
+                        Add investment
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-8 pb-2">
                     <TabsList>
                       <TabsTrigger value="investments">Investments</TabsTrigger>
                       <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
@@ -124,23 +150,11 @@ export default function DashboardShell() {
 
                   <TabsContent value="investments">
                     <CardContent className="pt-4 pb-6">
-                      {deposits.length === 0 ? (
-                        <div className="flex flex-col items-center gap-3 py-12 text-center">
-                          <p className="text-sm text-muted-foreground">No investments yet.</p>
-                          <p className="text-xs text-muted-foreground max-w-xs">
-                            Add your first time deposit or savings account to start tracking your
-                            yield ladder.
-                          </p>
-                          <Button size="sm" className="mt-1">
-                            Add Investment
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {/* InvestmentsPanel — Phase 3 */}
-                          Timeline coming soon ({deposits.length} investments)
-                        </p>
-                      )}
+                      <InvestmentsTab
+                        summaries={portfolio.summaries}
+                        onSettle={handleSettle}
+                        onDelete={handleDelete}
+                      />
                     </CardContent>
                   </TabsContent>
 
