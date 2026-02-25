@@ -38,6 +38,7 @@ import { Wallet, SearchX } from "lucide-react";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ type Props = {
   summaries: EnrichedSummary[];
   onSettle: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (deposit: TimeDeposit) => void;
   highlightedId?: string | null;
 };
 
@@ -79,7 +81,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsTab({ summaries, onSettle, onDelete, highlightedId }: Props) {
+export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
@@ -181,6 +183,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, highlightedId }:
     meta: {
       onSettleClick: handleSettleClick,
       onDelete: handleDeleteRequest,
+      onEdit,
     },
   });
 
@@ -308,6 +311,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, highlightedId }:
                     summary={s}
                     onSettleClick={handleSettleClick}
                     onDeleteClick={handleDeleteRequest}
+                    onEditClick={onEdit}
                     isNew={s.deposit.id === highlightedId}
                   />
                 ))}

@@ -1,9 +1,9 @@
 ---
 name: yieldflow-skill
-description: YieldFlow is a yield ladder tracker app. Use this skill when working on the YieldFlow codebase, designing features, reviewing code, writing prompts, or making product decisions for YieldFlow. Triggers on: "work on YieldFlow", "YieldFlow feature", "YieldFlow bug", "add investment", "ladder table", "cash flow", "deposit form", "dashboard", "seed data", "banks config", "yield engine".
+description: YieldFlow is a yield ladder tracker app. Use this skill when working on the YieldFlow codebase, designing features, reviewing code, writing prompts, or making product decisions for YieldFlow. Triggers on: "work on YieldFlow", "YieldFlow feature", "YieldFlow bug", "add investment", "ladder table", "cash flow", "deposit form", "dashboard", "seed data", "yield engine".
 metadata:
   author: YieldFlow
-  version: 1.0.0
+  version: 1.1.0
   category: finance, personal-project, portfolio
 ---
 
@@ -23,7 +23,7 @@ Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts
 
 **Yield Ladder Visibility** — sort ASC, amber overdue badges
 **Cash Flow Projection** — group by month, net interest only, pending/settled pills
-**Smart Investment Capture** — 2-step wizard, pre-fill templates, live calc preview
+**Smart Investment Capture** — single-step dialog, free-text bank, live calc preview, edit mode
 
 ---
 
@@ -36,22 +36,14 @@ Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts
 
 ---
 
-## Active Work Streams
-
-1. **Pass 2 refactor** — formatPhpCurrency, useLocalStorage, memoize sort, persistDeposits, "Due today" badge
-2. **Add Investment Wizard** — replace DepositFormDialog.tsx per PRODUCT.md
-3. **DashboardClient hook split** — after wizard: useImportExport → useDepositDialogState → usePortfolioData
-
----
-
 ## Key Files
 
-| File                           | Purpose                          |
-| ------------------------------ | -------------------------------- |
-| `references/PRODUCT.md`        | What to build and why            |
-| `references/ENGINEERING.md`    | How to build it                  |
-| `globals.css`                  | Token source of truth            |
-| `lib/data/banks-config.ts`     | Bank/product templates           |
-| `lib/domain/yield-engine.ts`   | Interest calc — do not duplicate |
-| `lib/domain/format.ts`         | formatPhpCurrency                |
-| `lib/hooks/useLocalStorage.ts` | Storage abstraction              |
+| File                                      | Purpose                          |
+| ----------------------------------------- | -------------------------------- |
+| `references/PRODUCT.md`                   | What to build and why            |
+| `references/ENGINEERING.md`               | How to build it                  |
+| `src/app/globals.css`                     | Token source of truth            |
+| `src/lib/domain/yield-engine.ts`          | Interest calc — do not duplicate |
+| `src/lib/domain/format.ts`                | formatPhpCurrency                |
+| `src/lib/hooks/useLocalStorage.ts`        | Storage abstraction              |
+| `src/features/dashboard/hooks/useWizardState.ts` | Wizard form state + validation   |

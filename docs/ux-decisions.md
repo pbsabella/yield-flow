@@ -352,3 +352,67 @@ The Cash Flow tab answers a question the Investments tab doesn't: _when will mon
 **Tradeoff to revisit:** The current month bar is built from a different data source than future bars (realized + projected vs. pure projection). This means month-to-month bar heights are not strictly comparable — a settled deposit inflates the current month relative to what a future month would show for the same deposit mix. If users start to notice the inconsistency, the right fix is probably a stacked bar once bar widths are large enough to render two segments legibly, or a visual treatment that explicitly marks the current month as "actual vs. projected."
 
 ---
+
+## Phase 5: Add / Edit Investment Wizard
+
+### Single-Step Dialog (replacing 2-step wizard + templates)
+
+**Decision:** Collapsed the original 2-step wizard into a single centered dialog with a live calc panel on the right (desktop) or compact strip below (mobile). Bank product templates were removed entirely.
+
+**Rationale:**
+
+- Templates go stale immediately when banks change rates — maintenance cost with no payoff
+- The step split only made sense when templates drove Step 1 pre-fill; with free-text input, Step 1 became a single field with no reason to exist as a separate screen
+- A single form with clear field groups is faster to complete and easier to orient in
+
+**Tradeoff accepted:** Users must manually enter every value (no pre-fill). Accepted because rates change constantly — a pre-filled rate is misleading more often than it's helpful.
+
+---
+
+### Free-Text Bank Name
+
+**Decision:** Bank is a plain text input with a `<datalist>` populated from existing deposit `bankId` values, rather than a searchable bank registry.
+
+**Rationale:**
+
+- A curated bank list requires ongoing maintenance; this app has no server to pull updates from
+- Datalist gives autocomplete for repeat entries (same bank, multiple deposits) without a registry
+- `bankId` is stored as-is; `usePortfolioData` synthesizes a `Bank` object when no match is found, so display is always correct regardless of how the name was entered
+
+---
+
+### Product Type as Radio Cards
+
+**Decision:** Three product cards — TD (maturity), TD Monthly, Savings — replace the bank product template selector.
+
+**Rationale:**
+
+- Product type drives real form behavior (payout frequency, open-ended, term visibility) and is universally applicable across any bank
+- Card selection makes the three modes visually distinct and scannable; a dropdown would hide the options
+
+---
+
+### Toggle Card Variant (ToggleGroup + Toggle)
+
+**Decision:** All `ToggleGroup` components (day count, compounding, term presets, payout) use a `card` variant matching the radio card appearance: border + `border-primary` + `bg-primary/5` when selected.
+
+**Rationale:**
+
+- Consistent selection affordance across all segmented controls in the form
+- Distinguishes clearly from disabled/unselected state without relying on color alone
+
+---
+
+### Snapshot-Based Dirty Tracking for Edit Mode
+
+**Decision:** `isDirty = JSON.stringify(formState) !== JSON.stringify(initialState)`. On open, `initialState` is set to either `EMPTY_STATE` (add) or the loaded deposit's form state (edit). This means edit mode opens with `isDirty = false`.
+
+**Rationale:**
+
+- Field-level empty checks (the previous approach) would immediately flag edit mode as dirty since all fields are populated
+- JSON snapshot comparison handles arrays (tiers) correctly without per-field logic
+- Users can cancel out of an unmodified edit session without a discard prompt
+
+**Tradeoff accepted:** A JSON stringify on every render for the `isDirty` memo. Acceptable — form state is a flat object with at most ~15 fields plus a small tiers array.
+
+---

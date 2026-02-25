@@ -45,6 +45,45 @@ const EMPTY_STATE: WizardFormState = {
   isOpenEnded: false,
 };
 
+// ─── Deposit → form-state ─────────────────────────────────────────────────────
+
+export function depositToFormState(deposit: TimeDeposit): WizardFormState {
+  let productType: ProductType;
+  if (deposit.isOpenEnded) {
+    productType = "savings";
+  } else if (deposit.payoutFrequency === "monthly") {
+    productType = "td-monthly";
+  } else {
+    productType = "td-maturity";
+  }
+
+  const flatRate =
+    deposit.interestMode === "simple"
+      ? String(+(deposit.flatRate * 100).toFixed(4).replace(/\.?0+$/, ""))
+      : "";
+
+  const taxRate = String(
+    +((deposit.taxRateOverride ?? 0.2) * 100).toFixed(4).replace(/\.?0+$/, ""),
+  );
+
+  return {
+    bankName: deposit.bankId,
+    productType,
+    name: deposit.name,
+    principal: String(deposit.principal),
+    startDate: deposit.startDate,
+    flatRate,
+    taxRate,
+    interestMode: deposit.interestMode,
+    tiers: deposit.tiers ?? [],
+    termMonths: deposit.isOpenEnded ? null : deposit.termMonths,
+    payoutFrequency: deposit.payoutFrequency,
+    compounding: deposit.compounding ?? "monthly",
+    dayCountConvention: deposit.dayCountConvention ?? 365,
+    isOpenEnded: deposit.isOpenEnded ?? false,
+  };
+}
+
 // ─── Validation ───────────────────────────────────────────────────────────────
 
 function computeErrors(
@@ -94,6 +133,7 @@ function computeErrors(
 
 export function useWizardState() {
   const [formState, setFormState] = useState<WizardFormState>(EMPTY_STATE);
+  const [initialState, setInitialState] = useState<WizardFormState>(EMPTY_STATE);
   const [touched, setTouched] = useState<Set<keyof WizardFormState>>(new Set());
   const [discardOpen, setDiscardOpen] = useState(false);
 
@@ -102,14 +142,12 @@ export function useWizardState() {
     [formState, touched],
   );
 
+  // Compare against the snapshot that was set when the dialog opened (EMPTY_STATE
+  // for new deposits, or the loaded deposit state for edits). This ensures that
+  // opening an edit dialog with a pre-loaded deposit starts as non-dirty.
   const isDirty = useMemo(
-    () =>
-      formState.bankName !== "" ||
-      formState.productType !== "" ||
-      formState.name !== "" ||
-      formState.principal !== "" ||
-      formState.flatRate !== "",
-    [formState],
+    () => JSON.stringify(formState) !== JSON.stringify(initialState),
+    [formState, initialState],
   );
 
   const setField = useCallback(
@@ -178,6 +216,15 @@ export function useWizardState() {
 
   const reset = useCallback(() => {
     setFormState(EMPTY_STATE);
+    setInitialState(EMPTY_STATE);
+    setTouched(new Set());
+    setDiscardOpen(false);
+  }, []);
+
+  const loadDeposit = useCallback((deposit: TimeDeposit) => {
+    const state = depositToFormState(deposit);
+    setFormState(state);
+    setInitialState(state);
     setTouched(new Set());
     setDiscardOpen(false);
   }, []);
@@ -280,6 +327,7 @@ export function useWizardState() {
     touchField,
     canSubmit,
     reset,
+    loadDeposit,
     deriveYieldInput,
     buildDeposit,
   } as const;

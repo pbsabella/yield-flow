@@ -15,7 +15,8 @@ Storage: `useLocalStorage` · Calc: `lib/domain/yield-engine.ts` · Templates: `
 ## Storage
 
 `useLocalStorage` only. No direct `localStorage` calls.
-`usePersistedDeposit` = single helper on top of the hook.
+`usePersistedDeposits` = single helper on top of the hook.
+`usePortfolioData` synthesizes a `Bank` object when `bankMap.get(deposit.bankId)` misses — supports free-text bank names.
 
 ---
 
@@ -72,9 +73,8 @@ Priority chain: Domain Rules → Engineering Tokens → External Skill suggestio
 ## Performance
 
 - `useMemo` on all sorted/filtered arrays
-- Wizard steps render lazily — current step only
 - LiveCalcPreview debounced 300ms
-- Field-level dirty tracking in wizard, not `JSON.stringify`
+- Snapshot-based dirty tracking in wizard: `JSON.stringify(formState) !== JSON.stringify(initialState)`; `initialState` set on open/load so edit mode starts clean
 
 ---
 

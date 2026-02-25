@@ -13,6 +13,7 @@ import {
 import { formatPhpCurrency } from "@/lib/domain/format";
 import { formatDate, differenceInCalendarDays } from "@/lib/domain/date";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { TimeDeposit } from "@/types";
 
 // ─── TableMeta augmentation ───────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {
     onSettleClick: (summary: EnrichedSummary) => void;
     onDelete: (id: string) => void;
+    onEdit: (deposit: TimeDeposit) => void;
   }
 }
 
@@ -222,7 +224,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
     cell: ({ row, table }) => {
       const summary = row.original;
       const { effectiveStatus, deposit } = summary;
-      const { onSettleClick, onDelete } = table.options.meta!;
+      const { onSettleClick, onDelete, onEdit } = table.options.meta!;
 
       return (
         <div className="flex items-center justify-end">
@@ -253,7 +255,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem onClick={() => onEdit(deposit)}>
                 <Pencil />
                 Edit
               </DropdownMenuItem>

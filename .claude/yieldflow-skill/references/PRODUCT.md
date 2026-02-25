@@ -53,31 +53,30 @@ Sorted by maturity ASC. Desktop table + mobile expandable cards.
 
 ---
 
-## Add Investment Wizard
+## Add / Edit Investment Wizard
 
-2-step, dynamic. Desktop: two-column with live calc right panel. Mobile: full-screen.
+Single-step centered dialog. Desktop: two-column with live calc right panel. Mobile: compact calc strip below form.
 
-**Global:** No outside-click close. ESC → discard confirm. No step skipping. Back preserves all values.
+**Global:** No outside-click close. ESC → discard confirm (copy changes when editing). `isDirty` is snapshot-based — edit mode opens clean.
 
-**Step 1 — Bank & Product**
+**Fields (in order):**
 
-- Searchable bank selector + "+ Add custom bank" (inline form below, not a new screen)
-- Custom bank form: name, tax rate (20%). Validates on Save only.
-- Product type renders only after bank selected
-- Changing bank resets product + rate + term. Principal + start date preserved.
-- Empty state on live calc right panel. Nothing to show yet.
+1. **Bank** — free-text input with datalist of existing deposit bank names. Required.
+2. **Product type** — radio cards: TD (maturity), TD Monthly, Savings. Required. Side-effects: sets `payoutFrequency` and `isOpenEnded`.
+3. **Name** — optional label
+4. **Principal** — ₱ prefix, required
+5. **Start date** — date picker
+6. **Interest rate** — flat input or tiered (toggle in label row). Required. Soft warning outside 0.01–25%.
+7. **Tax rate** — default 20%, editable, generic description (no Philippines mention)
+8. **Day-count** — `[360][365]` toggle, default 365
+9. **Compounding** — `[Daily][Monthly]` toggle, default Monthly
+10. **Term** — month presets + custom input (hidden for savings + open-ended)
+11. **Payout frequency** — TD types only
+12. **Open-ended switch** — savings only
 
-**Step 2 — Investment Details**
+**Submit:** "Add investment" / "Save changes". Disabled until `canSubmit`.
 
-- Always: name (auto-suggested), principal, start date, rate (pre-filled, always editable), tax (20%)
-- Rate group: flat rate + tiered toggle together. Toggle ON → tier builder replaces flat input, pre-fills first tier from flat value. Toggle OFF → restores flat rate from first tier.
-- Fixed-term only: term (month pills + end date toggle), payout frequency, compounding
-- Savings only: open-ended toggle, compounding
-- Validation on blur. Soft warning outside 0.01–25%. Hard error principal ≤ 0.
-- Tax rate editable here
-- "Add investment" / "Save changes" (edit mode)
-
-**Edit flow:** Opens at Step 2 pre-filled. Step 1 as collapsed summary with Change link.
+**Edit flow:** `loadDeposit()` pre-fills form and sets `initialState` snapshot → opens clean (not dirty). `buildDeposit` preserves original `id`. `DashboardShell.handleSave` preserves original `status` on replace.
 
 ---
 

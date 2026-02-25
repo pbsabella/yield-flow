@@ -65,6 +65,7 @@ const isDev = process.env.NODE_ENV === "development";
 export default function DashboardShell() {
   const { deposits: storedDeposits, setDeposits, isReady } = usePersistedDeposits();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   // In development with no stored data, seed the UI with demo deposits so
@@ -96,14 +97,25 @@ export default function DashboardShell() {
     [usingDemo, storedDeposits, setDeposits],
   );
 
+  const handleEdit = useCallback((deposit: TimeDeposit) => {
+    setEditTarget(deposit);
+    setWizardOpen(true);
+  }, []);
+
   const handleSave = useCallback(
     (deposit: TimeDeposit) => {
       const base = usingDemo ? demoDeposits : storedDeposits;
-      setDeposits([...base, deposit]);
+      if (editTarget) {
+        setDeposits(
+          base.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d)),
+        );
+      } else {
+        setDeposits([...base, deposit]);
+      }
       setHighlightedId(deposit.id);
       setTimeout(() => setHighlightedId(null), 2500);
     },
-    [usingDemo, storedDeposits, setDeposits],
+    [usingDemo, storedDeposits, setDeposits, editTarget],
   );
 
   return (
@@ -186,6 +198,7 @@ export default function DashboardShell() {
                         summaries={portfolio.summaries}
                         onSettle={handleSettle}
                         onDelete={handleDelete}
+                        onEdit={handleEdit}
                         highlightedId={highlightedId}
                       />
                     </CardContent>
@@ -210,9 +223,13 @@ export default function DashboardShell() {
 
       <InvestmentWizard
         open={wizardOpen}
-        onOpenChange={setWizardOpen}
+        onOpenChange={(open) => {
+          setWizardOpen(open);
+          if (!open) setEditTarget(null);
+        }}
         onSave={handleSave}
         existingBankNames={existingBankNames}
+        initialDeposit={editTarget ?? undefined}
       />
     </div>
   );

@@ -44,6 +44,7 @@ export function InvestmentWizard({
   onOpenChange,
   onSave,
   existingBankNames,
+  initialDeposit,
 }: InvestmentWizardProps) {
   const {
     formState,
@@ -56,13 +57,23 @@ export function InvestmentWizard({
     touchField,
     canSubmit,
     reset,
+    loadDeposit,
     deriveYieldInput,
     buildDeposit,
   } = useWizardState();
 
+  const isEditing = !!initialDeposit;
+
   useEffect(() => {
-    if (open) reset();
-  }, [open, reset]);
+    if (open) {
+      if (initialDeposit) {
+        loadDeposit(initialDeposit);
+      } else {
+        reset();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const requestClose = useCallback(() => {
     if (isDirty) {
@@ -88,7 +99,7 @@ export function InvestmentWizard({
   };
 
   const handleSubmit = () => {
-    const deposit = buildDeposit(crypto.randomUUID());
+    const deposit = buildDeposit(initialDeposit?.id ?? crypto.randomUUID());
     onSave(deposit);
     onOpenChange(false);
   };
@@ -101,7 +112,7 @@ export function InvestmentWizard({
       <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard this investment?</AlertDialogTitle>
+            <AlertDialogTitle>{isEditing ? "Discard changes?" : "Discard this investment?"}</AlertDialogTitle>
             <AlertDialogDescription>Your inputs will be lost.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -128,7 +139,7 @@ export function InvestmentWizard({
         >
           {/* Header */}
           <DialogHeader className="flex flex-row items-center justify-between border-b pl-6 pr-4 py-4 shrink-0">
-            <DialogTitle className="text-base font-semibold">Add investment</DialogTitle>
+            <DialogTitle className="text-base font-semibold">{isEditing ? "Edit investment" : "Add investment"}</DialogTitle>
             <Button
               type="button"
               variant="ghost"
@@ -172,7 +183,7 @@ export function InvestmentWizard({
           {/* Footer */}
           <DialogFooter className="shrink-0">
             <Button type="button" disabled={!canSubmit} onClick={handleSubmit}>
-              Add investment
+              {isEditing ? "Save changes" : "Add investment"}
             </Button>
           </DialogFooter>
         </DialogContent>

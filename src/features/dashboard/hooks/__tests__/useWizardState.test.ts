@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { useWizardState } from "../useWizardState";
+import { useWizardState, depositToFormState } from "../useWizardState";
+import type { TimeDeposit } from "@/types";
 
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
@@ -632,5 +633,127 @@ describe("useWizardState — isDirty", () => {
     expect(s.dayCountConvention).toBe(365);
     expect(s.taxRate).toBe("20");
     expect(s.isOpenEnded).toBe(false);
+  });
+});
+
+// ─── loadDeposit ───────────────────────────────────────────────────────────────
+
+const BASE_DEPOSIT: TimeDeposit = {
+  id: "dep-1",
+  bankId: "BDO",
+  name: "BDO 6-month TD",
+  principal: 500_000,
+  startDate: "2025-01-01",
+  flatRate: 0.06,
+  interestMode: "simple",
+  tiers: [],
+  termMonths: 6,
+  payoutFrequency: "maturity",
+  compounding: "monthly",
+  dayCountConvention: 365,
+  taxRateOverride: 0.2,
+  isOpenEnded: false,
+  status: "active",
+};
+
+describe("depositToFormState", () => {
+  it("maps a td-maturity deposit correctly", () => {
+    const s = depositToFormState(BASE_DEPOSIT);
+    expect(s.bankName).toBe("BDO");
+    expect(s.productType).toBe("td-maturity");
+    expect(s.principal).toBe("500000");
+    expect(s.flatRate).toBe("6");
+    expect(s.taxRate).toBe("20");
+    expect(s.termMonths).toBe(6);
+    expect(s.payoutFrequency).toBe("maturity");
+    expect(s.compounding).toBe("monthly");
+    expect(s.dayCountConvention).toBe(365);
+    expect(s.isOpenEnded).toBe(false);
+  });
+
+  it("maps a td-monthly deposit (payoutFrequency=monthly → productType=td-monthly)", () => {
+    const s = depositToFormState({ ...BASE_DEPOSIT, payoutFrequency: "monthly" });
+    expect(s.productType).toBe("td-monthly");
+    expect(s.payoutFrequency).toBe("monthly");
+  });
+
+  it("maps a savings deposit (isOpenEnded=true → productType=savings)", () => {
+    const s = depositToFormState({ ...BASE_DEPOSIT, isOpenEnded: true });
+    expect(s.productType).toBe("savings");
+    expect(s.isOpenEnded).toBe(true);
+    expect(s.termMonths).toBeNull();
+  });
+
+  it("converts flatRate from decimal to percentage string", () => {
+    const s = depositToFormState({ ...BASE_DEPOSIT, flatRate: 0.0575 });
+    expect(s.flatRate).toBe("5.75");
+  });
+
+  it("converts taxRateOverride to percentage string", () => {
+    const s = depositToFormState({ ...BASE_DEPOSIT, taxRateOverride: 0.25 });
+    expect(s.taxRate).toBe("25");
+  });
+
+  it("falls back to 20% tax rate when taxRateOverride is undefined", () => {
+    const { taxRateOverride: _, ...noOverride } = BASE_DEPOSIT;
+    const s = depositToFormState(noOverride as TimeDeposit);
+    expect(s.taxRate).toBe("20");
+  });
+});
+
+describe("useWizardState — loadDeposit", () => {
+  it("populates form state from a deposit", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadDeposit(BASE_DEPOSIT);
+    });
+
+    const s = result.current.formState;
+    expect(s.bankName).toBe("BDO");
+    expect(s.productType).toBe("td-maturity");
+    expect(s.principal).toBe("500000");
+    expect(s.flatRate).toBe("6");
+    expect(s.termMonths).toBe(6);
+  });
+
+  it("isDirty is false immediately after loadDeposit", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadDeposit(BASE_DEPOSIT);
+    });
+
+    expect(result.current.isDirty).toBe(false);
+  });
+
+  it("isDirty becomes true after modifying a field post-load", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadDeposit(BASE_DEPOSIT);
+    });
+
+    act(() => {
+      result.current.setField("principal", "999999");
+    });
+
+    expect(result.current.isDirty).toBe(true);
+  });
+
+  it("reset after loadDeposit returns to empty state, not loaded state", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadDeposit(BASE_DEPOSIT);
+    });
+
+    act(() => {
+      result.current.reset();
+    });
+
+    expect(result.current.formState.bankName).toBe("");
+    expect(result.current.formState.principal).toBe("");
+    expect(result.current.isDirty).toBe(false);
   });
 });

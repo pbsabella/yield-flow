@@ -20,11 +20,13 @@ import { formatPhpCurrency } from "@/lib/domain/format";
 import { formatDate, differenceInCalendarDays } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { TimeDeposit } from "@/types";
 
 type Props = {
   summary: EnrichedSummary;
   onSettleClick: (summary: EnrichedSummary) => void;
   onDeleteClick: (id: string) => void;
+  onEditClick: (deposit: TimeDeposit) => void;
   isNew?: boolean;
 };
 
@@ -73,7 +75,7 @@ function MaturityLabel({
   );
 }
 
-export function DepositCard({ summary, onSettleClick, onDeleteClick, isNew }: Props) {
+export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
   const [open, setOpen] = useState(false);
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -173,7 +175,7 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, isNew }: Pr
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>Edit</DropdownMenuItem>
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => onDeleteClick(deposit.id)}
