@@ -9,7 +9,10 @@
     "lint": "eslint && npm run typecheck",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "PLAYWRIGHT_WEB_SERVER=1 playwright test --project=e2e",
+    "test:a11y": "PLAYWRIGHT_WEB_SERVER=1 playwright test --project=a11y",
+    "test:percy": "npm run build && PLAYWRIGHT_WEB_SERVER=1 PLAYWRIGHT_WEB_SERVER_CMD=\"npm run start -- --hostname 127.0.0.1 --port 4173\" percy exec -- playwright test --project=e2e"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

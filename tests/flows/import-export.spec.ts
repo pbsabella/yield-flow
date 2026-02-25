@@ -35,7 +35,7 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
 
   // Confirmation dialog should appear
   await expect(page.getByRole("alertdialog")).toBeVisible();
-  await expect(page.getByText(/Replace/)).toBeVisible();
+  await expect(page.getByText(/Replace all data?/)).toBeVisible();
 
   await percySnapshot(page, "Import Confirm Dialog");
 
@@ -45,7 +45,7 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
   // Should redirect to dashboard with the imported deposits
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
-  await expect(page.getByText("Meridian Savings Bank")).toBeVisible();
+  await expect(page.getByText("Meridian Savings Bank", { exact: true })).toBeVisible();
 });
 
 test("export JSON — triggers a file download", async ({ page }) => {

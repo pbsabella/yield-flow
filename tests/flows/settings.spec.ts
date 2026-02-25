@@ -55,7 +55,7 @@ test("settings — clear all data removes deposits and redirects home", async ({
 
   // Destructive confirmation dialog
   await expect(page.getByRole("alertdialog")).toBeVisible();
-  await expect(page.getByText(/Clear all data/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Clear all data?/ })).toBeVisible();
   await percySnapshot(page, "Clear Data Confirm Dialog");
 
   await page.getByRole("button", { name: "Clear all data" }).click();

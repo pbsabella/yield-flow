@@ -64,7 +64,7 @@ test("edit investment dialog has no critical a11y issues", async ({ page }) => {
   }, seedDeposit);
 
   await page.goto("/");
-  await expect(page.getByText("Beacon Bank")).toBeVisible();
+  await expect(page.getByText("Beacon Bank", { exact: true })).toBeVisible();
 
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();
   await moreOptionsBtn.click();

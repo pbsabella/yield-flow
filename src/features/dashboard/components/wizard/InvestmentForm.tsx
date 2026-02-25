@@ -366,11 +366,8 @@ export function InvestmentForm({
               </InputGroupAddon>
             </InputGroup>
             { errors.flatRate && <FieldError>{errors.flatRate}</FieldError> }
-            {warnings.flatRate ? (
-              <p className="text-xs text-status-warning-fg">{warnings.flatRate}</p>
-            ) : (
-              <FieldDescription>Annual interest rate (p.a.)</FieldDescription>
-            )}
+            { warnings.flatRate && <p className="text-xs text-status-warning-fg">{warnings.flatRate}</p> }
+            <FieldDescription>Annual interest rate (p.a.)</FieldDescription>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -387,7 +384,9 @@ export function InvestmentForm({
 
       {/* Tax rate */}
       <Field>
-        <FieldLabel htmlFor="inv-tax">Withholding tax</FieldLabel>
+        <FieldLabel htmlFor="inv-tax">
+          Withholding tax <Req />
+        </FieldLabel>
         <InputGroup className="w-28">
           <InputGroupInput
             id="inv-tax"
@@ -404,13 +403,10 @@ export function InvestmentForm({
             <InputGroupText>%</InputGroupText>
           </InputGroupAddon>
         </InputGroup>
-        {errors.taxRate ? (
-          <FieldError>{errors.taxRate}</FieldError>
-        ) : (
-          <FieldDescription>
-            Withholding tax deducted by the bank before you receive interest
-          </FieldDescription>
-        )}
+        {errors.taxRate && <FieldError>{errors.taxRate}</FieldError> }
+        <FieldDescription>
+          Withholding tax deducted by the bank before you receive interest
+        </FieldDescription>
       </Field>
 
       {/* Day-count convention */}

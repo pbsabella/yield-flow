@@ -17,12 +17,12 @@ test("add an investment via wizard — empty state → portfolio visible", async
 
   // Fill required fields
   await page.getByLabel("Bank").fill("Meridian Savings Bank");
-  await page.getByLabel("Principal").fill("200000");
+  await page.getByRole('textbox', { name: 'Principal' }).fill("200000");
   // Interest rate — the input group renders an input next to the % addon
   await page.locator("#inv-rate").fill("6.5");
   // Select a 6-month term preset
   await page.getByRole("radio", { name: /Time Deposit/ }).click();
-  await page.getByRole("button", { name: "6 mo" }).click();
+  await page.getByRole("radio", { name: "6 mo" }).click();
 
   await percySnapshot(page, "Add Investment Dialog — filled");
 
@@ -34,5 +34,5 @@ test("add an investment via wizard — empty state → portfolio visible", async
   await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
 
   // The new investment should appear
-  await expect(page.getByText("Meridian Savings Bank")).toBeVisible();
+  await expect(page.getByText("Meridian Savings Bank", { exact: true })).toBeVisible();
 });
