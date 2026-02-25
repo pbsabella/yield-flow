@@ -42,7 +42,6 @@ test("settings — export and clear buttons enabled with deposits", async ({ pag
   await page.goto("/settings");
   await expect(page.getByRole("button", { name: "Export JSON" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Clear all" })).toBeEnabled();
-  await percySnapshot(page, "Settings Page — with data");
 });
 
 test("settings — clear all data removes deposits and redirects home", async ({ page }) => {

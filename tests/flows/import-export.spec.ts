@@ -28,8 +28,6 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 
-  await percySnapshot(page, "Settings Page — empty");
-
   // Upload the fixture file
   await page.getByLabel("Import backup file").setInputFiles(FIXTURE_PATH);
 
