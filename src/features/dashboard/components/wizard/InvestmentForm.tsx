@@ -15,6 +15,7 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group";
+import { useCurrencyInput } from "@/components/ui/use-currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,26 @@ const PRODUCT_TYPES: { value: ProductType; label: string; description: string }[
 ];
 
 // ─── Tier builder ─────────────────────────────────────────────────────────────
+
+/** Isolated component so useCurrencyInput is called at the component level,
+ *  not inside a map() loop. */
+function TierUpToInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (raw: string) => void;
+}) {
+  const currencyProps = useCurrencyInput({ value, onChange });
+  return (
+    <InputGroup>
+      <InputGroupAddon align="inline-start">
+        <InputGroupText>{CURRENCY_SYMBOL}</InputGroupText>
+      </InputGroupAddon>
+      <InputGroupInput placeholder="500,000" {...currencyProps} />
+    </InputGroup>
+  );
+}
 
 function TierBuilder({
   tiers,
@@ -112,18 +133,10 @@ function TierBuilder({
                 <span className="text-xs text-muted-foreground">and above</span>
               </div>
             ) : (
-              <InputGroup>
-                <InputGroupAddon align="inline-start">
-                  <InputGroupText>{CURRENCY_SYMBOL}</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  type="number"
-                  min={0}
-                  placeholder="500,000"
-                  value={tier.upTo !== null ? String(tier.upTo) : ""}
-                  onChange={(e) => handleUpToChange(index, e.target.value)}
-                />
-              </InputGroup>
+              <TierUpToInput
+                value={tier.upTo !== null ? String(tier.upTo) : ""}
+                onChange={(raw) => handleUpToChange(index, raw)}
+              />
             )}
 
             <InputGroup>
@@ -186,6 +199,12 @@ export function InvestmentForm({
   touchField,
   existingBankNames,
 }: InvestmentFormProps) {
+  const principalCurrencyProps = useCurrencyInput({
+    value: formState.principal,
+    onChange: (raw) => setField("principal", raw),
+    onBlur: () => touchField("principal"),
+  });
+
   const isFixedTerm =
     formState.productType === "td-maturity" || formState.productType === "td-monthly";
   const isSavings = formState.productType === "savings";
@@ -285,14 +304,9 @@ export function InvestmentForm({
           </InputGroupAddon>
           <InputGroupInput
             id="inv-principal"
-            type="number"
-            min={0}
-            step={1000}
             placeholder="100,000"
-            value={formState.principal}
-            onChange={(e) => setField("principal", e.target.value)}
-            onBlur={() => touchField("principal")}
             aria-invalid={!!errors.principal}
+            {...principalCurrencyProps}
           />
         </InputGroup>
         {errors.principal && <FieldError>{errors.principal}</FieldError>}

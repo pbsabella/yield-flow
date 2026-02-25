@@ -68,7 +68,7 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
     });
 
-    expect(screen.getByText(/gross.*tax.*net/i)).toBeInTheDocument();
+    expect(screen.getByText(/Net interest is calculated after 20% final withholding tax/i)).toBeInTheDocument();
   });
 
   it("returns to empty state when input becomes null", () => {

@@ -60,7 +60,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
       >
         {result ? (
           <span className="text-foreground font-medium">
-            Net {formatPhpCurrency(result.netInterest)}
+            {!result.maturityDate ? 'Annual net' : 'Net '} {formatPhpCurrency(result.netInterest)}
             <span className="text-muted-foreground font-normal">
               {" · "}
               {result.maturityDate
@@ -89,7 +89,9 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
         <>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground">Net interest</p>
+              <p className="text-xs text-muted-foreground">
+                {!result.maturityDate ? 'Annual net' : 'Net '} interest
+              </p>
               <p className="text-2xl font-semibold tabular-nums">
                 {formatPhpCurrency(result.netInterest)}
               </p>
@@ -114,7 +116,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
             </div>
           </div>
           <div className="text-xs text-muted-foreground border-t pt-3 space-y-1">
-            <p>Gross × (1 − {Math.round(result.taxRate * 100)}% tax) = net — what you actually keep</p>
+            <p>Net interest is calculated after {Math.round(result.taxRate * 100)}% final withholding tax.</p>
             <p>Estimate only — actual payout may vary. Confirm with your bank.</p>
           </div>
         </>
