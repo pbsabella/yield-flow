@@ -18,12 +18,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatPhpCurrency } from "@/lib/domain/format";
 import { formatDate, differenceInCalendarDays } from "@/lib/domain/date";
+import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 
 type Props = {
   summary: EnrichedSummary;
   onSettleClick: (summary: EnrichedSummary) => void;
   onDeleteClick: (id: string) => void;
+  isNew?: boolean;
 };
 
 function MaturityLabel({
@@ -71,7 +73,7 @@ function MaturityLabel({
   );
 }
 
-export function DepositCard({ summary, onSettleClick, onDeleteClick }: Props) {
+export function DepositCard({ summary, onSettleClick, onDeleteClick, isNew }: Props) {
   const [open, setOpen] = useState(false);
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -87,7 +89,7 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick }: Props) {
   return (
     <li>
       <article aria-labelledby={`deposit-${deposit.id}-name`}>
-        <Card className="p-0">
+        <Card className={cn("p-0 transition duration-1000", isNew && "ring-2 ring-primary/40 bg-primary/5")}>
           <Collapsible open={open} onOpenChange={setOpen}>
             {/* Trigger row */}
             <CardHeader className="p-0">

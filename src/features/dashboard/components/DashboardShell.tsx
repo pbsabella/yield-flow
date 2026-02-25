@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Info, LayoutList, Plus, TrendingUp } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,9 @@ import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
 import { CashFlowTab } from "@/features/dashboard/components/CashFlowTab";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
-import { bankTemplates } from "@/lib/data/banks-config";
+import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
 import { deposits as demoDeposits, banks as demoBanks } from "@/lib/data/demo";
+import type { TimeDeposit } from "@/types";
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -63,12 +64,19 @@ const isDev = process.env.NODE_ENV === "development";
 
 export default function DashboardShell() {
   const { deposits: storedDeposits, setDeposits, isReady } = usePersistedDeposits();
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   // In development with no stored data, seed the UI with demo deposits so
   // every section renders meaningfully without manual data entry.
   const usingDemo = isDev && storedDeposits.length === 0;
   const deposits = usingDemo ? demoDeposits : storedDeposits;
-  const banks = usingDemo ? [...demoBanks] : [...bankTemplates];
+  const banks = usingDemo ? [...demoBanks] : [];
+
+  const existingBankNames = useMemo(
+    () => [...new Set(deposits.map((d) => d.bankId))],
+    [deposits],
+  );
 
   const portfolio = usePortfolioData(deposits, banks);
 
@@ -88,6 +96,16 @@ export default function DashboardShell() {
     [usingDemo, storedDeposits, setDeposits],
   );
 
+  const handleSave = useCallback(
+    (deposit: TimeDeposit) => {
+      const base = usingDemo ? demoDeposits : storedDeposits;
+      setDeposits([...base, deposit]);
+      setHighlightedId(deposit.id);
+      setTimeout(() => setHighlightedId(null), 2500);
+    },
+    [usingDemo, storedDeposits, setDeposits],
+  );
+
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
@@ -103,12 +121,11 @@ export default function DashboardShell() {
       {/* Main content */}
       <main>
         <Container className="py-6 space-y-8">
-          {/* WIP alert */}
           <Alert>
             <Info />
-            <AlertTitle>Work in progress</AlertTitle>
+            <AlertTitle>Stored on this device</AlertTitle>
             <AlertDescription>
-              YieldFlow is actively being developed. Your data is stored locally in this browser.
+              Your data never leaves this device — no servers, no accounts. It&apos;s stored in your browser like a local file, so keep backups using the download option below. Not recommended on shared or public computers.
             </AlertDescription>
           </Alert>
 
@@ -139,7 +156,12 @@ export default function DashboardShell() {
                           {portfolio.summaries.length} deposits tracked
                         </p>
                       </div>
-                      <Button size="default" variant="default" disabled={!isReady}>
+                      <Button
+                        size="default"
+                        variant="default"
+                        disabled={!isReady}
+                        onClick={() => setWizardOpen(true)}
+                      >
                         <Plus />
                         Add investment
                       </Button>
@@ -164,6 +186,7 @@ export default function DashboardShell() {
                         summaries={portfolio.summaries}
                         onSettle={handleSettle}
                         onDelete={handleDelete}
+                        highlightedId={highlightedId}
                       />
                     </CardContent>
                   </TabsContent>
@@ -184,6 +207,13 @@ export default function DashboardShell() {
           )}
         </Container>
       </main>
+
+      <InvestmentWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onSave={handleSave}
+        existingBankNames={existingBankNames}
+      />
     </div>
   );
 }

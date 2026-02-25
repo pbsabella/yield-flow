@@ -13,6 +13,8 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border-input hover:bg-muted border bg-transparent",
+        // custom — radio-card appearance: border-primary + bg-primary/5 when selected
+        card: "cursor-pointer border-border border bg-transparent hover:!bg-muted/50 data-[state=on]:border-primary data-[state=on]:!bg-primary/5",
       },
       size: {
         default: "h-8 min-w-8 px-2",

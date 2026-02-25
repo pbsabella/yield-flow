@@ -36,6 +36,7 @@ import { DeleteConfirmDialog } from "@/features/dashboard/components/DeleteConfi
 import { SettleConfirmDialog } from "@/features/dashboard/components/SettleConfirmDialog";
 import { Wallet, SearchX } from "lucide-react";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
+import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ type Props = {
   summaries: EnrichedSummary[];
   onSettle: (id: string) => void;
   onDelete: (id: string) => void;
+  highlightedId?: string | null;
 };
 
 // ─── Sort order for card view ─────────────────────────────────────────────────
@@ -77,7 +79,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
+export function InvestmentsTab({ summaries, onSettle, onDelete, highlightedId }: Props) {
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
@@ -266,7 +268,13 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={cn(
+                    "transition-colors duration-1000",
+                    row.original.deposit.id === highlightedId && "bg-primary/10",
+                  )}
+                >
                   {row.getVisibleCells().map((cell) => {
                     const isDeposit = cell.column.id === "deposit";
                     return (
@@ -300,6 +308,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete }: Props) {
                     summary={s}
                     onSettleClick={handleSettleClick}
                     onDeleteClick={handleDeleteRequest}
+                    isNew={s.deposit.id === highlightedId}
                   />
                 ))}
               </ul>

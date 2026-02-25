@@ -69,8 +69,14 @@ export function usePortfolioData(
     today.setHours(0, 0, 0, 0);
 
     return deposits.flatMap((deposit) => {
-      const bank = bankMap.get(deposit.bankId);
-      if (!bank) return []; // Skip deposits whose bank is not found.
+      // Synthesize a bank from the deposit when not in the static map.
+      // New deposits store the free-text bank name in bankId; taxRateOverride
+      // is always set on wizard-created deposits, so bank.taxRate never fires.
+      const bank = bankMap.get(deposit.bankId) ?? {
+        id: deposit.bankId,
+        name: deposit.bankId,
+        taxRate: deposit.taxRateOverride ?? 0.2,
+      };
 
       const base = buildDepositSummary(deposit, bank);
       const effectiveStatus = deriveEffectiveStatus(deposit, base.maturityDate, today);
