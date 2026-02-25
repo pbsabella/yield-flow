@@ -113,9 +113,10 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
               </p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground border-t pt-3">
-            Gross × (1 − {Math.round(result.taxRate * 100)}% tax) = net — what you actually keep
-          </p>
+          <div className="text-xs text-muted-foreground border-t pt-3 space-y-1">
+            <p>Gross × (1 − {Math.round(result.taxRate * 100)}% tax) = net — what you actually keep</p>
+            <p>Estimate only — actual payout may vary. Confirm with your bank.</p>
+          </div>
         </>
       ) : (
         <p className="text-sm text-muted-foreground">

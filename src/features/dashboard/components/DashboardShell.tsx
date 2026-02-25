@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Info, LayoutList, Plus, TrendingUp } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
+import { Info, LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,11 +11,14 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
 import { CashFlowTab } from "@/features/dashboard/components/CashFlowTab";
+import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
+import { DemoBanner } from "@/features/dashboard/components/DemoBanner";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
-import { deposits as demoDeposits, banks as demoBanks } from "@/lib/data/demo";
+import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
 import type { TimeDeposit } from "@/types";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -60,19 +63,19 @@ function DashboardSkeleton() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const isDev = process.env.NODE_ENV === "development";
-
 export default function DashboardShell() {
   const { deposits: storedDeposits, setDeposits, isReady } = usePersistedDeposits();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  // In development with no stored data, seed the UI with demo deposits so
-  // every section renders meaningfully without manual data entry.
-  const usingDemo = isDev && storedDeposits.length === 0;
-  const deposits = usingDemo ? demoDeposits : storedDeposits;
-  const banks = usingDemo ? [...demoBanks] : [];
+  // Demo mode — purely in-memory, never writes to localStorage
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [liveDemoDeposits, setLiveDemoDeposits] = useState<TimeDeposit[]>([]);
+
+  const deposits = isDemoMode ? liveDemoDeposits : storedDeposits;
+  const banks = isDemoMode ? [...demoBanks] : [];
+  const showEmptyLanding = isReady && !isDemoMode && storedDeposits.length === 0;
 
   const existingBankNames = useMemo(
     () => [...new Set(deposits.map((d) => d.bankId))],
@@ -81,20 +84,42 @@ export default function DashboardShell() {
 
   const portfolio = usePortfolioData(deposits, banks);
 
+  // ─── Demo mode entry / exit ─────────────────────────────────────────────────
+
+  const handleEnterDemo = useCallback(() => {
+    setIsDemoMode(true);
+    setLiveDemoDeposits([...demoDepositsData]);
+  }, []);
+
+  const handleExitDemo = useCallback(() => {
+    setIsDemoMode(false);
+    setLiveDemoDeposits([]);
+  }, []);
+
+  // ─── Mutating handlers (demo-split) ────────────────────────────────────────
+
   const handleSettle = useCallback(
     (id: string) => {
-      const base = usingDemo ? demoDeposits : storedDeposits;
-      setDeposits(base.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)),
+        );
+      } else {
+        setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
+      }
     },
-    [usingDemo, storedDeposits, setDeposits],
+    [isDemoMode, storedDeposits, setDeposits],
   );
 
   const handleDelete = useCallback(
     (id: string) => {
-      const base = usingDemo ? demoDeposits : storedDeposits;
-      setDeposits(base.filter((d) => d.id !== id));
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) => prev.filter((d) => d.id !== id));
+      } else {
+        setDeposits(storedDeposits.filter((d) => d.id !== id));
+      }
     },
-    [usingDemo, storedDeposits, setDeposits],
+    [isDemoMode, storedDeposits, setDeposits],
   );
 
   const handleEdit = useCallback((deposit: TimeDeposit) => {
@@ -104,51 +129,69 @@ export default function DashboardShell() {
 
   const handleSave = useCallback(
     (deposit: TimeDeposit) => {
-      const base = usingDemo ? demoDeposits : storedDeposits;
-      if (editTarget) {
-        setDeposits(
-          base.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d)),
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) =>
+          editTarget
+            ? prev.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
+            : [...prev, deposit],
         );
       } else {
-        setDeposits([...base, deposit]);
+        setDeposits(
+          editTarget
+            ? storedDeposits.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
+            : [...storedDeposits, deposit],
+        );
       }
       setHighlightedId(deposit.id);
       setTimeout(() => setHighlightedId(null), 2500);
     },
-    [usingDemo, storedDeposits, setDeposits, editTarget],
+    [isDemoMode, storedDeposits, setDeposits, editTarget],
   );
 
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
-      <header className="h-12 border-b border-border ">
+      <header className="h-12 border-b border-border">
         <Container className="flex h-full items-center justify-between">
           <span className="text-primary dark:text-primary-subtle font-semibold tracking-tight">YieldFlow</span>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
+            {!isDemoMode && (
+              <Button variant="ghost" size="icon" asChild aria-label="Settings">
+                <Link href="/settings">
+                  <Settings className="size-4" />
+                </Link>
+              </Button>
+            )}
             <ThemeToggle />
           </nav>
         </Container>
       </header>
 
+      {/* Demo banner — shown above main content */}
+      {isDemoMode && <DemoBanner onExit={handleExitDemo} />}
+
       {/* Main content */}
       <main>
         <Container className="py-6 space-y-8">
-          <Alert>
-            <Info />
-            <AlertTitle>Stored on this device</AlertTitle>
-            <AlertDescription>
-              Your data never leaves this device — no servers, no accounts. It&apos;s stored in your browser like a local file, so keep backups using the download option below. Not recommended on shared or public computers.
-            </AlertDescription>
-          </Alert>
+          {!isReady && <DashboardSkeleton />}
 
-          {/* Page intro */}
-          <h1 className="text-3xl font-semibold md:text-4xl mb-2">Yield Overview</h1>
-          <p className="text-sm text-muted-foreground">
-            Track your fixed-income investments, visualize maturity timing, and see your passive income clearly.
-          </p>
+          {showEmptyLanding && (
+            <EmptyLanding
+              onAddData={() => setWizardOpen(true)}
+              onTryDemo={handleEnterDemo}
+            />
+          )}
 
-          {isReady ? (
+          {isReady && !showEmptyLanding && (
             <>
+              {/* Page intro */}
+              <div>
+                <h1 className="text-3xl font-semibold md:text-4xl mb-2">Yield Overview</h1>
+                <p className="text-sm text-muted-foreground">
+                  Track your fixed-income investments, visualize maturity timing, and see your passive income clearly.
+                </p>
+              </div>
+
               {/* KPI cards */}
               <KpiCards
                 totalPrincipal={portfolio.totalPrincipal}
@@ -163,7 +206,6 @@ export default function DashboardShell() {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <CardTitle className="text-3xl font-semibold"><h2>Portfolio</h2></CardTitle>
-                        {/* TODO: Make this X active deposits */}
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {portfolio.summaries.length} deposits tracked
                         </p>
@@ -171,7 +213,6 @@ export default function DashboardShell() {
                       <Button
                         size="default"
                         variant="default"
-                        disabled={!isReady}
                         onClick={() => setWizardOpen(true)}
                       >
                         <Plus />
@@ -215,8 +256,6 @@ export default function DashboardShell() {
                 </Tabs>
               </Card>
             </>
-          ) : (
-            <DashboardSkeleton />
           )}
         </Container>
       </main>

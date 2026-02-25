@@ -5,7 +5,81 @@ Intended as a reference during implementation and source material for a future c
 
 ---
 
+## Phase 1: Data Layer
+
+### No Backend
+
+All data lives in `localStorage`. No accounts, no sync, no servers. The tradeoff — data is local only — is surfaced explicitly to users rather than hidden. This makes the app zero-friction to deploy and use for a portfolio project, while being honest about its constraints.
+
+---
+
+### Three Explicit Modes
+
+**Empty → Demo → Real** are distinct states, not blended.
+
+- **Empty**: Entry gate (`EmptyLanding`) shown when no stored data exists. Two primary paths: add real data or explore with demo. A third link ("Switching devices? Import a backup") handles the restore-from-file case without hiding it in settings.
+- **Demo**: Purely in-memory. No writes to `localStorage` at any point — not even on the first user action. A persistent banner makes this unambiguous. The settings nav is hidden in demo mode to prevent navigating away and losing the in-memory state.
+- **Real**: Standard mode. localStorage persistence. Settings accessible via gear icon.
+
+**Decision rejected:** Auto-seeding demo data when no stored deposits exist (the previous dev-only behavior). It conflated exploration with data entry — the first user action in demo mode silently wrote demo deposits to storage.
+
+---
+
+### Settings as a Separate Route
+
+Data management (export, import, clear, caveats) lives at `/settings`, not on the main dashboard. Keeps the primary view focused on portfolio data. The settings page handles its own confirmation dialogs and navigates back to `/` after import or clear — so the user always lands in the correct state without manual navigation.
+
+---
+
+### Export / Import Format
+
+JSON with `{ version, exportedAt, deposits }` envelope. Chosen over CSV because it can round-trip through import without data loss. The version field is a forward-compatibility hook. Import replaces all data (not merge) — consistent with restore semantics and avoids duplicate detection complexity.
+
+---
+
+### Caveats Are Opt-In
+
+Storage limitations are surfaced in a collapsible section in Settings, not as a persistent banner on every page load. The banner approach was tried first — it trained users to ignore it immediately. The caveats are available when relevant (before clearing, before exporting) and out of the way otherwise.
+
+---
+
 ## Phase 2: Dashboard and KPI Cards
+
+### Three KPIs: Total Principal, Income This Month, Next Maturity
+
+These answer the three questions a yield-ladder user asks on every visit:
+
+1. **How much is deployed?** → Total Principal
+2. **What's coming in right now?** → Income This Month
+3. **What do I need to act on next?** → Next Maturity
+
+Every other stat (individual rates, term lengths, net interest per deposit) belongs in the Investments tab, not the summary view.
+
+---
+
+### Total Principal Excludes Settled
+
+Settled deposits have already paid out — including them would overstate the active portfolio size. The subtext ("Excludes settled.") makes the definition explicit without requiring a tooltip.
+
+---
+
+### Income This Month: Pending / Settled Breakdown
+
+The card shows a single net total with optional pills breaking it into pending and settled portions. The pills only appear when both values are non-zero — no visual noise when the month is all-pending or all-settled.
+
+**Decision:** Show both pending and settled in the same card rather than splitting into two KPIs. The total is what users plan with; the breakdown is a secondary signal (how much is already confirmed vs. still waiting on a maturity action).
+
+---
+
+### Next Maturity: Name + Bank + Net Proceeds
+
+Shows enough to decide whether to act (name and bank for identity, net proceeds for the payout amount) without navigating to the Investments tab. The field is blank (`—`) when no active or matured deposits exist.
+
+---
+
+### Net Only in KPI Cards
+
+No gross figures in any KPI card. After-tax net is what users plan with. Gross requires mental math on every glance; showing it would make the summary less useful, not more complete.
 
 ---
 

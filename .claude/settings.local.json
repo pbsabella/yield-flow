@@ -4,7 +4,8 @@
       "Bash(cd /Users/pbsabella/Work/startover/yield-flow/yield-flow && npx tsc --noEmit 2>&1)",
       "Bash(npx shadcn@latest:*)",
       "Bash(npx vitest run --reporter=verbose)",
-      "Bash(npx vitest run)"
+      "Bash(npx vitest run)",
+      "Bash(npx tsc --noEmit)"
     ]
   }
 }
