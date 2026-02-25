@@ -38,7 +38,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
         setResult({
           netInterest,
           netTotal: input.principal + netInterest,
-          maturityDate: input.termMonths === 12 && !maturityDate ? null : maturityDate,
+          maturityDate: input.isOpenEnded ? null : maturityDate,
           taxRate: input.taxRate,
         });
       } catch {

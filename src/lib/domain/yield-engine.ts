@@ -11,6 +11,8 @@ export type YieldInput = {
   principal: number;
   startDate: string;
   termMonths: number;
+  /** mark true for savings/open-ended products (preview may still use a 12-month estimate) */
+  isOpenEnded?: boolean;
   flatRate: number;
   tiers: InterestTier[];
   interestMode: InterestMode;
