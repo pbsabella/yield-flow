@@ -293,7 +293,7 @@ export function SettingsShell() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setImportPreview(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleImportConfirm}>
-              Replace {importPreview?.length ?? 0} deposit{(importPreview?.length ?? 0) !== 1 ? "s" : ""}
+              Replace
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

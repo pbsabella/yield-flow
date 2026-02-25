@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "exportedAt": "2026-01-20T08:30:00.000Z",
+  "deposits": [
+    {
+      "id": "fixture-a1b2c3",
+      "bankId": "Meridian Savings Bank",
+      "name": "Meridian 6-month TD",
+      "principal": 150000,
+      "startDate": "2025-10-01",
+      "termMonths": 6,
+      "interestMode": "simple",
+      "interestTreatment": "payout",
+      "compounding": "daily",
+      "taxRateOverride": 0.2,
+      "flatRate": 0.0625,
+      "tiers": [{ "upTo": null, "rate": 0.0625 }],
+      "payoutFrequency": "maturity",
+      "dayCountConvention": 365,
+      "isOpenEnded": false,
+      "status": "active"
+    },
+    {
+      "id": "fixture-d4e5f6",
+      "bankId": "Horizon Digital Bank",
+      "name": "Horizon 12-month monthly payout",
+      "principal": 300000,
+      "startDate": "2025-07-15",
+      "termMonths": 12,
+      "interestMode": "simple",
+      "interestTreatment": "payout",
+      "compounding": "daily",
+      "taxRateOverride": 0.2,
+      "flatRate": 0.057,
+      "tiers": [{ "upTo": null, "rate": 0.057 }],
+      "payoutFrequency": "monthly",
+      "dayCountConvention": 365,
+      "isOpenEnded": false,
+      "status": "active"
+    },
+    {
+      "id": "fixture-g7h8i9",
+      "bankId": "Apex Rural Bank",
+      "name": "Apex tiered savings",
+      "principal": 75000,
+      "startDate": "2025-11-01",
+      "termMonths": 12,
+      "interestMode": "tiered",
+      "interestTreatment": "reinvest",
+      "compounding": "daily",
+      "taxRateOverride": 0.2,
+      "flatRate": 0,
+      "tiers": [
+        { "upTo": 100000, "rate": 0.065 },
+        { "upTo": null, "rate": 0.04 }
+      ],
+      "payoutFrequency": "maturity",
+      "dayCountConvention": 365,
+      "isOpenEnded": true,
+      "status": "active"
+    }
+  ]
+}

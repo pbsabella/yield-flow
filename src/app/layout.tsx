@@ -17,8 +17,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YieldFlow",
-  description: "Visualize and manage your yield ladder cash flow.",
+  title: {
+    default: "YieldFlow Lab",
+    template: "%s | YieldFlow Lab",
+  },
+  description: "Precision yield ladder tracking and net-of-tax cash flow visualization.",
+  // Blocks search engines from indexing the site
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://yield-flow-lab.vercel.app/",
+    siteName: "YieldFlow Lab",
+    title: "YieldFlow Lab",
+    description: "Visualize spendable reality with net-of-tax interest tracking.",
+  },
 };
 
 export default function RootLayout({

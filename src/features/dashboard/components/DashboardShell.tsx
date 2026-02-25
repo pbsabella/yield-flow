@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { Info, LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
+import { LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +18,6 @@ import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
 import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
 import type { TimeDeposit } from "@/types";
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 

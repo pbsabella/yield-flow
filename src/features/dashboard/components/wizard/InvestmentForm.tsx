@@ -246,7 +246,7 @@ export function InvestmentForm({
               key={value}
               htmlFor={`product-${value}`}
               className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50",
+                "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent-hover-bg/50",
                 formState.productType === value
                   ? "border-primary bg-primary/5"
                   : "border-border",
