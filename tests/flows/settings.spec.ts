@@ -42,7 +42,6 @@ test("settings — export and clear buttons enabled with deposits", async ({ pag
   await page.goto("/settings");
   await expect(page.getByRole("button", { name: "Export JSON" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Clear all" })).toBeEnabled();
-  await percySnapshot(page, "Settings Page — with data");
 });
 
 test("settings — clear all data removes deposits and redirects home", async ({ page }) => {
@@ -55,7 +54,7 @@ test("settings — clear all data removes deposits and redirects home", async ({
 
   // Destructive confirmation dialog
   await expect(page.getByRole("alertdialog")).toBeVisible();
-  await expect(page.getByText(/Clear all data/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Clear all data?/ })).toBeVisible();
   await percySnapshot(page, "Clear Data Confirm Dialog");
 
   await page.getByRole("button", { name: "Clear all data" }).click();

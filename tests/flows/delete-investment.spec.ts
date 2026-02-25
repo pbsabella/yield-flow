@@ -48,7 +48,7 @@ test("delete an investment — row is removed from the portfolio", async ({ page
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
   await expect(page.getByText("Axiom Bank")).toBeVisible();
-  await expect(page.getByText("Bastion Bank")).toBeVisible();
+  await expect(page.getByText("Bastion Bank", { exact: true })).toBeVisible();
 
   // Open kebab for the first deposit
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();
@@ -61,7 +61,7 @@ test("delete an investment — row is removed from the portfolio", async ({ page
 
   // Axiom should be gone; Bastion should remain
   await expect(page.getByText("Axiom Bank")).not.toBeVisible();
-  await expect(page.getByText("Bastion Bank")).toBeVisible();
+  await expect(page.getByText("Bastion Bank", { exact: true })).toBeVisible();
 });
 
 test("cancelling a delete dialog leaves the deposit intact", async ({ page }) => {
@@ -81,5 +81,5 @@ test("cancelling a delete dialog leaves the deposit intact", async ({ page }) =>
 
   // All deposits still visible
   await expect(page.getByText("Axiom Bank")).toBeVisible();
-  await expect(page.getByText("Bastion Bank")).toBeVisible();
+  await expect(page.getByText("Bastion Bank", { exact: true })).toBeVisible();
 });

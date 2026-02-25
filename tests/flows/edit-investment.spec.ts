@@ -29,7 +29,7 @@ test("edit an investment — values persist after save", async ({ page }) => {
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
-  await expect(page.getByText("Original Bank")).toBeVisible();
+  await expect(page.getByText("Original Bank", { exact: true })).toBeVisible();
 
   // Open kebab menu for the deposit (mobile card or desktop table)
   // The aria-label includes the deposit name
@@ -47,15 +47,15 @@ test("edit an investment — values persist after save", async ({ page }) => {
   await percySnapshot(page, "Edit Investment Dialog");
 
   // Change the bank name
-  await page.getByLabel("Bank").clear();
-  await page.getByLabel("Bank").fill("Updated Bank");
+  await page.getByRole("combobox", { name: "Bank" }).clear();
+  await page.getByRole("combobox", { name: "Bank" }).fill("Updated Bank");
 
   // Save
   await page.getByRole("button", { name: "Save changes" }).click();
 
   // Dialog closes and updated name appears
   await expect(page.getByRole("dialog")).not.toBeVisible();
-  await expect(page.getByText("Updated Bank")).toBeVisible();
+  await expect(page.getByText("Updated Bank", { exact: true })).toBeVisible();
 });
 
 test("closing an unmodified edit dialog does not prompt for discard", async ({ page }) => {
@@ -64,7 +64,7 @@ test("closing an unmodified edit dialog does not prompt for discard", async ({ p
   }, seedDeposit);
 
   await page.goto("/");
-  await expect(page.getByText("Original Bank")).toBeVisible();
+  await expect(page.getByText("Original Bank", { exact: true })).toBeVisible();
 
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();
   await moreOptionsBtn.click();
