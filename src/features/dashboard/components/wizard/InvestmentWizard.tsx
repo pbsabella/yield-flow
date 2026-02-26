@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +63,12 @@ export function InvestmentWizard({
   } = useWizardState();
 
   const isEditing = !!initialDeposit;
+
+  const [timeZone, setTimeZone] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  }, [])
 
   useEffect(() => {
     if (open) {
@@ -164,6 +170,7 @@ export function InvestmentWizard({
                 setField={setField}
                 touchField={touchField}
                 existingBankNames={existingBankNames}
+                timeZone={timeZone}
               />
             </div>
 

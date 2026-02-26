@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
 import type { YieldInput } from "@/lib/domain/yield-engine";
 import { formatPhpCurrency } from "@/lib/domain/format";
+import { Badge } from '@/components/ui/badge';
 
 interface LiveCalcPreviewProps {
   input: YieldInput | null;
@@ -87,6 +88,9 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
 
       {result ? (
         <>
+          <Badge variant="warning">
+            ESTIMATE
+          </Badge>
           <div className="space-y-3">
             <div>
               <p className="text-xs text-muted-foreground">

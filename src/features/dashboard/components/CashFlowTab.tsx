@@ -305,7 +305,7 @@ export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabP
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="flex gap-1 items-center text-xs text-muted-foreground">
           <Info className="shrin-0" size="13" aria-hidden="true" />
-          All amounts are net of 20% withholding tax
+          All amounts are net of withholding tax
         </p>
         <WindowFilter value={window} onChange={setWindow} />
       </div>
