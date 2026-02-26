@@ -44,6 +44,9 @@ test("edit an investment — values persist after save", async ({ page }) => {
   // Dialog should open in edit mode
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Edit investment" })).toBeVisible();
+
+  // Wait for the live calc preview to load - this will change over time in Percy screenshot
+  await expect(page.getByText("Estimate only")).toBeVisible()
   await percySnapshot(page, "Edit Investment Dialog");
 
   // Change the bank name

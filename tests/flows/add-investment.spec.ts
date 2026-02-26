@@ -24,6 +24,8 @@ test("add an investment via wizard — empty state → portfolio visible", async
   await page.getByRole("radio", { name: /Time Deposit/ }).click();
   await page.getByRole("radio", { name: "6 mo" }).click();
 
+  // Wait for the live calc preview to load - this will change over time in Percy screenshot
+  await expect(page.getByText("Net interest", { exact: true })).toBeVisible()
   await percySnapshot(page, "Add Investment Dialog — filled");
 
   // Submit

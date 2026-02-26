@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-test-results/.last-run.json
+test-results/
 
 # next.js
 /.next/
