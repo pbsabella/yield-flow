@@ -37,10 +37,11 @@ function isValidDate(date: Date | undefined) {
 interface DatePickerProps {
   id: string
   selected: Date | undefined
+  timeZone?: string
   onSelect: (date: Date | undefined) => void // Allow undefined if user clears input
 }
 
-export function DatePicker({ id, selected, onSelect }: DatePickerProps) {
+export function DatePicker({ id, selected, timeZone, onSelect }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
   const [month, setMonth] = React.useState<Date | undefined>(selected)
   const [value, setValue] = React.useState(formatDate(selected))
@@ -94,6 +95,7 @@ export function DatePicker({ id, selected, onSelect }: DatePickerProps) {
               mode="single"
               selected={selected}
               month={month}
+              timeZone={timeZone}
               onMonthChange={setMonth}
               onSelect={(date) => {
                 onSelect(date)

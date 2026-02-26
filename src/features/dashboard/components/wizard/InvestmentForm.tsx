@@ -40,6 +40,7 @@ interface InvestmentFormProps {
   setField: <K extends keyof WizardFormState>(key: K, value: WizardFormState[K]) => void;
   touchField: (key: keyof WizardFormState) => void;
   existingBankNames: string[];
+  timeZone?: string
 }
 
 // ─── Product type cards ───────────────────────────────────────────────────────
@@ -198,6 +199,7 @@ export function InvestmentForm({
   setField,
   touchField,
   existingBankNames,
+  timeZone,
 }: InvestmentFormProps) {
   const principalCurrencyProps = useCurrencyInput({
     value: formState.principal,
@@ -318,6 +320,7 @@ export function InvestmentForm({
         <DatePicker
           id="inv-start-date"
           selected={startDateObj}
+          timeZone={timeZone}
           onSelect={handleStartDateSelect}
         />
       </Field>
