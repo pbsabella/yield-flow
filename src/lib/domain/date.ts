@@ -20,8 +20,27 @@ export function addTermMonths(date: Date, termMonths: number) {
   return next;
 }
 
+// Parse a stored YYYY-MM-DD string as local midnight.
+//
+// new Date("YYYY-MM-DD") is specified to parse as UTC midnight per the JS spec,
+// which shifts the local date in UTC+ timezones (e.g. Manila at UTC+8 sees the
+// previous day's 8pm instead of today's midnight). Appending "T00:00:00" (no Z)
+// forces the browser to interpret the string in local time instead.
+export function parseLocalDate(dateStr: string): Date {
+  return new Date(dateStr + "T00:00:00");
+}
+
+// Convert a Date to a YYYY-MM-DD string representing the local calendar date.
+//
+// We use local date components (not toISOString) because ISO date strings in
+// this app represent calendar dates in the user's local timezone. toISOString()
+// returns UTC and would produce a date 1 day early for UTC+ users (e.g. June 15
+// at 8am Manila = June 14 in UTC, so toISOString slices to "2025-06-14").
 export function toISODate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export function formatDate(date: Date) {

@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatPhpCurrency } from "@/lib/domain/format";
-import { formatDate, differenceInCalendarDays } from "@/lib/domain/date";
+import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
 
@@ -51,7 +51,7 @@ function DaysCell({ maturityDate }: { maturityDate: string | null }) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const days = differenceInCalendarDays(new Date(maturityDate), today);
+  const days = differenceInCalendarDays(parseLocalDate(maturityDate), today);
 
   /* TODO: Replace color tokens */
   if (days > 30) return <span>{days}d</span>;
@@ -125,7 +125,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
       const { maturityDate, deposit } = row.original;
       if (deposit.isOpenEnded) return <span className="text-muted-foreground">Open-ended</span>;
       if (!maturityDate) return <span className="text-muted-foreground">—</span>;
-      return formatDate(new Date(maturityDate));
+      return formatDate(parseLocalDate(maturityDate));
     },
   },
 
@@ -137,7 +137,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
         return null;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return differenceInCalendarDays(new Date(row.maturityDate), today);
+      return differenceInCalendarDays(parseLocalDate(row.maturityDate), today);
     },
     header: ({ column }) => <SortableHeader column={column} label="Days left" />,
     enableSorting: true,
@@ -148,7 +148,7 @@ export const columns: ColumnDef<EnrichedSummary>[] = [
       const getVal = (s: EnrichedSummary): number => {
         if (!s.maturityDate || s.deposit.isOpenEnded || s.effectiveStatus === "settled")
           return Infinity;
-        return differenceInCalendarDays(new Date(s.maturityDate), today);
+        return differenceInCalendarDays(parseLocalDate(s.maturityDate), today);
       };
 
       return getVal(a.original) - getVal(b.original);

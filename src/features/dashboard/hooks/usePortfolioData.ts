@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
-import { monthKey } from "@/lib/domain/date";
+import { monthKey, parseLocalDate } from "@/lib/domain/date";
 import type { Bank, DepositSummary, TimeDeposit } from "@/types";
 
 export type EnrichedSummary = DepositSummary & {
@@ -46,8 +46,9 @@ function deriveEffectiveStatus(
 ): TimeDeposit["status"] {
   if (deposit.status === "settled") return "settled";
   if (deposit.status === "active" && maturityDate !== null) {
-    const maturity = new Date(maturityDate);
-    // Compare date-only by stripping time.
+    // parseLocalDate parses as local midnight (not UTC midnight) so the
+    // comparison fires at midnight on the due date, not 8 hours later (UTC+8).
+    const maturity = parseLocalDate(maturityDate);
     if (maturity <= today) return "matured";
   }
   return deposit.status;
@@ -115,7 +116,7 @@ export function usePortfolioData(
         (s) =>
           s.effectiveStatus === "active" &&
           s.maturityDate !== null &&
-          new Date(s.maturityDate) > today,
+          parseLocalDate(s.maturityDate) > today,
       )
       .sort((a, b) => a.maturityDate!.localeCompare(b.maturityDate!));
 
