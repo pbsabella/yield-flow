@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CURRENCY_SYMBOL } from "@/lib/config";
+import { toISODate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { InterestTier } from "@/types";
 import type {
@@ -216,7 +217,9 @@ export function InvestmentForm({
     : undefined;
 
   const handleStartDateSelect = (date: Date | undefined) => {
-    if (date) setField("startDate", date.toISOString().split("T")[0]);
+    // Use toISODate (local date components), not toISOString (UTC), to avoid
+    // a 1-day drift in UTC+ timezones when the calendar selection is near midnight.
+    if (date) setField("startDate", toISODate(date));
   };
 
   const termPresetValue = TERM_PRESETS.includes(

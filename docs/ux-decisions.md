@@ -348,6 +348,26 @@ The Cash Flow tab answers a question the Investments tab doesn't: _when will mon
 
 ---
 
+### Open-Ended Deposits: 12-Payout Projection Anchored to Start Date
+
+**Decision:** Open-ended (savings) deposits are projected as 12 monthly payouts. The projection starts from the first payout month ≥ the current calendar month, and the payout day-of-month is anchored to the deposit's `startDate` — not to today.
+
+**Rationale:**
+
+- Open-ended deposits have no maturity date, so there is no natural projection end. 12 months provides a practical annual planning horizon.
+- Anchoring to `startDate` preserves the actual payout rhythm. A savings account opened on January 20 pays on the 20th of each month — the projection uses February 20, March 20, April 20, etc., not February 15 (today + 1 month), which would drift from the real schedule.
+- Starting from the first payout month ≥ the current month (rather than always starting next month) ensures the current month is included when a payout falls within it. A user who opened a savings account on January 10 and checks on March 20 sees March 10's payout in the current month row.
+
+**Algorithm:**
+1. Find the first `n ≥ 1` such that `addMonths(startDate, n)` falls in the current calendar month or later.
+2. Project 12 payouts: `addMonths(startDate, n)`, `addMonths(startDate, n+1)`, …, `addMonths(startDate, n+11)`.
+
+**Months with no payouts are omitted** — empty months do not appear as collapsed rows.
+
+**Tradeoff accepted:** Each projected payout is `netInterest / 12` — the yield engine's 12-month net interest divided evenly. This is an approximation for planning purposes; the actual monthly payout from a live savings account may vary.
+
+---
+
 ### Current Month: Full Picture vs. Projection
 
 **Decision:** The current month row shows the complete income picture — active, matured, and settled entries — with a header total that includes confirmed settled amounts. Future month rows show projection only (active + matured).

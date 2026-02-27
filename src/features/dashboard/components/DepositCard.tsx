@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatPhpCurrency } from "@/lib/domain/format";
-import { formatDate, differenceInCalendarDays } from "@/lib/domain/date";
+import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
@@ -48,12 +48,12 @@ function MaturityLabel({
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const days = differenceInCalendarDays(new Date(maturityDate), today);
+  const days = differenceInCalendarDays(parseLocalDate(maturityDate), today);
 
   if (days > 30)
     return (
       <span className="text-xs text-muted-foreground">
-        Matures {formatDate(new Date(maturityDate))}
+        Matures {formatDate(parseLocalDate(maturityDate))}
       </span>
     );
   if (days > 0)

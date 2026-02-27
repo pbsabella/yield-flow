@@ -46,10 +46,12 @@ Sorted by maturity ASC. Desktop table + mobile expandable cards.
 
 ## Cash Flow
 
-12-month rolling window. Months with no payouts show collapsed muted row.
+12-month rolling window. Months with no payouts are omitted (they do not appear as empty rows).
 
 **Expanded:** MONTHLY PAYOUTS (recurring interest) + MATURITY PAYOUTS (one-time, net interest only)
 **Current month:** pending + settled pills same as dashboard
+
+**Open-ended deposits:** Projected as 12 monthly payouts anchored to the deposit's `startDate` (not today). The first projected month is the earliest payout month ≥ the current calendar month — so the current month is included when a payout falls within it.
 
 ---
 

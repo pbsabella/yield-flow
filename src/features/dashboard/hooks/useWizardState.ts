@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { InterestTier, PayoutFrequency, TimeDeposit } from "@/types";
 import type { InterestMode, YieldInput } from "@/lib/domain/yield-engine";
+import { toISODate } from "@/lib/domain/date";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ const EMPTY_STATE: WizardFormState = {
   productType: "",
   name: "",
   principal: "",
-  startDate: new Date().toISOString().split("T")[0],
+  startDate: toISODate(new Date()), // toISODate uses local date components — not toISOString (UTC)
   flatRate: "",
   taxRate: "20",
   interestMode: "simple",

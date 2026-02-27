@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPhpCurrency } from "@/lib/domain/format";
-import { formatDate, formatMonthLabel } from "@/lib/domain/date";
+import { formatDate, formatMonthLabel, parseLocalDate } from "@/lib/domain/date";
 import type { CurrentMonthBreakdown, NextMaturity } from "@/features/dashboard/hooks/usePortfolioData";
 
 type KpiCardsProps = {
@@ -68,7 +68,7 @@ export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }
           {nextMaturity ? (
             <>
               <div className="text-2xl font-semibold">
-                {formatDate(new Date(nextMaturity.maturityDate))}
+                {formatDate(parseLocalDate(nextMaturity.maturityDate))}
               </div>
               <p className="text-sm text-muted-foreground mt-1 truncate">
                 {nextMaturity.name}

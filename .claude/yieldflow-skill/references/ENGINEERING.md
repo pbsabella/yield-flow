@@ -27,6 +27,27 @@ Never add inline `Intl.NumberFormat`.
 
 ---
 
+## Date Handling
+
+All date values in YieldFlow are **local calendar dates** (YYYY-MM-DD strings).
+They represent a day in the user's local timezone — not a UTC timestamp.
+
+### Three primitives — always use these, nothing else:
+
+| Need                                      | Use                                          |
+| ----------------------------------------- | -------------------------------------------- |
+| Convert `Date` → YYYY-MM-DD string        | `toISODate(date)` from `lib/domain/date`     |
+| Parse a stored YYYY-MM-DD string → `Date` | `parseLocalDate(str)` from `lib/domain/date` |
+| Today as YYYY-MM-DD string                | `toISODate(new Date())`                      |
+
+### Never:
+
+- `date.toISOString().split("T")[0]` — UTC-based; drifts 1 day early in UTC+ timezones
+- `new Date(isoDateString)` for stored dates — the JS spec parses date-only strings as UTC midnight, not local midnight
+- Add a `timeZone` parameter to domain functions — the user's local timezone is always implied
+
+---
+
 ## Tailwind v4 Token System
 
 ```
