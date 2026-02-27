@@ -3,7 +3,7 @@ export function Footer () {
     <footer className="border-border-subtle bg-surface-base/60 text-muted-foreground mt-10 border-t px-6 py-6 text-center text-xs md:px-10">
       Built by{" "}
       <a
-        href="https://pbsabella.github.io/"
+        href="https://pbsabella.vercel.app/"
         className="text-primary dark:text-primary-subtle font-semibold hover:underline"
         target="_blank"
         rel="noreferrer"

@@ -22,14 +22,32 @@ import { EmptyState } from "@/features/dashboard/components/EmptyState";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MAX_BAR_HEIGHT = 160;
-const MIN_BAR_HEIGHT = 4;
-
 type Window = "3" | "6" | "12" | "all";
 
-// ─── Bar chart ────────────────────────────────────────────────────────────────
+const MONTH_WIDTH = 48;
+const SVG_HEIGHT = 180;
+const PAD_TOP = 28;
+const PAD_BOTTOM = 24;
+const PAD_X = 20;
 
-function BarChart({
+// ─── Area chart helpers ────────────────────────────────────────────────────────
+
+function smoothCurve(pts: { x: number; y: number }[]): string {
+  if (pts.length === 0) return "";
+  if (pts.length === 1) return `M ${pts[0].x},${pts[0].y}`;
+  let d = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const curr = pts[i];
+    const next = pts[i + 1];
+    const cpX = (curr.x + next.x) / 2;
+    d += ` C ${cpX},${curr.y} ${cpX},${next.y} ${next.x},${next.y}`;
+  }
+  return d;
+}
+
+// ─── Area chart ───────────────────────────────────────────────────────────────
+
+function AreaChart({
   months,
   currentMonthKey,
   currentMonthFull,
@@ -44,61 +62,94 @@ function BarChart({
       : m.net;
 
   const maxNet = Math.max(...months.map(effectiveNet), 1);
-  const maxMonth = months.reduce(
-    (acc, m) => (effectiveNet(m) > effectiveNet(acc) ? m : acc),
-    months[0],
-  );
+  const plotHeight = SVG_HEIGHT - PAD_TOP - PAD_BOTTOM;
+  const svgWidth = months.length * MONTH_WIDTH + PAD_X * 2;
+  const baselineY = PAD_TOP + plotHeight;
+
+  const pts = months.map((m, i) => ({
+    x: PAD_X + MONTH_WIDTH * i + MONTH_WIDTH / 2,
+    y: PAD_TOP + plotHeight * (1 - effectiveNet(m) / maxNet),
+    net: effectiveNet(m),
+    isCurrent: m.monthKey === currentMonthKey,
+    label: format(parseISO(m.monthKey + "-01"), "MMM"),
+    monthKey: m.monthKey,
+  }));
+
+  const linePath = smoothCurve(pts);
+  const areaPath = `${linePath} L ${pts[pts.length - 1].x},${baselineY} L ${pts[0].x},${baselineY} Z`;
+
+  const maxIdx = pts.reduce((best, pt, i) => (pt.net > pts[best].net ? i : best), 0);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex items-end gap-2 min-w-max px-1 pb-2 pt-8">
-        {months.map((month) => {
-          const displayNet = effectiveNet(month);
-          const barHeight = Math.max(
-            (displayNet / maxNet) * MAX_BAR_HEIGHT,
-            MIN_BAR_HEIGHT,
-          );
-          const shortLabel = format(
-            parseISO(month.monthKey + "-01"),
-            "MMM ''yy",
-          );
-          const isCurrent = month.monthKey === currentMonthKey;
-          const isTallest = month.monthKey === maxMonth?.monthKey;
+    <div className="overflow-x-auto rounded-lg">
+      <svg
+        width={svgWidth}
+        height={SVG_HEIGHT}
+        className="text-primary"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
-          return (
-            <div
-              key={month.monthKey}
-              className="flex flex-col items-center gap-1"
-            >
-              <span
-                className={cn(
-                  "text-xs font-medium tabular-nums",
-                  !isCurrent && !isTallest && "invisible",
-                )}
-              >
-                {formatPhpCurrency(displayNet)}
-              </span>
-              <div
-                className={cn(
-                  "w-8 rounded-t",
-                  isCurrent ? "bg-primary" : "bg-primary/60",
-                )}
-                style={{ height: barHeight }}
-              />
-              <span
-                className={cn(
-                  "text-xs",
-                  isCurrent
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground",
-                )}
-              >
-                {shortLabel}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+        {/* Filled area */}
+        <path d={areaPath} fill="url(#areaGradient)" />
+
+        {/* Stroke line */}
+        <path
+          d={linePath}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Current month dot */}
+        {pts.map((pt) =>
+          pt.isCurrent ? (
+            <circle
+              key={pt.monthKey}
+              cx={pt.x}
+              cy={pt.y}
+              r="4"
+              fill="currentColor"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+          ) : null,
+        )}
+
+        {/* Peak value label */}
+        <text
+          x={pts[maxIdx].x}
+          y={pts[maxIdx].y - 8}
+          textAnchor="middle"
+          fontSize="9"
+          fontWeight="500"
+          className="fill-foreground tabular-nums"
+        >
+          {formatPhpCurrency(pts[maxIdx].net)}
+        </text>
+
+        {/* X-axis labels */}
+        {pts.map((pt) => (
+          <text
+            key={pt.monthKey}
+            x={pt.x}
+            y={SVG_HEIGHT - 6}
+            textAnchor="middle"
+            fontSize="9"
+            fontWeight={pt.isCurrent ? "600" : "400"}
+            className={pt.isCurrent ? "fill-foreground" : "fill-muted-foreground"}
+          >
+            {pt.label}
+          </text>
+        ))}
+      </svg>
     </div>
   );
 }
@@ -115,26 +166,16 @@ function WindowFilter({
   return (
     <ToggleGroup
       type="single"
-      variant="outline"
-      size="lg"
+      variant="card"
       value={value}
       onValueChange={(v) => {
         if (v) onChange(v as Window);
       }}
-      className="h-7"
     >
-      <ToggleGroupItem value="3" className="text-xs px-2.5 h-7">
-        3M
-      </ToggleGroupItem>
-      <ToggleGroupItem value="6" className="text-xs px-2.5 h-7">
-        6M
-      </ToggleGroupItem>
-      <ToggleGroupItem value="12" className="text-xs px-2.5 h-7">
-        12M
-      </ToggleGroupItem>
-      <ToggleGroupItem value="all" className="text-xs px-2.5 h-7">
-        All
-      </ToggleGroupItem>
+      <ToggleGroupItem value="3">3M</ToggleGroupItem>
+      <ToggleGroupItem value="6">6M</ToggleGroupItem>
+      <ToggleGroupItem value="12">12M</ToggleGroupItem>
+      <ToggleGroupItem value="all">All</ToggleGroupItem>
     </ToggleGroup>
   );
 }
@@ -309,7 +350,7 @@ export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabP
         </p>
         <WindowFilter value={window} onChange={setWindow} />
       </div>
-      <BarChart months={slicedMonths} currentMonthKey={currentMonthKey} currentMonthFull={currentMonthFull} />
+      <AreaChart months={slicedMonths} currentMonthKey={currentMonthKey} currentMonthFull={currentMonthFull} />
       <div className="space-y-3">
         {slicedMonths.map((month) => (
           <MonthRow

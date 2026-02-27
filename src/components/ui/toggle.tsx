@@ -13,8 +13,9 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border-input hover:bg-accent-hover-bg border bg-transparent",
-        // custom — radio-card appearance: border-primary + bg-primary/5 when selected
-        card: "cursor-pointer border-border border bg-transparent hover:!bg-muted/50 data-[state=on]:border-primary data-[state=on]:!bg-primary/5",
+        // custom — radio-card: inset box-shadow when selected so all 4 sides
+        // highlight even when left border is collapsed in a toggle-group.
+        card: "cursor-pointer border-border border bg-transparent hover:!bg-muted/50 data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-primary)] data-[state=on]:!bg-primary/5",
       },
       size: {
         default: "h-8 min-w-8 px-2",

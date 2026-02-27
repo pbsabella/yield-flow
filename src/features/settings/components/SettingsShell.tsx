@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronDown, Download, Trash2, Upload } from "lucide-react";
+import { ChevronDown, Download, Trash2, Upload } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +21,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
+import { Separator } from "@/components/ui/separator";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import type { TimeDeposit } from "@/types";
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ import type { TimeDeposit } from "@/types";
 function Container({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={["mx-auto w-full max-w-2xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
+      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
       {...props}
     />
   );
@@ -75,7 +75,7 @@ function validateBackup(raw: unknown): TimeDeposit[] {
 
 export function SettingsShell() {
   const router = useRouter();
-  const { deposits, setDeposits, remove } = usePersistedDeposits();
+  const { deposits, importDeposits, clearDeposits } = usePortfolioContext();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importPreview, setImportPreview] = useState<TimeDeposit[] | null>(null);
@@ -126,43 +126,45 @@ export function SettingsShell() {
 
   const handleImportConfirm = useCallback(() => {
     if (!importPreview) return;
-    setDeposits(importPreview);
+    importDeposits(importPreview);
     setImportPreview(null);
     setImportConfirmOpen(false);
     router.push("/");
-  }, [importPreview, setDeposits, router]);
+  }, [importPreview, importDeposits, router]);
 
   // ─── Clear ─────────────────────────────────────────────────────────────────
 
   const handleClearConfirm = useCallback(() => {
-    remove();
-    setDeposits([]);
+    clearDeposits();
     setClearConfirmOpen(false);
     router.push("/");
-  }, [remove, setDeposits, router]);
+  }, [clearDeposits, router]);
 
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Header */}
-      <header className="h-12 border-b border-border">
-        <Container className="flex h-full items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="-ml-2 gap-1.5 text-sm">
-              <Link href="/">
-                <ArrowLeft className="size-4" />
-                Dashboard
-              </Link>
-            </Button>
-          </div>
-          <span className="text-primary dark:text-primary-subtle font-semibold tracking-tight">YieldFlow</span>
-          <ThemeToggle />
-        </Container>
-      </header>
-
+    <div className="bg-background">
       {/* Main content */}
       <main>
-        <Container className="py-8 space-y-6">
-          <h1 className="text-2xl font-semibold">Settings</h1>
+        <Container className="py-6 space-y-6">
+          <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
+
+          {/* Appearance */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>Customize how YieldFlow looks.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Theme</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Switch between light and dark mode.
+                  </p>
+                </div>
+                <ThemeToggle />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Data management card */}
           <Card>
@@ -249,13 +251,15 @@ export function SettingsShell() {
                   Clear all
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+
+              <Separator />
+
+
 
           {/* Caveats */}
           <Collapsible open={caveatsOpen} onOpenChange={setCaveatsOpen}>
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <button className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors">
                 <ChevronDown
                   className={["size-4 transition-transform", caveatsOpen ? "rotate-180" : ""].filter(Boolean).join(" ")}
                   aria-hidden="true"
@@ -277,6 +281,44 @@ export function SettingsShell() {
               </ul>
             </CollapsibleContent>
           </Collapsible>
+            </CardContent>
+          </Card>
+
+          {/* About */}
+          <div className="text-xs text-muted-foreground mt-2 text-center">
+            <div className="mb-1">
+              <span>
+                YieldFlow Beta by{' '}
+                <a
+                  href="https://pbsabella.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary font-medium hover:underline"
+                >
+                  pbsabella
+                </a>
+              </span>
+            </div>
+            <div className="flex gap-1 justify-center">
+              <a
+                href="https://github.com/pbsabella/yield-flow"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline"
+              >
+                View source
+              </a>
+              <span className="text-foreground">·</span>
+              <a
+                href="https://github.com/pbsabella/yield-flow/issues"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline"
+              >
+                Feedback
+              </a>
+            </div>
+          </div>
         </Container>
       </main>
 

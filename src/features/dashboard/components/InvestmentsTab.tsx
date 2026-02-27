@@ -240,7 +240,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
         />
       ) : isMd ? (
         /* ── Desktop table (horizontally scrollable, Deposit column frozen) ── */
-        <div className="border rounded-md overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -257,7 +257,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                         }
                         className={[
                           header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                          isDeposit ? "sticky left-0 z-10 bg-background border-r" : "",
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -274,7 +274,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "transition-colors duration-1000",
+                    "bg-card transition-colors duration-1000",
                     row.original.deposit.id === highlightedId && "bg-primary/10",
                   )}
                 >
@@ -284,7 +284,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                       <TableCell
                         key={cell.id}
                         className={
-                          isDeposit ? "sticky left-0 z-10 bg-background border-r" : ""
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : ""
                         }
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -695,6 +695,7 @@ describe("depositToFormState", () => {
   });
 
   it("falls back to 20% tax rate when taxRateOverride is undefined", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { taxRateOverride: _, ...noOverride } = BASE_DEPOSIT;
     const s = depositToFormState(noOverride as TimeDeposit);
     expect(s.taxRate).toBe("20");
