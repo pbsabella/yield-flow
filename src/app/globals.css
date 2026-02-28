@@ -59,6 +59,28 @@
   --color-status-success-bg: var(--color-status-success-bg);
   --color-status-success-border: var(--color-status-success-border);
   --color-status-success-fg: var(--color-status-success-fg);
+
+  --color-status-alert-bg: var(--color-status-alert-bg);
+  --color-status-alert-border: var(--color-status-alert-border);
+  --color-status-alert-fg: var(--color-status-alert-fg);
+
+  --color-progress-success-track: var(--color-progress-success-track);
+  --color-progress-success-text: var(--color-progress-success-text);
+  --color-progress-success-fill: var(--color-progress-success-fill);
+
+  --color-progress-warning-track: var(--color-progress-warning-track);
+  --color-progress-warning-text: var(--color-progress-warning-text);
+  --color-progress-warning-fill: var(--color-progress-warning-fill);
+
+  --color-progress-alert-track: var(--color-progress-alert-track);
+  --color-progress-alert-text: var(--color-progress-alert-text);
+  --color-progress-alert-fill: var(--color-progress-alert-fill);
+
+  --color-banner-bg: var(--color-banner-bg);
+  --color-banner-fg: var(--color-banner-fg);
+  --color-banner-border: var(--color-banner-border);
+
+  --color-table-frozen-bg: var(--color-table-frozen-bg);
 }
 
 :root {
@@ -87,7 +109,7 @@
   --chart-3: oklch(0.59 0.20 277);
   --chart-4: oklch(0.51 0.23 277);
   --chart-5: oklch(0.46 0.21 277);
-  --radius: 0.45rem;
+  --radius: 0.6rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.51 0.23 277);
@@ -110,6 +132,32 @@
   --color-status-success-bg: oklch(97.6% 0.017 155.6);
   --color-status-success-fg: oklch(33.8% 0.067 155.6);
   --color-status-success-border: oklch(87.2% 0.048 155.6);
+
+  --color-status-alert-bg: oklch(0.96 0.03 25);
+  --color-status-alert-fg: oklch(0.51 0.23 25);
+  --color-status-alert-border: oklch(0.85 0.08 25);
+
+  /* Success: Healthy Green */
+  --color-progress-success-track: oklch(96% 0.02 155.6);
+  --color-progress-success-fill: oklch(65% 0.12 155.6);
+  --color-progress-success-text: oklch(33.8% 0.067 155.6);
+
+  /* Warning: Amber/Yellow */
+  --color-progress-warning-track: oklch(97% 0.03 95.3);
+  --color-progress-warning-fill: oklch(78% 0.14 95.3);
+  --color-progress-warning-text: oklch(56% 0.16 49);
+
+  /* Alert: Critical Red */
+  --color-progress-alert-track: oklch(94% 0.03 25);
+  --color-progress-alert-fill: oklch(62% 0.18 25);
+  --color-progress-alert-text: oklch(51% 0.23 25);
+
+  --color-banner-bg: oklch(0.96 0.025 277);
+  --color-banner-fg: oklch(0.38 0.17 277);
+  --color-banner-border: oklch(0.88 0.06 277);
+
+  /* Frozen (sticky) table column — faint indigo wash, distinct from white rows */
+  --color-table-frozen-bg: oklch(0.975 0.012 277);
 }
 
 .dark {
@@ -162,6 +210,31 @@
   --color-status-success-bg: oklch(25.58% 0.033 155.5);
   --color-status-success-fg: oklch(83.51% 0.121 155);
   --color-status-success-border: oklch(37.25% 0.054 154.97);
+
+  --color-status-alert-bg: oklch(0.51 0.23 25 / 0.1);
+  --color-status-alert-fg: oklch(0.85 0.12 25);
+  --color-status-alert-border: oklch(0.40 0.15 25);
+
+  /* Success */
+  --color-progress-success-track: oklch(22% 0.03 155.5);
+  --color-progress-success-fill: oklch(72% 0.14 155);
+  --color-progress-success-text: oklch(83.51% 0.121 155);
+
+  /* Warning */
+  --color-progress-warning-track: oklch(24% 0.03 80.39);
+  --color-progress-warning-fill: oklch(78% 0.16 79.48);
+  --color-progress-warning-text: oklch(83.58% 0.1954 79.48);
+
+  /* Alert */
+  --color-progress-alert-track: oklch(20% 0.05 25);
+  --color-progress-alert-fill: oklch(58% 0.18 25);
+  --color-progress-alert-text: oklch(85% 0.12 25);
+
+  --color-banner-bg: oklch(0.22 0.035 277);
+  --color-banner-fg: oklch(0.78 0.12 277);
+  --color-banner-border: oklch(0.32 0.06 277);
+
+  --color-table-frozen-bg: oklch(0.19 0.015 277);
 }
 
 @layer base {

@@ -13,7 +13,13 @@ export type TimeDeposit = {
   name: string;
   principal: number;
   startDate: string;
+  /**
+   * @deprecated Use termDays instead for day-based products. Will be removed after full migration.
+   * TODO: remove termMonths once all stored deposits have been migrated to termDays.
+   */
   termMonths: number;
+  /** Term in calendar days. When set, takes precedence over termMonths for all calculations. */
+  termDays?: number;
   interestMode: InterestMode;
   interestTreatment?: "reinvest" | "payout";
   compounding?: "daily" | "monthly";

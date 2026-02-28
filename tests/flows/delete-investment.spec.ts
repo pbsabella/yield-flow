@@ -45,8 +45,8 @@ test("delete an investment — row is removed from the portfolio", async ({ page
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
 
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
+  await page.goto("/investments");
+  await expect(page.getByRole("heading", { name: "Investments" })).toBeVisible();
   await expect(page.getByText("Axiom Bank")).toBeVisible();
   await expect(page.getByText("Bastion Bank", { exact: true })).toBeVisible();
 
@@ -69,7 +69,7 @@ test("cancelling a delete dialog leaves the deposit intact", async ({ page }) =>
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
 
-  await page.goto("/");
+  await page.goto("/investments");
   await expect(page.getByText("Axiom Bank")).toBeVisible();
 
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();

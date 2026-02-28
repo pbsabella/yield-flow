@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { formatPhpCurrency } from "@/lib/domain/format";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
 
 type Props = {
@@ -21,6 +21,7 @@ type Props = {
 };
 
 export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: Props) {
+  const { fmtCurrency } = usePortfolioContext();
   if (!summary) return null;
 
   const { deposit, netInterest, netTotal } = summary;
@@ -35,18 +36,18 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: 
               <div className="flex justify-between">
                 <span>Principal</span>
                 <span className="font-medium text-foreground">
-                  {formatPhpCurrency(deposit.principal)}
+                  {fmtCurrency(deposit.principal)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Net interest</span>
                 <span className="font-medium text-foreground">
-                  {formatPhpCurrency(netInterest)}
+                  {fmtCurrency(netInterest)}
                 </span>
               </div>
               <div className="flex justify-between border-t pt-1 font-semibold text-foreground gap-8">
                 <span>Total proceeds</span>
-                <span>{formatPhpCurrency(netTotal)}</span>
+                <span>{fmtCurrency(netTotal)}</span>
               </div>
             </div>
           </AlertDialogDescription>
@@ -54,7 +55,7 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={() => onConfirm(deposit.id)}>
-            Settle {formatPhpCurrency(netTotal)}
+            Settle {fmtCurrency(netTotal)}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

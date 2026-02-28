@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronDown, Download, Trash2, Upload } from "lucide-react";
+import { ChevronDown, Download, Trash2, Upload } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,23 +13,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
+import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/sonner"
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import type { TimeDeposit } from "@/types";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
 function Container({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={["mx-auto w-full max-w-2xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
+      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
       {...props}
     />
   );
@@ -75,7 +80,7 @@ function validateBackup(raw: unknown): TimeDeposit[] {
 
 export function SettingsShell() {
   const router = useRouter();
-  const { deposits, setDeposits, remove } = usePersistedDeposits();
+  const { deposits, importDeposits, clearDeposits, preferences, setPreference } = usePortfolioContext();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importPreview, setImportPreview] = useState<TimeDeposit[] | null>(null);
@@ -83,6 +88,11 @@ export function SettingsShell() {
   const [importConfirmOpen, setImportConfirmOpen] = useState(false);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [caveatsOpen, setCaveatsOpen] = useState(false);
+
+  const [preferencesDraft, setPreferencesDraft] = useState({
+    currency: preferences.currency,
+    bankInsuranceLimit: preferences.bankInsuranceLimit,
+  });
 
   // ─── Export ────────────────────────────────────────────────────────────────
 
@@ -126,50 +136,153 @@ export function SettingsShell() {
 
   const handleImportConfirm = useCallback(() => {
     if (!importPreview) return;
-    setDeposits(importPreview);
+    importDeposits(importPreview);
     setImportPreview(null);
     setImportConfirmOpen(false);
     router.push("/");
-  }, [importPreview, setDeposits, router]);
+  }, [importPreview, importDeposits, router]);
 
   // ─── Clear ─────────────────────────────────────────────────────────────────
 
   const handleClearConfirm = useCallback(() => {
-    remove();
-    setDeposits([]);
+    clearDeposits();
     setClearConfirmOpen(false);
     router.push("/");
-  }, [remove, setDeposits, router]);
+  }, [clearDeposits, router]);
+
+  // ─── Currency change ───────────────────────────────────────────────────────
+  const handleCurrencyChange = (value: string) => {
+    setPreferencesDraft((prev) => ({ ...prev, currency: value }));
+  };
+
+  // ─── Deposit insurance limit ───────────────────────────────────────────────
+  const handleBankInsuranceLimitChange = (value?: number) => {
+    setPreferencesDraft((prev) => ({ ...prev, bankInsuranceLimit: value }));
+  };
+
+  const handleSavePreferences = () => {
+    // Sync draft back to the global context hook
+    setPreference("currency", preferencesDraft.currency);
+    setPreference("bankInsuranceLimit", preferencesDraft.bankInsuranceLimit);
+
+    toast.success("Settings saved", {
+      description: "Preferences have been updated locally in this browser."
+    });
+  }
 
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Header */}
-      <header className="h-12 border-b border-border">
-        <Container className="flex h-full items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="-ml-2 gap-1.5 text-sm">
-              <Link href="/">
-                <ArrowLeft className="size-4" />
-                Dashboard
-              </Link>
-            </Button>
-          </div>
-          <span className="text-primary dark:text-primary-subtle font-semibold tracking-tight">YieldFlow</span>
-          <ThemeToggle />
-        </Container>
-      </header>
-
+    <div className="bg-background">
       {/* Main content */}
       <main>
-        <Container className="py-8 space-y-6">
-          <h1 className="text-2xl font-semibold">Settings</h1>
+        <Container className="py-6 space-y-6">
+          <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
+
+          {/* Appearance */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>Customize how YieldFlow looks.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Theme</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Switch between light and dark mode.
+                  </p>
+                </div>
+                <ThemeToggle />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preferences card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Preferences</CardTitle>
+              <CardAction>
+                <Button size="sm" onClick={handleSavePreferences}>Save changes</Button>
+              </CardAction>
+              <CardDescription>Display settings for your portfolio.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Currency */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium">Currency</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Changes how amounts are displayed. Does not convert your values: numbers stay the same.
+                  </p>
+                </div>
+                <Select
+                  value={preferencesDraft.currency}
+                  onValueChange={handleCurrencyChange}
+                >
+                  <SelectTrigger
+                    aria-label="Display currency"
+                  >
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    <SelectGroup>
+                      {SUPPORTED_CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="border-t border-border" />
+
+              {/* Bank insurance limit */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Deposit insurance limit</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Optional. Set to see exposure warnings per bank on the dashboard.
+                  </p>
+                </div>
+                <div className="shrink-0 flex items-center gap-2">
+                  {/* TODO: Format currency */}
+                  <InputGroup>
+                    <InputGroupInput
+                      type="number"
+                      min={0}
+                      className="w-36 text-sm"
+                      placeholder="e.g. 500000"
+                      value={preferencesDraft.bankInsuranceLimit ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? undefined : Number(e.target.value);
+                        handleBankInsuranceLimitChange(val);
+                      }}
+                      aria-label="Bank insurance limit amount"
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        variant="ghost"
+                        size="xs"
+                        disabled={preferences.bankInsuranceLimit === null}
+                        onClick={() => handleBankInsuranceLimitChange(undefined)}
+                        aria-label="Clear insurance limit"
+                      >
+                        Clear
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Data management card */}
           <Card>
             <CardHeader>
               <CardTitle>Data management</CardTitle>
               <CardDescription>
-                Your investments are stored locally in this browser — no servers, no accounts.
+                Your investments are stored locally in this browser; no servers, no accounts.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -249,35 +362,76 @@ export function SettingsShell() {
                   Clear all
                 </Button>
               </div>
+
+              <Separator />
+
+
+
+              {/* Caveats */}
+              <Collapsible open={caveatsOpen} onOpenChange={setCaveatsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-1.5 text-sm font-medium transition-colors py-1">
+                    <ChevronDown
+                      className={["size-4 transition-transform", caveatsOpen ? "rotate-180" : ""].filter(Boolean).join(" ")}
+                      aria-hidden="true"
+                    />
+                    What you should know about local storage
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside pl-1">
+                    <li>
+                      Your data is stored <strong className="text-foreground font-medium">unencrypted</strong> — browser extensions running on this site can read it.
+                    </li>
+                    <li>Data is not synced between devices or browsers.</li>
+                    <li>Clearing your browser history or site data will erase all investments.</li>
+                    <li>
+                      Exported files contain sensitive financial data — store them securely, like you would a document with bank details.
+                    </li>
+                    <li>Not recommended on shared or public computers.</li>
+                  </ul>
+                </CollapsibleContent>
+              </Collapsible>
             </CardContent>
           </Card>
 
-          {/* Caveats */}
-          <Collapsible open={caveatsOpen} onOpenChange={setCaveatsOpen}>
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown
-                  className={["size-4 transition-transform", caveatsOpen ? "rotate-180" : ""].filter(Boolean).join(" ")}
-                  aria-hidden="true"
-                />
-                What you should know about local storage
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside pl-1">
-                <li>
-                  Your data is stored <strong className="text-foreground font-medium">unencrypted</strong> — browser extensions running on this site can read it.
-                </li>
-                <li>Data is not synced between devices or browsers.</li>
-                <li>Clearing your browser history or site data will erase all investments.</li>
-                <li>
-                  Exported files contain sensitive financial data — store them securely, like you would a document with bank details.
-                </li>
-                <li>Not recommended on shared or public computers.</li>
-              </ul>
-            </CollapsibleContent>
-          </Collapsible>
+          {/* About */}
+          <div className="text-xs text-muted-foreground mt-2 text-center">
+            <div className="mb-1">
+              <span>
+                YieldFlow Beta by{' '}
+                <a
+                  href="https://pbsabella.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary font-medium hover:underline dark:text-primary-subtle"
+                >
+                  pbsabella
+                </a>
+              </span>
+            </div>
+            <div className="flex gap-1 justify-center">
+              <a
+                href="https://github.com/pbsabella/yield-flow"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline"
+              >
+                View source
+              </a>
+              <span className="text-foreground">·</span>
+              <a
+                href="https://github.com/pbsabella/yield-flow/issues"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline"
+              >
+                Feedback
+              </a>
+            </div>
+          </div>
         </Container>
+        <Toaster />
       </main>
 
       {/* Import confirmation */}

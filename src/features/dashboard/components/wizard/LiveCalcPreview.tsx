@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
 import type { YieldInput } from "@/lib/domain/yield-engine";
-import { formatPhpCurrency } from "@/lib/domain/format";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { Badge } from '@/components/ui/badge';
 
 interface LiveCalcPreviewProps {
@@ -22,6 +22,7 @@ type CalcResult = {
 const DEBOUNCE_MS = 300;
 
 export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps) {
+  const { fmtCurrency } = usePortfolioContext();
   const [result, setResult] = useState<CalcResult | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,7 +62,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
       >
         {result ? (
           <span className="text-foreground font-medium">
-            {!result.maturityDate ? 'Annual net' : 'Net '} {formatPhpCurrency(result.netInterest)}
+            {!result.maturityDate ? 'Annual net' : 'Net '} {fmtCurrency(result.netInterest)}
             <span className="text-muted-foreground font-normal">
               {" · "}
               {result.maturityDate
@@ -97,7 +98,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
                 {!result.maturityDate ? 'Annual net' : 'Net '} interest
               </p>
               <p className="text-2xl font-semibold tabular-nums">
-                {formatPhpCurrency(result.netInterest)}
+                {fmtCurrency(result.netInterest)}
               </p>
             </div>
             <div>
@@ -115,7 +116,7 @@ export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps
             <div>
               <p className="text-xs text-muted-foreground">Net total</p>
               <p className="text-sm font-medium tabular-nums">
-                {formatPhpCurrency(result.netTotal)}
+                {fmtCurrency(result.netTotal)}
               </p>
             </div>
           </div>

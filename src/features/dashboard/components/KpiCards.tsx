@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatPhpCurrency } from "@/lib/domain/format";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { formatDate, formatMonthLabel, parseLocalDate } from "@/lib/domain/date";
 import type { CurrentMonthBreakdown, NextMaturity } from "@/features/dashboard/hooks/usePortfolioData";
 
@@ -11,6 +11,7 @@ type KpiCardsProps = {
 };
 
 export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }: KpiCardsProps) {
+  const { fmtCurrency } = usePortfolioContext();
   const { net: incomeThisMonth, pendingNet, settledNet } = currentMonthBreakdown;
   const hasPills = incomeThisMonth > 0 && (pendingNet > 0 || settledNet > 0);
   const monthLabel = formatMonthLabel(new Date());
@@ -26,7 +27,7 @@ export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-semibold">
-            {formatPhpCurrency(totalPrincipal)}
+            {fmtCurrency(totalPrincipal)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Excludes settled.</p>
         </CardContent>
@@ -41,16 +42,16 @@ export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-semibold">
-            {formatPhpCurrency(incomeThisMonth)}
+            {fmtCurrency(incomeThisMonth)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Net interest · {monthLabel}</p>
           {hasPills && (
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               {pendingNet > 0 && (
-                <Badge variant="warning">{formatPhpCurrency(pendingNet)} pending</Badge>
+                <Badge variant="warning">{fmtCurrency(pendingNet)} pending</Badge>
               )}
               {settledNet > 0 && (
-                <Badge variant="success">{formatPhpCurrency(settledNet)} settled</Badge>
+                <Badge variant="success">{fmtCurrency(settledNet)} settled</Badge>
               )}
             </div>
           )}
@@ -74,7 +75,7 @@ export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }
                 {nextMaturity.name}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {nextMaturity.bankName} · {formatPhpCurrency(nextMaturity.netProceeds)} net
+                {nextMaturity.bankName} · {fmtCurrency(nextMaturity.netProceeds)} net
               </p>
             </>
           ) : (

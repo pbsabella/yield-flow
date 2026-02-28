@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CURRENCY_SYMBOL } from "@/lib/config";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { toISODate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { InterestTier } from "@/types";
@@ -75,11 +75,12 @@ function TierUpToInput({
   value: string;
   onChange: (raw: string) => void;
 }) {
+  const { currencySymbol } = usePortfolioContext();
   const currencyProps = useCurrencyInput({ value, onChange });
   return (
     <InputGroup>
       <InputGroupAddon align="inline-start">
-        <InputGroupText>{CURRENCY_SYMBOL}</InputGroupText>
+        <InputGroupText>{currencySymbol}</InputGroupText>
       </InputGroupAddon>
       <InputGroupInput placeholder="500,000" {...currencyProps} />
     </InputGroup>
@@ -190,7 +191,6 @@ function Req() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const TERM_PRESETS = [3, 6, 9, 12, 18, 24] as const;
 const DATALIST_ID = "bank-name-suggestions";
 
 export function InvestmentForm({
@@ -202,6 +202,7 @@ export function InvestmentForm({
   existingBankNames,
   timeZone,
 }: InvestmentFormProps) {
+  const { currencySymbol } = usePortfolioContext();
   const principalCurrencyProps = useCurrencyInput({
     value: formState.principal,
     onChange: (raw) => setField("principal", raw),
@@ -222,11 +223,57 @@ export function InvestmentForm({
     if (date) setField("startDate", toISODate(date));
   };
 
-  const termPresetValue = TERM_PRESETS.includes(
-    formState.termMonths as (typeof TERM_PRESETS)[number],
-  )
-    ? String(formState.termMonths)
-    : "";
+  const termField = (
+    <Field>
+      <FieldLabel htmlFor="inv-term">
+        Term <Req />
+      </FieldLabel>
+      <div className="flex items-center gap-2">
+        <InputGroup className="w-24">
+          <InputGroupInput
+            id="inv-term"
+            type="number"
+            min={1}
+            max={formState.termUnit === "months" ? 360 : 3650}
+            placeholder={formState.termUnit === "months" ? "e.g. 6" : "e.g. 91"}
+            value={
+              formState.termUnit === "months"
+                ? (formState.termMonths !== null ? String(formState.termMonths) : "")
+                : (formState.termDays !== null ? String(formState.termDays) : "")
+            }
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val) && val > 0) {
+                if (formState.termUnit === "months") setField("termMonths", val);
+                else setField("termDays", val);
+              }
+            }}
+            onBlur={() =>
+              touchField(formState.termUnit === "months" ? "termMonths" : "termDays")
+            }
+          />
+        </InputGroup>
+        <ToggleGroup
+          type="single"
+          variant="card"
+          value={formState.termUnit}
+          onValueChange={(val) => {
+            if (val) {
+              setField("termUnit", val as "months" | "days");
+              if (val === "months") setField("termDays", null);
+              else setField("termMonths", null);
+            }
+          }}
+        >
+          <ToggleGroupItem value="months">Months</ToggleGroupItem>
+          <ToggleGroupItem value="days">Days</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+      {errors.termMonths && <FieldError>{errors.termMonths}</FieldError>}
+      {errors.termDays && <FieldError>{errors.termDays}</FieldError>}
+      <FieldDescription>How long your money is locked in</FieldDescription>
+    </Field>
+  );
 
   return (
     <div className="space-y-8">
@@ -305,7 +352,7 @@ export function InvestmentForm({
         </FieldLabel>
         <InputGroup>
           <InputGroupAddon align="inline-start">
-            <InputGroupText>{CURRENCY_SYMBOL}</InputGroupText>
+            <InputGroupText>{currencySymbol}</InputGroupText>
           </InputGroupAddon>
           <InputGroupInput
             id="inv-principal"
@@ -371,8 +418,8 @@ export function InvestmentForm({
                 <InputGroupText>%</InputGroupText>
               </InputGroupAddon>
             </InputGroup>
-            { errors.flatRate && <FieldError>{errors.flatRate}</FieldError> }
-            { warnings.flatRate && <p className="text-xs text-status-warning-fg">{warnings.flatRate}</p> }
+            {errors.flatRate && <FieldError>{errors.flatRate}</FieldError>}
+            {warnings.flatRate && <p className="text-xs text-status-warning-fg">{warnings.flatRate}</p>}
             <FieldDescription>Annual interest rate (p.a.)</FieldDescription>
           </div>
         ) : (
@@ -409,7 +456,7 @@ export function InvestmentForm({
             <InputGroupText>%</InputGroupText>
           </InputGroupAddon>
         </InputGroup>
-        {errors.taxRate && <FieldError>{errors.taxRate}</FieldError> }
+        {errors.taxRate && <FieldError>{errors.taxRate}</FieldError>}
         <FieldDescription>
           Withholding tax deducted by the bank before you receive interest
         </FieldDescription>
@@ -456,55 +503,7 @@ export function InvestmentForm({
       {/* ── Fixed-term fields ───────────────────────────────── */}
       {isFixedTerm && (
         <>
-          <Field>
-            <FieldLabel>
-              Term <Req />
-            </FieldLabel>
-            <div className="space-y-2">
-              <ToggleGroup
-                type="single"
-                variant="card"
-                value={termPresetValue}
-                onValueChange={(val) => {
-                  if (val) setField("termMonths", parseInt(val));
-                }}
-              >
-                {TERM_PRESETS.map((m) => (
-                  <ToggleGroupItem key={m} value={String(m)}>
-                    {m} mo
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              <InputGroup className="w-28">
-                <InputGroupInput
-                  type="number"
-                  min={1}
-                  max={360}
-                  placeholder="Custom"
-                  value={
-                    formState.termMonths !== null &&
-                    !TERM_PRESETS.includes(
-                      formState.termMonths as (typeof TERM_PRESETS)[number],
-                    )
-                      ? String(formState.termMonths)
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (!isNaN(val) && val > 0) setField("termMonths", val);
-                  }}
-                  onBlur={() => touchField("termMonths")}
-                />
-                <InputGroupAddon align="inline-end">
-                  <InputGroupText>mo</InputGroupText>
-                </InputGroupAddon>
-              </InputGroup>
-            </div>
-            {errors.termMonths && (
-              <FieldError>{errors.termMonths}</FieldError>
-            )}
-            <FieldDescription>How long your money is locked in</FieldDescription>
-          </Field>
+          {termField}
 
           <Field>
             <FieldLabel>Payout frequency</FieldLabel>
@@ -545,52 +544,7 @@ export function InvestmentForm({
             />
           </div>
 
-          {!formState.isOpenEnded && (
-            <Field>
-              <FieldLabel>
-                Term <Req />
-              </FieldLabel>
-              <div className="space-y-2">
-                <ToggleGroup
-                  type="single"
-                  variant="card"
-                  value={termPresetValue}
-                  onValueChange={(val) => {
-                    if (val) setField("termMonths", parseInt(val));
-                  }}
-                >
-                  {TERM_PRESETS.map((m) => (
-                    <ToggleGroupItem key={m} value={String(m)}>
-                      {m} mo
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-                <InputGroup className="w-28">
-                  <InputGroupInput
-                    type="number"
-                    min={1}
-                    placeholder="Custom"
-                    value={
-                      formState.termMonths !== null &&
-                      !TERM_PRESETS.includes(
-                        formState.termMonths as (typeof TERM_PRESETS)[number],
-                      )
-                        ? String(formState.termMonths)
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value);
-                      if (!isNaN(val) && val > 0) setField("termMonths", val);
-                    }}
-                  />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupText>mo</InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
-              </div>
-              <FieldDescription>How long your money is locked in</FieldDescription>
-            </Field>
-          )}
+          {!formState.isOpenEnded && termField}
         </>
       )}
     </div>

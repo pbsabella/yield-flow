@@ -21,27 +21,20 @@ const seedDeposit: TimeDeposit = {
   status: "active",
 };
 
-test("home has no critical a11y issues", async ({ page }) => {
+test("dashboard page has no critical a11y issues", async ({ page }) => {
   await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
   const critical = results.violations.filter((v) => v.impact === "critical");
   expect(critical).toEqual([]);
 });
 
-test("settings page has no critical a11y issues", async ({ page }) => {
-  await page.goto("/settings");
-  const results = await new AxeBuilder({ page }).analyze();
-  const critical = results.violations.filter((v) => v.impact === "critical");
-  expect(critical).toEqual([]);
-});
-
-test("dashboard with data has no critical a11y issues", async ({ page }) => {
+test("dashboard page with data has no critical a11y issues", async ({ page }) => {
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Portfolio" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   const critical = results.violations.filter((v) => v.impact === "critical");
@@ -58,18 +51,65 @@ test("add investment dialog has no critical a11y issues", async ({ page }) => {
   expect(critical).toEqual([]);
 });
 
+test("investment page has no critical a11y issues", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
+  await page.goto("/investments");
+  await expect(page.getByRole("heading", { level: 1, name: "Investments" })).toBeVisible();
+  await expect(page.getByText("Beacon Bank", { exact: true })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
 test("edit investment dialog has no critical a11y issues", async ({ page }) => {
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
 
-  await page.goto("/");
+  await page.goto("/investments");
+  await expect(page.getByRole("heading", { level: 1, name: "Investments" })).toBeVisible();
   await expect(page.getByText("Beacon Bank", { exact: true })).toBeVisible();
 
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();
   await moreOptionsBtn.click();
   await page.getByRole("menuitem", { name: /edit/i }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
+test("cash flow page has no critical a11y issues", async ({ page }) => {
+  await page.goto("/cashflow");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Cash Flow" })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
+test("cash flow page with data has no critical a11y issues", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
+  await page.goto("/cashflow");
+  await expect(page.getByRole("heading", { level: 1, name: "Cash Flow" })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
+test("settings page has no critical a11y issues", async ({ page }) => {
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   const critical = results.violations.filter((v) => v.impact === "critical");

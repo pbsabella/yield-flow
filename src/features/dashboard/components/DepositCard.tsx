@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatPhpCurrency } from "@/lib/domain/format";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
@@ -76,6 +76,7 @@ function MaturityLabel({
 }
 
 export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
+  const { fmtCurrency } = usePortfolioContext();
   const [open, setOpen] = useState(false);
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -98,12 +99,12 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
               <CollapsibleTrigger className={`flex w-full items-center justify-between gap-2 px-4 py-3 hover:bg-muted${open ? " bg-primary/5" : ""}`}>
                 <div className="flex items-center gap-2">
                   {statusBadge}
-                  <h3
+                  <h2
                     id={`deposit-${deposit.id}-name`}
                     className="text-sm font-medium"
                   >
                     {deposit.name}
-                  </h3>
+                  </h2>
                 </div>
                 <ChevronDown
                   aria-hidden="true"
@@ -120,11 +121,11 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
 
                 <span className="text-muted-foreground">Principal</span>
                 <span className="text-right font-medium">
-                  {formatPhpCurrency(deposit.principal)}
+                  {fmtCurrency(deposit.principal)}
                 </span>
 
                 <span className="text-muted-foreground">Net interest</span>
-                <span className="text-right">{formatPhpCurrency(netInterest)}</span>
+                <span className="text-right">{fmtCurrency(netInterest)}</span>
 
                 <span className="text-muted-foreground">Rate</span>
                 <span className="text-right">
@@ -132,6 +133,17 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
                     ? "Tiered"
                     : `${(deposit.flatRate * 100).toFixed(2)}%`}
                 </span>
+
+                {!deposit.isOpenEnded && (
+                  <>
+                    <span className="text-muted-foreground">Term</span>
+                    <span className="text-right">
+                      {deposit.termDays != null
+                        ? `${deposit.termDays}d`
+                        : `${deposit.termMonths} mo`}
+                    </span>
+                  </>
+                )}
 
                 <span className="text-muted-foreground">Payout</span>
                 <span className="text-right">

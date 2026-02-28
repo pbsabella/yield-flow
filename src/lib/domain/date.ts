@@ -62,6 +62,14 @@ export function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+// Add whole calendar days to a date using local date components, consistent with
+// the timezone-safe approach used throughout this module.
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
 export function differenceInCalendarDays(later: Date, earlier: Date) {
   const msPerDay = 24 * 60 * 60 * 1000;
   const start = Date.UTC(earlier.getFullYear(), earlier.getMonth(), earlier.getDate());

@@ -1,25 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
-import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
-import { CashFlowTab } from "@/features/dashboard/components/CashFlowTab";
+import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
-import { DemoBanner } from "@/features/dashboard/components/DemoBanner";
-import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
-import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
-import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
-import type { TimeDeposit } from "@/types";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { formatMonthLabel } from "@/lib/domain/date";
 
-// ─── Layout helpers ───────────────────────────────────────────────────────────
+// ─── Layout helpers ────────────────────────────────────────────────────────────
 
 function Container({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -30,245 +23,142 @@ function Container({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
+// ─── Loading skeleton ──────────────────────────────────────────────────────────
 
 function DashboardSkeleton() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <Skeleton className="h-4 w-2/3" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-14 mb-2 w-full" />
-              <Skeleton className="h-4 w-1/3" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <Skeleton className="h-4 w-2/3 mb-4" />
+              <Skeleton className="h-10 w-full mb-2" />
+              <Skeleton className="h-3 w-1/3" />
             </CardContent>
           </Card>
         ))}
       </div>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-8 w-1/3" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
-      </Card>
+      <Skeleton className="h-32 w-full" />
     </div>
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Quick cash flow preview for this month ────────────────────────────────────
 
-export default function DashboardShell() {
-  const { deposits: storedDeposits, setDeposits, isReady } = usePersistedDeposits();
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+type MonthEntry = {
+  depositId: string;
+  name: string;
+  bankName: string;
+  amountNet: number;
+  payoutFrequency: string;
+};
 
-  // Demo mode — purely in-memory, never writes to localStorage
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [liveDemoDeposits, setLiveDemoDeposits] = useState<TimeDeposit[]>([]);
-
-  const deposits = isDemoMode ? liveDemoDeposits : storedDeposits;
-  const banks = isDemoMode ? [...demoBanks] : [];
-  const showEmptyLanding = isReady && !isDemoMode && storedDeposits.length === 0;
-
-  const existingBankNames = useMemo(
-    () => [...new Set(deposits.map((d) => d.bankId))],
-    [deposits],
-  );
-
-  const portfolio = usePortfolioData(deposits, banks);
-
-  // ─── Demo mode entry / exit ─────────────────────────────────────────────────
-
-  const handleEnterDemo = useCallback(() => {
-    setIsDemoMode(true);
-    setLiveDemoDeposits([...demoDepositsData]);
-  }, []);
-
-  const handleExitDemo = useCallback(() => {
-    setIsDemoMode(false);
-    setLiveDemoDeposits([]);
-  }, []);
-
-  // ─── Mutating handlers (demo-split) ────────────────────────────────────────
-
-  const handleSettle = useCallback(
-    (id: string) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)),
-        );
-      } else {
-        setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
-      }
-    },
-    [isDemoMode, storedDeposits, setDeposits],
-  );
-
-  const handleDelete = useCallback(
-    (id: string) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) => prev.filter((d) => d.id !== id));
-      } else {
-        setDeposits(storedDeposits.filter((d) => d.id !== id));
-      }
-    },
-    [isDemoMode, storedDeposits, setDeposits],
-  );
-
-  const handleEdit = useCallback((deposit: TimeDeposit) => {
-    setEditTarget(deposit);
-    setWizardOpen(true);
-  }, []);
-
-  const handleSave = useCallback(
-    (deposit: TimeDeposit) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) =>
-          editTarget
-            ? prev.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
-            : [...prev, deposit],
-        );
-      } else {
-        setDeposits(
-          editTarget
-            ? storedDeposits.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
-            : [...storedDeposits, deposit],
-        );
-      }
-      setHighlightedId(deposit.id);
-      setTimeout(() => setHighlightedId(null), 2500);
-    },
-    [isDemoMode, storedDeposits, setDeposits, editTarget],
-  );
+function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
+  const { fmtCurrency } = usePortfolioContext();
+  const monthLabel = formatMonthLabel(new Date());
+  const preview = entries.slice(0, 3);
 
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Header */}
-      <header className="h-12 border-b border-border">
-        <Container className="flex h-full items-center justify-between">
-          <span className="text-primary dark:text-primary-subtle font-semibold tracking-tight">YieldFlow</span>
-          <nav className="flex items-center gap-1">
-            {!isDemoMode && (
-              <Button variant="ghost" size="icon" asChild aria-label="Settings">
-                <Link href="/settings">
-                  <Settings className="size-4" />
-                </Link>
-              </Button>
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {monthLabel} payouts
+          </CardTitle>
+          <Button variant="ghost" asChild>
+            <Link
+              href="/cashflow"
+            >
+              View all <ArrowRight className="size-3" />
+            </Link>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {preview.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No payouts scheduled this month.</p>
+        ) : (
+          <div className="space-y-2">
+            {preview.map((entry) => (
+              <div
+                key={entry.depositId}
+                className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5 text-sm"
+              >
+                <div>
+                  <span className="font-medium">{entry.name || entry.bankName}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{entry.bankName}</span>
+                </div>
+                <span className="font-medium tabular-nums text-pr dark:text-primary-subtle">
+                  {fmtCurrency(entry.amountNet)}
+                </span>
+              </div>
+            ))}
+            {entries.length > 3 && (
+              <p className="text-xs text-center text-muted-foreground pt-1">
+                +{entries.length - 3} more
+              </p>
             )}
-            <ThemeToggle />
-          </nav>
-        </Container>
-      </header>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-      {/* Demo banner — shown above main content */}
-      {isDemoMode && <DemoBanner onExit={handleExitDemo} />}
+// ─── Main component ────────────────────────────────────────────────────────────
 
-      {/* Main content */}
-      <main>
-        <Container className="py-6 space-y-8">
-          {!isReady && <DashboardSkeleton />}
+export default function DashboardShell() {
+  const { deposits, banks, isReady, isDemoMode, openWizard, enterDemo, hasSidebar } =
+    usePortfolioContext();
 
-          {showEmptyLanding && (
-            <EmptyLanding
-              onAddData={() => setWizardOpen(true)}
-              onTryDemo={handleEnterDemo}
-            />
-          )}
+  const showEmptyLanding = isReady && !isDemoMode && !hasSidebar;
+  const portfolio = usePortfolioData(deposits, banks);
+  const thisMonthEntries = (portfolio.currentMonthFull?.entries ?? []) as MonthEntry[];
 
-          {isReady && !showEmptyLanding && (
-            <>
-              {/* Page intro */}
+  return (
+    <main>
+      <Container className="py-6 space-y-8">
+        {!isReady && <DashboardSkeleton />}
+
+        {/* TODO: Fix entry point and overall loading states between views */}
+        {showEmptyLanding && (
+          <EmptyLanding
+            onAddData={() => openWizard()}
+            onTryDemo={enterDemo}
+          />
+        )}
+
+        {isReady && !showEmptyLanding && (
+          <>
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-semibold md:text-4xl mb-2">Yield Overview</h1>
-                <p className="text-sm text-muted-foreground">
-                  Track your fixed-income investments, visualize maturity timing, and see your passive income clearly.
+                <h1 className="text-2xl font-semibold md:text-3xl">Portfolio</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Consolidated view of active yields
                 </p>
               </div>
+              <Button
+                onClick={() => openWizard()}
+                className="hidden md:flex shrink-0"
+              >
+                <Plus className="size-4" />
+                Add investment
+              </Button>
+            </div>
 
-              {/* KPI cards */}
-              <KpiCards
-                totalPrincipal={portfolio.totalPrincipal}
-                currentMonthBreakdown={portfolio.currentMonthBreakdown}
-                nextMaturity={portfolio.nextMaturity}
-              />
+            <KpiCards
+              totalPrincipal={portfolio.totalPrincipal}
+              currentMonthBreakdown={portfolio.currentMonthBreakdown}
+              nextMaturity={portfolio.nextMaturity}
+            />
 
-              {/* Investments + Cash Flow in a single tabbed card */}
-              <Card className="pt-8">
-                <Tabs defaultValue="investments">
-                  <CardHeader className="pb-2">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div>
-                        <CardTitle className="text-3xl font-semibold"><h2>Portfolio</h2></CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {portfolio.summaries.length} deposits tracked
-                        </p>
-                      </div>
-                      <Button
-                        size="default"
-                        variant="default"
-                        onClick={() => setWizardOpen(true)}
-                      >
-                        <Plus />
-                        Add investment
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-8 pb-2">
-                    <TabsList>
-                      <TabsTrigger value="investments">
-                        <LayoutList className="size-4" />
-                        Investments
-                      </TabsTrigger>
-                      <TabsTrigger value="cashflow">
-                        <TrendingUp className="size-4" />
-                        Cash Flow
-                      </TabsTrigger>
-                    </TabsList>
-                  </CardContent>
+            <ThisMonthPreview entries={thisMonthEntries} />
 
-                  <TabsContent value="investments" tabIndex={-1}>
-                    <CardContent className="pt-4 pb-6">
-                      <InvestmentsTab
-                        summaries={portfolio.summaries}
-                        onSettle={handleSettle}
-                        onDelete={handleDelete}
-                        onEdit={handleEdit}
-                        highlightedId={highlightedId}
-                      />
-                    </CardContent>
-                  </TabsContent>
-
-                  <TabsContent value="cashflow" tabIndex={-1}>
-                    <CardContent className="pt-4 pb-6">
-                      <CashFlowTab
-                        monthlyAllowance={portfolio.monthlyAllowance}
-                        currentMonthFull={portfolio.currentMonthFull}
-                      />
-                    </CardContent>
-                  </TabsContent>
-                </Tabs>
-              </Card>
-            </>
-          )}
-        </Container>
-      </main>
-
-      <InvestmentWizard
-        open={wizardOpen}
-        onOpenChange={(open) => {
-          setWizardOpen(open);
-          if (!open) setEditTarget(null);
-        }}
-        onSave={handleSave}
-        existingBankNames={existingBankNames}
-        initialDeposit={editTarget ?? undefined}
-      />
-    </div>
+            <BankExposureCard />
+          </>
+        )}
+      </Container>
+    </main>
   );
 }

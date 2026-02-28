@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveCalcPreview } from "../LiveCalcPreview";
+import { PortfolioProvider } from "@/features/dashboard/context/PortfolioContext";
 import type { YieldInput } from "@/lib/domain/yield-engine";
 
 const VALID_INPUT: YieldInput = {
@@ -18,6 +19,14 @@ const VALID_INPUT: YieldInput = {
 
 const DEBOUNCE_MS = 300;
 
+function renderPreview(props: Parameters<typeof LiveCalcPreview>[0]) {
+  return render(
+    <PortfolioProvider>
+      <LiveCalcPreview {...props} />
+    </PortfolioProvider>,
+  );
+}
+
 describe("LiveCalcPreview — panel mode (compact=false)", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -28,14 +37,14 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
   });
 
   it("shows empty state when input is null", () => {
-    render(<LiveCalcPreview input={null} />);
+    renderPreview({ input: null });
     expect(
       screen.getByText(/fill in investment details to see your projected return/i),
     ).toBeInTheDocument();
   });
 
   it("shows empty state before debounce fires with valid input", () => {
-    render(<LiveCalcPreview input={VALID_INPUT} />);
+    renderPreview({ input: VALID_INPUT });
     // Debounce hasn't fired yet
     expect(
       screen.getByText(/fill in investment details to see your projected return/i),
@@ -43,7 +52,7 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
   });
 
   it("shows calculation results after debounce with valid input", () => {
-    render(<LiveCalcPreview input={VALID_INPUT} />);
+    renderPreview({ input: VALID_INPUT });
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -57,12 +66,12 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
     // Should show Calculation Preview heading
     expect(screen.getByText(/calculation preview/i)).toBeInTheDocument();
 
-    // Should show formatted PHP currency values
-    expect(screen.getAllByText(/₱/i).length).toBeGreaterThan(0);
+    // Should show formatted currency values
+    expect(screen.getAllByText(/[₱$€]/i).length).toBeGreaterThan(0);
   });
 
   it("shows calculation breakdown note after debounce", () => {
-    render(<LiveCalcPreview input={VALID_INPUT} />);
+    renderPreview({ input: VALID_INPUT });
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -72,7 +81,7 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
   });
 
   it("returns to empty state when input becomes null", () => {
-    const { rerender } = render(<LiveCalcPreview input={VALID_INPUT} />);
+    const { rerender } = renderPreview({ input: VALID_INPUT });
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -80,7 +89,11 @@ describe("LiveCalcPreview — panel mode (compact=false)", () => {
 
     expect(screen.getByText(/calculation preview/i)).toBeInTheDocument();
 
-    rerender(<LiveCalcPreview input={null} />);
+    rerender(
+      <PortfolioProvider>
+        <LiveCalcPreview input={null} />
+      </PortfolioProvider>,
+    );
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -102,14 +115,14 @@ describe("LiveCalcPreview — compact strip mode (compact=true)", () => {
   });
 
   it("shows empty state text when input is null", () => {
-    render(<LiveCalcPreview input={null} compact />);
+    renderPreview({ input: null, compact: true });
     expect(
       screen.getByText(/fill in investment details to see your projected return/i),
     ).toBeInTheDocument();
   });
 
   it("shows Net and maturity info after debounce", () => {
-    render(<LiveCalcPreview input={VALID_INPUT} compact />);
+    renderPreview({ input: VALID_INPUT, compact: true });
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -126,7 +139,7 @@ describe("LiveCalcPreview — compact strip mode (compact=true)", () => {
     };
 
     // Simulate open-ended by using a YieldInput that would be flagged as open-ended
-    render(<LiveCalcPreview input={openEndedInput} compact />);
+    renderPreview({ input: openEndedInput, compact: true });
 
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);

@@ -30,7 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
-import { columns } from "@/features/dashboard/components/columns";
+import { createColumns } from "@/features/dashboard/components/columns";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { DepositCard } from "@/features/dashboard/components/DepositCard";
 import { DeleteConfirmDialog } from "@/features/dashboard/components/DeleteConfirmDialog";
 import { SettleConfirmDialog } from "@/features/dashboard/components/SettleConfirmDialog";
@@ -82,6 +83,8 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
+  const { fmtCurrency } = usePortfolioContext();
+  const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
@@ -240,7 +243,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
         />
       ) : isMd ? (
         /* ── Desktop table (horizontally scrollable, Deposit column frozen) ── */
-        <div className="border rounded-md overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -257,7 +260,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                         }
                         className={[
                           header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                          isDeposit ? "sticky left-0 z-10 bg-background border-r" : "",
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -274,7 +277,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "transition-colors duration-1000",
+                    "bg-card transition-colors duration-1000",
                     row.original.deposit.id === highlightedId && "bg-primary/10",
                   )}
                 >
@@ -284,7 +287,7 @@ export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highligh
                       <TableCell
                         key={cell.id}
                         className={
-                          isDeposit ? "sticky left-0 z-10 bg-background border-r" : ""
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : ""
                         }
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

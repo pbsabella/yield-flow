@@ -7,21 +7,24 @@
 
 ## Investment Types
 
-| Type                 | Description                                  |
-| -------------------- | -------------------------------------------- |
-| Time Deposit (TD)    | Fixed term, principal + interest at maturity |
-| TD Monthly Payout    | Interest paid monthly, principal locked      |
-| Open-ended / Savings | No maturity date, ongoing monthly interest   |
+| Type                 | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| Time Deposit (TD)    | Fixed term, principal + interest at maturity   |
+| TD Monthly Payout    | Interest paid monthly, principal locked        |
+| Open-ended / Savings | No maturity date, ongoing monthly interest     |
 
 ---
 
 ## Domain Logic
 
-| Concept   | Rule                                                                |
-| --------- | ------------------------------------------------------------------- |
-| Display   | Net of tax only. Principal return is not income.                    |
-| Status    | `active` → `matured` (auto) → `settled` (explicit user action only) |
-| Principal | `active` + `matured` count. `settled` excluded.                     |
+| Concept             | Rule                                                                 |
+| ------------------- | -------------------------------------------------------------------- |
+| Display             | Net of tax only. Principal return is not income.                     |
+| Status              | `active` → `matured` (auto) → `settled` (explicit user action only) |
+| Principal           | `active` + `matured` count. `settled` excluded.                     |
+| Interest Mode       | `simple` (flat rate) or `tiered` (brackets by principal balance)     |
+| Term input          | Months (default) **or** `termDays` (takes precedence when set)      |
+| Day-count           | 360 or 365 toggle; default 365                                       |
 
 ---
 
@@ -46,12 +49,13 @@ Sorted by maturity ASC. Desktop table + mobile expandable cards.
 
 ## Cash Flow
 
-12-month rolling window. Months with no payouts are omitted (they do not appear as empty rows).
+Rolling window with filter: **3M / 6M / 12M / All**. Default 12M. Months with no payouts are omitted.
 
 **Expanded:** MONTHLY PAYOUTS (recurring interest) + MATURITY PAYOUTS (one-time, net interest only)
-**Current month:** pending + settled pills same as dashboard
+**Current month:** pending + settled pills same as dashboard; row is open by default
 
-**Open-ended deposits:** Projected as 12 monthly payouts anchored to the deposit's `startDate` (not today). The first projected month is the earliest payout month ≥ the current calendar month — so the current month is included when a payout falls within it.
+**Open-ended deposits:** Projected as 12 monthly payouts anchored to the deposit's `startDate`.
+The first projected month is the earliest payout month ≥ the current calendar month.
 
 ---
 
@@ -84,6 +88,7 @@ Single-step centered dialog. Desktop: two-column with live calc right panel. Mob
 
 ## Portfolio Rationale
 
-- **Wizard:** Lowers cognitive load — users shouldn't need to know day-count conventions or tax math
+- **Free-text bank names:** Avoids a stale registry. Datalist autocomplete handles repeat entries.
 - **Net-only:** Represents spendable reality. Gross creates false expectations.
 - **Explicit settle:** Matured TDs may still earn via rollover. Auto-settling misrepresents position.
+- **No backend:** Zero-friction to try. localStorage is honest about its constraints; the app surfaces caveats in Settings, not as a persistent nag.
