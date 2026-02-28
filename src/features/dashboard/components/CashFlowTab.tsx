@@ -13,7 +13,7 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
-import { formatPhpCurrency } from "@/lib/domain/format";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { monthKey } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { MonthlyAllowance } from "@/types";
@@ -51,10 +51,12 @@ function AreaChart({
   months,
   currentMonthKey,
   currentMonthFull,
+  fmtCurrency,
 }: {
   months: MonthlyAllowance[];
   currentMonthKey: string;
   currentMonthFull: MonthlyAllowance | null;
+  fmtCurrency: (value: number) => string;
 }) {
   const effectiveNet = (m: MonthlyAllowance) =>
     m.monthKey === currentMonthKey && currentMonthFull != null
@@ -81,7 +83,12 @@ function AreaChart({
   const maxIdx = pts.reduce((best, pt, i) => (pt.net > pts[best].net ? i : best), 0);
 
   return (
-    <div className="overflow-x-auto rounded-lg">
+    <div
+      className="overflow-x-auto rounded-lg"
+      role="region"
+      aria-label="Interest projection trend chart"
+      tabIndex={0}
+    >
       <svg
         width={svgWidth}
         height={SVG_HEIGHT}
@@ -132,7 +139,7 @@ function AreaChart({
           fontWeight="500"
           className="fill-foreground tabular-nums"
         >
-          {formatPhpCurrency(pts[maxIdx].net)}
+          {fmtCurrency(pts[maxIdx].net)}
         </text>
 
         {/* X-axis labels */}
@@ -188,10 +195,12 @@ function EntryGroup({
   label,
   entries,
   isCurrent,
+  fmtCurrency,
 }: {
   label: string;
   entries: AllowanceEntry[];
   isCurrent: boolean;
+  fmtCurrency: (value: number) => string;
 }) {
   if (entries.length === 0) return null;
   return (
@@ -218,7 +227,7 @@ function EntryGroup({
               </span>
               <span className="flex items-center gap-1.5 shrink-0">
                 {isCurrent && entry.status === "matured" && (
-                  <Badge variant="destructive" className="text-xs h-4 font-normal">
+                  <Badge variant="alert" className="text-xs h-4 font-normal">
                     Due now
                   </Badge>
                 )}
@@ -230,13 +239,13 @@ function EntryGroup({
                 <span
                   className={cn("tabular-nums font-medium")}
                 >
-                  {formatPhpCurrency(entry.amountNet)}
+                  {fmtCurrency(entry.amountNet)}
                 </span>
               </span>
             </div>
             {(entry.principalReturned ?? 0) > 0 && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                +{formatPhpCurrency(entry.principalReturned!)} principal
+                +{fmtCurrency(entry.principalReturned!)} principal
                 returned
               </p>
             )}
@@ -251,10 +260,12 @@ function MonthRow({
   month,
   isCurrent,
   currentMonthFull,
+  fmtCurrency,
 }: {
   month: MonthlyAllowance;
   isCurrent: boolean;
   currentMonthFull: MonthlyAllowance | null;
+  fmtCurrency: (value: number) => string;
 }) {
   const [open, setOpen] = useState(isCurrent);
 
@@ -284,7 +295,7 @@ function MonthRow({
             </span>
             <span className="flex items-center gap-2 tabular-nums ml-auto">
               <span className={cn(isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
-                {formatPhpCurrency(displayNet)}
+                {fmtCurrency(displayNet)}
               </span>
               <ChevronDown
                 className={cn(
@@ -302,11 +313,13 @@ function MonthRow({
               label="At maturity payouts"
               entries={maturityEntries}
               isCurrent={isCurrent}
+              fmtCurrency={fmtCurrency}
             />
             <EntryGroup
               label="Monthly payouts"
               entries={monthlyEntries}
               isCurrent={isCurrent}
+              fmtCurrency={fmtCurrency}
             />
           </CardContent>
         </CollapsibleContent>
@@ -323,6 +336,7 @@ interface CashFlowTabProps {
 }
 
 export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabProps) {
+  const { fmtCurrency } = usePortfolioContext();
   const [window, setWindow] = useState<Window>("12");
   const currentMonthKey = monthKey(new Date());
   const futureMonths = monthlyAllowance.filter(
@@ -350,7 +364,7 @@ export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabP
         </p>
         <WindowFilter value={window} onChange={setWindow} />
       </div>
-      <AreaChart months={slicedMonths} currentMonthKey={currentMonthKey} currentMonthFull={currentMonthFull} />
+      <AreaChart months={slicedMonths} currentMonthKey={currentMonthKey} currentMonthFull={currentMonthFull} fmtCurrency={fmtCurrency} />
       <div className="space-y-3">
         {slicedMonths.map((month) => (
           <MonthRow
@@ -358,6 +372,7 @@ export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabP
             month={month}
             isCurrent={month.monthKey === currentMonthKey}
             currentMonthFull={currentMonthFull}
+            fmtCurrency={fmtCurrency}
           />
         ))}
       </div>

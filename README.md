@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YieldFlow
 
-## Getting Started
+**YieldFlow** is a high-precision investment tracking prototype designed for investors to monitor fixed-income yields and monthly cash flow. The application currently operates as a **local-only prototype**, focusing on calculation accuracy and a refined user experience before moving to a full-stack architecture.
 
-First, run the development server:
+## 🏗 Project Evolution & Roadmap
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+YieldFlow is a work in progress, transitioning from a client-side proof of concept to a fully synchronized investment platform.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Phase 1: Local Prototype (Current)**
+  - Client-side architecture using `localStorage` for data persistence.
+  - Development of the core financial engine and timezone-stable date logic.
+  - Manual JSON backup/restore functionality for data portability.
+- **Phase 2: Full-Stack Integration (Future)**
+  - Implementation of a backend database for persistent account storage.
+  - User authentication and cross-device synchronization.
+  - Automated data backups and cloud-hosted records.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Core Functionality
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Zero-Server Prototype:** No account required for testing. All data is managed locally in the browser's storage during this development phase.
+- **Timezone-Stable Engine:** A custom "Local-First" date architecture solves the common 1-day drift bug found in UTC-based financial apps.
+- **Yield Projections:** Real-time calculation of net yields, supporting tiered interest and tax deduction simulations.
+- **Interactive Sandbox:** Includes a "Demo Mode" to explore the interface and logic with seeded data without needing to enter personal records.
 
-## Learn More
+## 🛠 Technical Implementation
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend:** Next.js 16+ (App Router), Tailwind CSS
+- **UI Components:** Radix UI / Shadcn
+- **State Management:** React Context API with a custom initialization guard to prevent layout flickering.
+- **Storage:** Browser-native LocalStorage (Interim solution for prototype phase).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📥 Getting Started
 
-## Deploy on Vercel
+1. **Clone the repository:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   git clone [https://github.com/pbsabella/yieldflow.git](https://github.com/pbsabella/yieldflow.git)
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+
+   ```bash
+   npm run dev
+   ```

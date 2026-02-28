@@ -6,10 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
+import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
-import { formatPhpCurrency } from "@/lib/domain/format";
 import { formatMonthLabel } from "@/lib/domain/date";
 
 // ─── Layout helpers ────────────────────────────────────────────────────────────
@@ -55,6 +55,7 @@ type MonthEntry = {
 };
 
 function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
+  const { fmtCurrency } = usePortfolioContext();
   const monthLabel = formatMonthLabel(new Date());
   const preview = entries.slice(0, 3);
 
@@ -65,12 +66,13 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {monthLabel} payouts
           </CardTitle>
-          <Link
-            href="/cashflow"
-            className="flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            View all <ArrowRight className="size-3" />
-          </Link>
+          <Button variant="ghost" asChild>
+            <Link
+              href="/cashflow"
+            >
+              View all <ArrowRight className="size-3" />
+            </Link>
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -87,17 +89,14 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
                   <span className="font-medium">{entry.name || entry.bankName}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{entry.bankName}</span>
                 </div>
-                <span className="font-medium tabular-nums text-primary">
-                  {formatPhpCurrency(entry.amountNet)}
+                <span className="font-medium tabular-nums text-pr dark:text-primary-subtle">
+                  {fmtCurrency(entry.amountNet)}
                 </span>
               </div>
             ))}
             {entries.length > 3 && (
               <p className="text-xs text-center text-muted-foreground pt-1">
                 +{entries.length - 3} more ·{" "}
-                <Link href="/cashflow" className="text-primary hover:underline">
-                  see all
-                </Link>
               </p>
             )}
           </div>
@@ -122,6 +121,7 @@ export default function DashboardShell() {
       <Container className="py-6 space-y-8">
         {!isReady && <DashboardSkeleton />}
 
+        {/* TODO: Fix entry point and overall loading states between views */}
         {showEmptyLanding && (
           <EmptyLanding
             onAddData={() => openWizard()}
@@ -154,6 +154,8 @@ export default function DashboardShell() {
             />
 
             <ThisMonthPreview entries={thisMonthEntries} />
+
+            <BankExposureCard />
           </>
         )}
       </Container>

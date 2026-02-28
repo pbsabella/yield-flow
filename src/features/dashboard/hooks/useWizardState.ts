@@ -20,6 +20,8 @@ export type WizardFormState = {
   interestMode: InterestMode;
   tiers: InterestTier[];
   termMonths: number | null;
+  termUnit: "months" | "days";
+  termDays: number | null;
   payoutFrequency: PayoutFrequency;
   compounding: "daily" | "monthly";
   dayCountConvention: 360 | 365;       // 365 default
@@ -40,6 +42,8 @@ const EMPTY_STATE: WizardFormState = {
   interestMode: "simple",
   tiers: [],
   termMonths: null,
+  termUnit: "months",
+  termDays: null,
   payoutFrequency: "maturity",
   compounding: "monthly",
   dayCountConvention: 365,
@@ -77,7 +81,9 @@ export function depositToFormState(deposit: TimeDeposit): WizardFormState {
     taxRate,
     interestMode: deposit.interestMode,
     tiers: deposit.tiers ?? [],
-    termMonths: deposit.isOpenEnded ? null : deposit.termMonths,
+    termMonths: deposit.isOpenEnded ? null : (deposit.termDays != null ? Math.round(deposit.termDays / 30) : deposit.termMonths),
+    termUnit: deposit.termDays != null ? "days" : "months",
+    termDays: deposit.isOpenEnded ? null : (deposit.termDays ?? null),
     payoutFrequency: deposit.payoutFrequency,
     compounding: deposit.compounding ?? "monthly",
     dayCountConvention: deposit.dayCountConvention ?? 365,
@@ -123,8 +129,16 @@ function computeErrors(
     }
   }
 
-  if (touched.has("termMonths") && !state.isOpenEnded && state.termMonths === null) {
-    errors.termMonths = "Term is required for fixed-term investments";
+  if (!state.isOpenEnded) {
+    const termTouched = touched.has("termMonths") || touched.has("termDays");
+    if (termTouched) {
+      if (state.termUnit === "months" && state.termMonths === null) {
+        errors.termMonths = "Term is required for fixed-term investments";
+      }
+      if (state.termUnit === "days" && state.termDays === null) {
+        errors.termDays = "Term is required for fixed-term investments";
+      }
+    }
   }
 
   return { errors, warnings };
@@ -167,14 +181,19 @@ export function useWizardState() {
           } else if (value === "savings") {
             next.isOpenEnded = true;
             next.termMonths = null;
+            next.termDays = null;
           }
         }
 
         // Tiered switch: seed first tier from current flat rate
         if (key === "interestMode") {
           if (value === "tiered" && prev.interestMode === "simple") {
-            const rate = parseFloat(prev.flatRate) / 100;
-            next.tiers = isNaN(rate) ? [] : [{ upTo: null, rate }];
+            const parsed = parseFloat(prev.flatRate) / 100;
+            const rate = isNaN(parsed) ? 0 : parsed;
+            next.tiers = [
+              { upTo: null, rate }, // lower bracket — user fills in threshold
+              { upTo: null, rate }, // catch-all "and above"
+            ];
           }
           if (value === "simple" && prev.interestMode === "tiered") {
             if (prev.tiers.length > 0) {
@@ -210,7 +229,10 @@ export function useWizardState() {
     const taxRate = parseFloat(formState.taxRate);
     if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) return false;
 
-    if (!formState.isOpenEnded && formState.termMonths === null) return false;
+    if (!formState.isOpenEnded) {
+      if (formState.termUnit === "months" && formState.termMonths === null) return false;
+      if (formState.termUnit === "days" && formState.termDays === null) return false;
+    }
 
     return Object.keys(errors).length === 0;
   }, [formState, errors]);
@@ -244,8 +266,19 @@ export function useWizardState() {
     const interestTreatment: "reinvest" | "payout" =
       formState.payoutFrequency === "monthly" ? "payout" : "reinvest";
 
-    const termMonths = formState.isOpenEnded ? 12 : (formState.termMonths ?? 0);
-    if (termMonths === 0) return null;
+    // Resolve term: open-ended uses a 12-month estimate; days/months based on active unit
+    let termMonths: number;
+    let termDays: number | undefined;
+    if (formState.isOpenEnded) {
+      termMonths = 12;
+    } else if (formState.termUnit === "days") {
+      if (!formState.termDays) return null;
+      termDays = formState.termDays;
+      termMonths = Math.round(termDays / 30); // fallback for engines that need months
+    } else {
+      if (!formState.termMonths) return null;
+      termMonths = formState.termMonths;
+    }
 
     if (formState.interestMode === "simple") {
       const flatRate = parseFloat(formState.flatRate) / 100;
@@ -254,6 +287,7 @@ export function useWizardState() {
         principal,
         startDate,
         termMonths,
+        termDays,
         isOpenEnded: formState.isOpenEnded,
         flatRate,
         tiers: [],
@@ -272,6 +306,7 @@ export function useWizardState() {
       principal,
       startDate,
       termMonths,
+      termDays,
       isOpenEnded: formState.isOpenEnded,
       flatRate,
       tiers: formState.tiers,
@@ -297,13 +332,25 @@ export function useWizardState() {
           ? formState.tiers
           : [{ upTo: null as null, rate: flatRate }];
 
+      // For day-based deposits: set termDays and approximate termMonths for compat.
+      // For month-based deposits: set termMonths, leave termDays undefined.
+      const isOpenEnded = formState.isOpenEnded;
+      const useDays = !isOpenEnded && formState.termUnit === "days" && formState.termDays != null;
+      const resolvedTermDays = useDays ? formState.termDays! : undefined;
+      const resolvedTermMonths = isOpenEnded
+        ? 12
+        : useDays
+          ? Math.round(formState.termDays! / 30)
+          : (formState.termMonths ?? 12);
+
       return {
         id,
         bankId: formState.bankName.trim(),
         name: formState.name.trim() || `${formState.bankName.trim()} deposit`,
         principal,
         startDate: formState.startDate,
-        termMonths: formState.isOpenEnded ? 12 : (formState.termMonths ?? 12),
+        termMonths: resolvedTermMonths,
+        termDays: resolvedTermDays,
         interestMode: formState.interestMode,
         interestTreatment,
         compounding: formState.compounding,
@@ -312,7 +359,7 @@ export function useWizardState() {
         tiers,
         payoutFrequency: formState.payoutFrequency,
         dayCountConvention: formState.dayCountConvention,
-        isOpenEnded: formState.isOpenEnded || undefined,
+        isOpenEnded: isOpenEnded || undefined,
         status: "active",
       };
     },

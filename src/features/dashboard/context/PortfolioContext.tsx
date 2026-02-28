@@ -3,8 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
+import { usePreferences } from "@/lib/hooks/usePreferences";
+import { formatCurrency, getCurrencySymbol } from "@/lib/domain/format";
 import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
 import type { TimeDeposit, Bank } from "@/types";
+import type { Preferences } from "@/lib/hooks/usePreferences";
 
 // ─── Context shape ─────────────────────────────────────────────────────────────
 
@@ -16,6 +19,14 @@ interface PortfolioContextValue {
   isDemoMode: boolean;
   existingBankNames: string[];
   hasSidebar: boolean;
+
+  // Preferences
+  preferences: Preferences;
+  setPreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
+  /** Pre-bound currency formatter. Uses the user's currency preference. Vanity only — does not convert values. */
+  fmtCurrency: (value: number) => string;
+  /** Currency symbol for input addons (e.g. "₱", "$"). */
+  currencySymbol: string;
 
   // Wizard state
   wizardOpen: boolean;
@@ -56,6 +67,16 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setValue: setIsDemoMode,
     isReady: demoReady,
   } = useLocalStorage<boolean>("yf:demo-mode", false, { skipInitialWrite: true });
+  const { preferences, setPreference } = usePreferences();
+
+  const fmtCurrency = useCallback(
+    (value: number) => formatCurrency(value, preferences.currency),
+    [preferences.currency],
+  );
+  const currencySymbol = useMemo(
+    () => getCurrencySymbol(preferences.currency),
+    [preferences.currency],
+  );
 
   const isReady = depositsReady && demoReady;
 
@@ -186,6 +207,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     isDemoMode,
     existingBankNames,
     hasSidebar,
+    preferences,
+    setPreference,
+    fmtCurrency,
+    currencySymbol,
     wizardOpen,
     editTarget,
     highlightedId,

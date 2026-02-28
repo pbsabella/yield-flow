@@ -1,4 +1,4 @@
-import { addTermMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
+import { addDays, addTermMonths, differenceInCalendarDays, toISODate } from "@/lib/domain/date";
 import type { InterestTier } from "@/types";
 
 /**
@@ -11,6 +11,8 @@ export type YieldInput = {
   principal: number;
   startDate: string;
   termMonths: number;
+  /** Term in calendar days. When set, takes precedence over termMonths. */
+  termDays?: number;
   /** mark true for savings/open-ended products (preview may still use a 12-month estimate) */
   isOpenEnded?: boolean;
   flatRate: number;
@@ -112,7 +114,10 @@ function calculateTieredSimple(
 
 export function calculateNetYield(input: YieldInput): YieldResult {
   const start = new Date(input.startDate);
-  const maturity = addTermMonths(start, input.termMonths);
+  const maturity =
+    input.termDays != null
+      ? addDays(start, input.termDays)
+      : addTermMonths(start, input.termMonths);
   const dayCount = Math.max(1, differenceInCalendarDays(maturity, start));
   const maturityDate = toISODate(maturity);
   const dayCountConvention = input.dayCountConvention ?? DEFAULT_DAYS_IN_YEAR;
@@ -135,13 +140,20 @@ export function calculateNetYield(input: YieldInput): YieldResult {
    * Used when different slices of your money earn different rates.
    */
   else {
+    // Derive effective term in months for cadences that need it.
+    // If the deposit was entered in days, approximate months from the day count convention.
+    const termMonthsEffective =
+      input.termDays != null
+        ? Math.round(input.termDays / (dayCountConvention / 12))
+        : input.termMonths;
+
     if (isPayout) {
       /**
        * Interest is removed from the account regularly.
        * Principal stays the same size for the whole term.
        */
       const ratePer = cadence === "monthly" ? 1 / 12 : 1 / dayCountConvention;
-      const periods = cadence === "monthly" ? input.termMonths : dayCount;
+      const periods = cadence === "monthly" ? termMonthsEffective : dayCount;
       grossInterest = calculateTieredSimple(input.principal, input.tiers, periods, ratePer);
     } else {
       /**
@@ -153,7 +165,7 @@ export function calculateNetYield(input: YieldInput): YieldResult {
         input.tiers,
         dayCount,
         cadence,
-        input.termMonths,
+        termMonthsEffective,
         dayCountConvention,
       );
     }

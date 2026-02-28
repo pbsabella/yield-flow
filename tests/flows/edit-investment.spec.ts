@@ -27,12 +27,12 @@ test("edit an investment — values persist after save", async ({ page }) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
 
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Yield Overview" })).toBeVisible();
+  // The investments table with the "more options" button lives on /investments
+  await page.goto("/investments");
+  await expect(page.getByRole("heading", { name: "Investments" })).toBeVisible();
   await expect(page.getByText("Original Bank", { exact: true })).toBeVisible();
 
   // Open kebab menu for the deposit (mobile card or desktop table)
-  // The aria-label includes the deposit name
   const moreOptionsBtn = page
     .getByRole("button", { name: /more options/i })
     .first();
@@ -66,7 +66,8 @@ test("closing an unmodified edit dialog does not prompt for discard", async ({ p
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
 
-  await page.goto("/");
+  // The investments table with the "more options" button lives on /investments
+  await page.goto("/investments");
   await expect(page.getByText("Original Bank", { exact: true })).toBeVisible();
 
   const moreOptionsBtn = page.getByRole("button", { name: /more options/i }).first();

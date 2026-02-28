@@ -258,7 +258,7 @@ Same CTA as the header button — reinforces the action path for first-time user
 #### Card Identity
 
 - Each card: `<article aria-labelledby="deposit-{id}-name">`
-- Heading: `<h3 id="deposit-{id}-name">` — gives screen readers a meaningful label per card
+- Heading: `<h2 id="deposit-{id}-name">` — gives screen readers a meaningful label per card
 
 #### Collapsible Trigger
 
@@ -359,6 +359,7 @@ The Cash Flow tab answers a question the Investments tab doesn't: _when will mon
 - Starting from the first payout month ≥ the current month (rather than always starting next month) ensures the current month is included when a payout falls within it. A user who opened a savings account on January 10 and checks on March 20 sees March 10's payout in the current month row.
 
 **Algorithm:**
+
 1. Find the first `n ≥ 1` such that `addMonths(startDate, n)` falls in the current calendar month or later.
 2. Project 12 payouts: `addMonths(startDate, n)`, `addMonths(startDate, n+1)`, …, `addMonths(startDate, n+11)`.
 
@@ -441,7 +442,7 @@ The Cash Flow tab answers a question the Investments tab doesn't: _when will mon
 
 **Alternatives considered:**
 
-- *Stacked bar (primary for active/matured, grey for settled portion)* — communicates composition but the bars are 32px wide. The settled slice would often be a few pixels, too thin to read reliably and likely to feel like a rendering artifact rather than a deliberate signal.
+- _Stacked bar (primary for active/matured, grey for settled portion)_ — communicates composition but the bars are 32px wide. The settled slice would often be a few pixels, too thin to read reliably and likely to feel like a rendering artifact rather than a deliberate signal.
 
 **Tradeoff to revisit:** The current month bar is built from a different data source than future bars (realized + projected vs. pure projection). This means month-to-month bar heights are not strictly comparable — a settled deposit inflates the current month relative to what a future month would show for the same deposit mix. If users start to notice the inconsistency, the right fix is probably a stacked bar once bar widths are large enough to render two segments legibly, or a visual treatment that explicitly marks the current month as "actual vs. projected."
 

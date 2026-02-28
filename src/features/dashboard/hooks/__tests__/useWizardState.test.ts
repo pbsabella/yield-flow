@@ -18,6 +18,8 @@ describe("useWizardState — initial state", () => {
     expect(s.interestMode).toBe("simple");
     expect(s.tiers).toEqual([]);
     expect(s.termMonths).toBeNull();
+    expect(s.termUnit).toBe("months");
+    expect(s.termDays).toBeNull();
     expect(s.payoutFrequency).toBe("maturity");
     expect(s.compounding).toBe("monthly");
     expect(s.dayCountConvention).toBe(365);
@@ -60,7 +62,7 @@ describe("useWizardState — productType side effects", () => {
     expect(result.current.formState.isOpenEnded).toBe(false);
   });
 
-  it("savings sets isOpenEnded=true and termMonths=null", () => {
+  it("savings sets isOpenEnded=true and clears both term fields", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
@@ -70,6 +72,7 @@ describe("useWizardState — productType side effects", () => {
 
     expect(result.current.formState.isOpenEnded).toBe(true);
     expect(result.current.formState.termMonths).toBeNull();
+    expect(result.current.formState.termDays).toBeNull();
   });
 });
 
@@ -89,9 +92,11 @@ describe("useWizardState — tiered rate toggle", () => {
 
     const { tiers, interestMode } = result.current.formState;
     expect(interestMode).toBe("tiered");
-    expect(tiers).toHaveLength(1);
+    expect(tiers).toHaveLength(2);
     expect(tiers[0].upTo).toBeNull();
     expect(tiers[0].rate).toBeCloseTo(0.065);
+    expect(tiers[1].upTo).toBeNull();
+    expect(tiers[1].rate).toBeCloseTo(0.065);
   });
 
   it("switching back to simple restores flatRate from first tier", () => {
@@ -115,14 +120,17 @@ describe("useWizardState — tiered rate toggle", () => {
     expect(result.current.formState.flatRate).toBe("4.5");
   });
 
-  it("switching to tiered with no flatRate produces empty tiers", () => {
+  it("switching to tiered with no flatRate seeds two zero-rate tiers", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
       result.current.setField("interestMode", "tiered");
     });
 
-    expect(result.current.formState.tiers).toHaveLength(0);
+    const { tiers } = result.current.formState;
+    expect(tiers).toHaveLength(2);
+    expect(tiers[0].rate).toBe(0);
+    expect(tiers[1].rate).toBe(0);
   });
 });
 
@@ -311,7 +319,7 @@ describe("useWizardState — canSubmit", () => {
     expect(result.current.canSubmit).toBe(true);
   });
 
-  it("canSubmit is false for tiered mode with no tiers", () => {
+  it("canSubmit is false for tiered mode when tiers are manually cleared", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
@@ -319,7 +327,7 @@ describe("useWizardState — canSubmit", () => {
       result.current.setField("productType", "td-maturity");
       result.current.setField("principal", "100000");
       result.current.setField("interestMode", "tiered");
-      // tiers left empty
+      result.current.setField("tiers", []); // clear the seeded tiers
       result.current.setField("termMonths", 6);
     });
 
@@ -630,6 +638,8 @@ describe("useWizardState — isDirty", () => {
     expect(s.principal).toBe("");
     expect(s.flatRate).toBe("");
     expect(s.termMonths).toBeNull();
+    expect(s.termUnit).toBe("months");
+    expect(s.termDays).toBeNull();
     expect(s.dayCountConvention).toBe(365);
     expect(s.taxRate).toBe("20");
     expect(s.isOpenEnded).toBe(false);
@@ -665,6 +675,8 @@ describe("depositToFormState", () => {
     expect(s.flatRate).toBe("6");
     expect(s.taxRate).toBe("20");
     expect(s.termMonths).toBe(6);
+    expect(s.termUnit).toBe("months");
+    expect(s.termDays).toBeNull();
     expect(s.payoutFrequency).toBe("maturity");
     expect(s.compounding).toBe("monthly");
     expect(s.dayCountConvention).toBe(365);
@@ -716,6 +728,8 @@ describe("useWizardState — loadDeposit", () => {
     expect(s.principal).toBe("500000");
     expect(s.flatRate).toBe("6");
     expect(s.termMonths).toBe(6);
+    expect(s.termUnit).toBe("months");
+    expect(s.termDays).toBeNull();
   });
 
   it("isDirty is false immediately after loadDeposit", () => {
@@ -756,5 +770,156 @@ describe("useWizardState — loadDeposit", () => {
     expect(result.current.formState.bankName).toBe("");
     expect(result.current.formState.principal).toBe("");
     expect(result.current.isDirty).toBe(false);
+  });
+});
+
+// ─── Days mode ─────────────────────────────────────────────────────────────────
+
+describe("useWizardState — days mode (termUnit toggle)", () => {
+  it("switching termUnit to 'days' clears termMonths", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("termMonths", 6);
+      result.current.setField("termUnit", "days");
+      result.current.setField("termMonths", null);
+    });
+
+    expect(result.current.formState.termUnit).toBe("days");
+    expect(result.current.formState.termMonths).toBeNull();
+  });
+
+  it("switching termUnit to 'months' clears termDays", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("termUnit", "days");
+      result.current.setField("termDays", 91);
+      result.current.setField("termUnit", "months");
+      result.current.setField("termDays", null);
+    });
+
+    expect(result.current.formState.termUnit).toBe("months");
+    expect(result.current.formState.termDays).toBeNull();
+  });
+
+  it("canSubmit is false without termDays when termUnit=days", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termUnit", "days");
+      // termDays left null
+    });
+
+    expect(result.current.canSubmit).toBe(false);
+  });
+
+  it("canSubmit is true when termUnit=days and termDays is set", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termUnit", "days");
+      result.current.setField("termDays", 91);
+    });
+
+    expect(result.current.canSubmit).toBe(true);
+  });
+
+  it("deriveYieldInput returns null when termUnit=days and termDays is null", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termUnit", "days");
+      result.current.setField("startDate", "2026-02-25");
+      // termDays left null
+    });
+
+    expect(result.current.deriveYieldInput()).toBeNull();
+  });
+
+  it("deriveYieldInput passes termDays when termUnit=days", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termUnit", "days");
+      result.current.setField("termDays", 91);
+      result.current.setField("startDate", "2026-02-25");
+    });
+
+    const input = result.current.deriveYieldInput();
+    expect(input).not.toBeNull();
+    expect(input?.termDays).toBe(91);
+    expect(input?.termMonths).toBe(3); // Math.round(91 / 30)
+  });
+
+  it("buildDeposit sets termDays and approximates termMonths when termUnit=days", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termUnit", "days");
+      result.current.setField("termDays", 182);
+      result.current.setField("startDate", "2026-02-25");
+    });
+
+    const deposit = result.current.buildDeposit("days-id");
+    expect(deposit.termDays).toBe(182);
+    expect(deposit.termMonths).toBe(6); // Math.round(182 / 30)
+  });
+
+  it("buildDeposit does not set termDays when termUnit=months", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("bankName", "My Bank");
+      result.current.setField("productType", "td-maturity");
+      result.current.setField("principal", "100000");
+      result.current.setField("flatRate", "6");
+      result.current.setField("termMonths", 6);
+    });
+
+    const deposit = result.current.buildDeposit("months-id");
+    expect(deposit.termDays).toBeUndefined();
+    expect(deposit.termMonths).toBe(6);
+  });
+});
+
+describe("depositToFormState — days mode", () => {
+  it("restores termUnit=days and termDays from a day-based deposit", () => {
+    const dayDeposit: TimeDeposit = {
+      ...BASE_DEPOSIT,
+      termDays: 91,
+      termMonths: 3,
+    };
+
+    const s = depositToFormState(dayDeposit);
+    expect(s.termUnit).toBe("days");
+    expect(s.termDays).toBe(91);
+  });
+
+  it("restores termUnit=months for a months-based deposit (no termDays)", () => {
+    const s = depositToFormState(BASE_DEPOSIT);
+    expect(s.termUnit).toBe("months");
+    expect(s.termDays).toBeNull();
+    expect(s.termMonths).toBe(6);
   });
 });

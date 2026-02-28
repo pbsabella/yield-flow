@@ -23,8 +23,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="flex min-h-dvh flex-col">
         {/* Global chrome — full-width, always on top */}
-        <PrototypeBanner />
-        {isDemoMode && <DemoBanner onExit={exitDemo} />}
+        <header role="banner">
+          <PrototypeBanner />
+          {isDemoMode && (
+            <div role="status" aria-live="polite">
+              <DemoBanner onExit={exitDemo} />
+            </div>
+          )}
+        </header>
 
         {hasSidebar ? (
           <div className="flex flex-1">

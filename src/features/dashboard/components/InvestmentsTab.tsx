@@ -30,7 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
-import { columns } from "@/features/dashboard/components/columns";
+import { createColumns } from "@/features/dashboard/components/columns";
+import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { DepositCard } from "@/features/dashboard/components/DepositCard";
 import { DeleteConfirmDialog } from "@/features/dashboard/components/DeleteConfirmDialog";
 import { SettleConfirmDialog } from "@/features/dashboard/components/SettleConfirmDialog";
@@ -82,6 +83,8 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
+  const { fmtCurrency } = usePortfolioContext();
+  const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);

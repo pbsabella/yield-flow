@@ -1,3 +1,2 @@
-// TODO: multi-currency — replace CURRENCY_SYMBOL with a locale/currency lookup when
-// multi-currency support is added. Currently hard-coded for Philippine Peso (₱).
-export const CURRENCY_SYMBOL = "₱";
+// Currency symbol and formatting are now dynamic via formatCurrency / getCurrencySymbol
+// in src/lib/domain/format.ts, driven by the user's currency preference in PortfolioContext.
