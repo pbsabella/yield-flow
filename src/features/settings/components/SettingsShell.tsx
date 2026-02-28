@@ -24,6 +24,7 @@ import {
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner"
+import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 import { SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import type { TimeDeposit } from "@/types";
@@ -80,7 +81,7 @@ function validateBackup(raw: unknown): TimeDeposit[] {
 
 export function SettingsShell() {
   const router = useRouter();
-  const { deposits, importDeposits, clearDeposits, preferences, setPreference } = usePortfolioContext();
+  const { deposits, importDeposits, clearDeposits, preferences, setPreference, isDemoMode, exitDemo } = usePortfolioContext();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importPreview, setImportPreview] = useState<TimeDeposit[] | null>(null);
@@ -150,6 +151,13 @@ export function SettingsShell() {
     router.push("/");
   }, [clearDeposits, router]);
 
+  // ─── Exit demo ─────────────────────────────────────────────────────────────
+
+  const handleExitDemo = useCallback(() => {
+    exitDemo();
+    router.push("/");
+  }, [exitDemo, router]);
+
   // ─── Currency change ───────────────────────────────────────────────────────
   const handleCurrencyChange = (value: string) => {
     setPreferencesDraft((prev) => ({ ...prev, currency: value }));
@@ -171,6 +179,7 @@ export function SettingsShell() {
   }
 
   return (
+    <RouteGuard>
     <div className="bg-background">
       {/* Main content */}
       <main>
@@ -299,7 +308,7 @@ export function SettingsShell() {
                   variant="outline"
                   size="sm"
                   onClick={handleExport}
-                  disabled={deposits.length === 0}
+                  disabled={deposits.length === 0 || isDemoMode}
                   className="shrink-0"
                 >
                   <Download className="size-4" />
@@ -333,6 +342,7 @@ export function SettingsShell() {
                     variant="outline"
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isDemoMode}
                   >
                     <Upload className="size-4" />
                     Import JSON
@@ -351,16 +361,27 @@ export function SettingsShell() {
                     Export a backup first.
                   </p>
                 </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setClearConfirmOpen(true)}
-                  disabled={deposits.length === 0}
-                  className="shrink-0"
-                >
-                  <Trash2 className="size-4" />
-                  Clear all
-                </Button>
+                {isDemoMode ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExitDemo}
+                    className="shrink-0"
+                  >
+                    Exit Demo
+                  </Button>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setClearConfirmOpen(true)}
+                    disabled={deposits.length === 0}
+                    className="shrink-0"
+                  >
+                    <Trash2 className="size-4" />
+                    Clear all
+                  </Button>
+                )}
               </div>
 
               <Separator />
@@ -472,5 +493,6 @@ export function SettingsShell() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </RouteGuard>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useRef } from "react";
 import { ArrowRight, Plus } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
@@ -20,27 +22,6 @@ function Container({ className, ...props }: React.ComponentProps<"div">) {
       className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
       {...props}
     />
-  );
-}
-
-// ─── Loading skeleton ──────────────────────────────────────────────────────────
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="pt-6">
-              <Skeleton className="h-4 w-2/3 mb-4" />
-              <Skeleton className="h-10 w-full mb-2" />
-              <Skeleton className="h-3 w-1/3" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <Skeleton className="h-32 w-full" />
-    </div>
   );
 }
 
@@ -67,9 +48,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
             {monthLabel} payouts
           </CardTitle>
           <Button variant="ghost" asChild>
-            <Link
-              href="/cashflow"
-            >
+            <Link href="/cashflow">
               View all <ArrowRight className="size-3" />
             </Link>
           </Button>
@@ -109,27 +88,52 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { deposits, banks, isReady, isDemoMode, openWizard, enterDemo, hasSidebar } =
-    usePortfolioContext();
+  const { deposits, banks, status, openWizard, enterDemo, importDeposits } = usePortfolioContext();
 
-  const showEmptyLanding = isReady && !isDemoMode && !hasSidebar;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const raw = JSON.parse(event.target?.result as string);
+        if (typeof raw !== "object" || raw === null || raw.version !== 1 || !Array.isArray(raw.deposits)) {
+          throw new Error();
+        }
+        importDeposits(raw.deposits);
+      } catch {
+        toast.error("Import failed", { description: "The file doesn't appear to be a valid YieldFlow backup." });
+      }
+    };
+    reader.readAsText(file);
+  }, [importDeposits]);
+
   const portfolio = usePortfolioData(deposits, banks);
   const thisMonthEntries = (portfolio.currentMonthFull?.entries ?? []) as MonthEntry[];
 
   return (
     <main>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleImportFile}
+        aria-label="Import backup file"
+      />
       <Container className="py-6 space-y-8">
-        {!isReady && <DashboardSkeleton />}
-
-        {/* TODO: Fix entry point and overall loading states between views */}
-        {showEmptyLanding && (
+        {status === "empty" && (
           <EmptyLanding
             onAddData={() => openWizard()}
             onTryDemo={enterDemo}
+            onImport={() => fileInputRef.current?.click()}
           />
         )}
 
-        {isReady && !showEmptyLanding && (
+        {status === "ready" && (
           <>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -159,6 +163,7 @@ export default function DashboardShell() {
           </>
         )}
       </Container>
+      <Toaster />
     </main>
   );
 }

@@ -63,10 +63,11 @@ const seedDeposits: TimeDeposit[] = [
   },
 ];
 
-test("cash flow page — empty state", async ({ page }) => {
+test("cash flow page — empty state redirects home", async ({ page }) => {
+  // RouteGuard redirects empty users away from sub-pages to the empty landing
   await page.goto("/cashflow");
-  await expect(page.getByRole("heading", { name: "Cash Flow" })).toBeVisible();
-  await percySnapshot(page, "Cash Flow Page - empty");
+  await page.waitForURL("/");
+  await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
 });
 
 test("cash flow page — with portfolio data", async ({ page }) => {

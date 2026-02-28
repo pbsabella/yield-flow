@@ -1,14 +1,19 @@
 "use client";
 
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { PrototypeBanner } from "@/components/layout/PrototypeBanner";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 import { DemoBanner } from "@/features/dashboard/components/DemoBanner";
 import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
 import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const {
+    status,
     hasSidebar,
     isDemoMode,
     exitDemo,
@@ -19,6 +24,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     existingBankNames,
   } = usePortfolioContext();
 
+  const handleExitDemo = useCallback(() => {
+    exitDemo();
+    router.push("/");
+  }, [exitDemo, router]);
+
+  if (status === "booting") {
+    return <SplashScreen />;
+  }
+
   return (
     <>
       <div className="flex min-h-dvh flex-col">
@@ -27,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <PrototypeBanner />
           {isDemoMode && (
             <div role="status" aria-live="polite">
-              <DemoBanner onExit={exitDemo} />
+              <DemoBanner onExit={handleExitDemo} />
             </div>
           )}
         </header>

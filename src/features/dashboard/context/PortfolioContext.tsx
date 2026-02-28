@@ -11,12 +11,15 @@ import type { Preferences } from "@/lib/hooks/usePreferences";
 
 // ─── Context shape ─────────────────────────────────────────────────────────────
 
+export type AppStatus = "booting" | "empty" | "ready";
+
 interface PortfolioContextValue {
   // Data
   deposits: TimeDeposit[];
   banks: Bank[];
   isReady: boolean;
   isDemoMode: boolean;
+  status: AppStatus;
   existingBankNames: string[];
   hasSidebar: boolean;
 
@@ -98,10 +101,13 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const deposits = isDemoMode ? liveDemoDeposits : storedDeposits;
   const banks: Bank[] = isDemoMode ? [...demoBanks] : [];
 
-  // Sidebar is visible when the user has real deposits or is in demo mode.
-  // While storage is still hydrating (!isReady) show sidebar optimistically so
-  // direct URL navigation doesn't cause a bare-layout flash for existing users.
-  const hasSidebar = !isReady || storedDeposits.length > 0 || isDemoMode;
+  const status: AppStatus = !isReady
+    ? "booting"
+    : isDemoMode || storedDeposits.length > 0
+      ? "ready"
+      : "empty";
+
+  const hasSidebar = status === "ready";
 
   const existingBankNames = useMemo(
     () => [...new Set(deposits.map((d) => d.bankId))],
@@ -205,6 +211,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     banks,
     isReady,
     isDemoMode,
+    status,
     existingBankNames,
     hasSidebar,
     preferences,

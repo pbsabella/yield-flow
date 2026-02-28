@@ -22,16 +22,23 @@ const seedDeposit: TimeDeposit = {
 };
 
 test("settings page renders correctly", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("Data management")).toBeVisible();
   await percySnapshot(page, "Settings Page");
 });
 
-test("settings — export and clear buttons disabled with no deposits", async ({ page }) => {
+test("settings — in demo mode, export and import disabled, Exit Demo shown", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("yf:demo-mode", "true");
+  });
   await page.goto("/settings");
   await expect(page.getByRole("button", { name: "Export JSON" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Clear all" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Import JSON" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Exit Demo", exact: true })).toBeVisible();
 });
 
 test("settings — export and clear buttons enabled with deposits", async ({ page }) => {
