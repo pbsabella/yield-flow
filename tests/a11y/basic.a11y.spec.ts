@@ -85,6 +85,10 @@ test("edit investment dialog has no critical a11y issues", async ({ page }) => {
 });
 
 test("cash flow page has no critical a11y issues", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
   await page.goto("/cashflow");
 
   await expect(page.getByRole("heading", { level: 1, name: "Cash Flow" })).toBeVisible();
@@ -108,6 +112,10 @@ test("cash flow page with data has no critical a11y issues", async ({ page }) =>
 });
 
 test("settings page has no critical a11y issues", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
   await page.goto("/settings");
   await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
 

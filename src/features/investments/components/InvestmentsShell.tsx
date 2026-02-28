@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
 import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
@@ -16,58 +16,33 @@ function Container({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function InvestmentsSkeleton() {
-  return (
-    <div className="space-y-6">
-      {/* Filter bar */}
-      <div className="flex gap-4">
-        <Skeleton className="h-9 w-44" />
-        <Skeleton className="h-9 w-36" />
-      </div>
-      {/* Table */}
-      <div className="overflow-x-auto rounded-lg border">
-        <Skeleton className="h-11 w-full rounded-none rounded-t-lg" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-none border-t last:rounded-b-lg" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function InvestmentsShell() {
-  const { deposits, banks, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, isReady } =
+  const { deposits, banks, highlightedId, handleSettle, handleDelete, handleEdit, openWizard } =
     usePortfolioContext();
   const portfolio = usePortfolioData(deposits, banks);
 
   return (
-    <main>
-      <Container className="py-6 space-y-6">
-        {/* Page header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold md:text-3xl">Investments</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {!isReady
-                ? <Skeleton className="h-4 w-32 inline-block" />
-                : portfolio.summaries.length > 0
+    <RouteGuard>
+      <main>
+        <Container className="py-6 space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold md:text-3xl">Investments</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {portfolio.summaries.length > 0
                   ? `${portfolio.summaries.length} deposit${portfolio.summaries.length !== 1 ? "s" : ""} tracked`
                   : "No investments yet"}
-            </p>
+              </p>
+            </div>
+            <Button
+              onClick={() => openWizard()}
+              className="hidden md:flex shrink-0"
+            >
+              <Plus className="size-4" />
+              Add investment
+            </Button>
           </div>
-          <Button
-            onClick={() => openWizard()}
-            className="hidden md:flex shrink-0"
-          >
-            <Plus className="size-4" />
-            Add investment
-          </Button>
-        </div>
 
-        {/* Table / card list */}
-        {!isReady ? (
-          <InvestmentsSkeleton />
-        ) : (
           <InvestmentsTab
             summaries={portfolio.summaries}
             onSettle={handleSettle}
@@ -75,8 +50,8 @@ export function InvestmentsShell() {
             onEdit={handleEdit}
             highlightedId={highlightedId}
           />
-        )}
-      </Container>
-    </main>
+        </Container>
+      </main>
+    </RouteGuard>
   );
 }

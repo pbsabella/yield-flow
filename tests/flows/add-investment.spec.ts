@@ -2,12 +2,7 @@ import { test, expect } from "@playwright/test";
 import percySnapshot from "@percy/playwright";
 
 test("add an investment via wizard — empty state → portfolio visible", async ({ page }) => {
-  // Capture the investments page empty state first
-  await page.goto("/investments");
-  await expect(page.getByRole("heading", { name: "Investments" })).toBeVisible();
-  await percySnapshot(page, "Investments Page - empty");
-
-  // Navigate to dashboard — the "Add my first investment" CTA lives here
+  // Empty users land on the EmptyLanding hero at "/"
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
 
