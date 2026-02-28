@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useRef } from "react";
 import { ArrowRight, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
@@ -85,18 +88,48 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { deposits, banks, status, openWizard, enterDemo } = usePortfolioContext();
+  const { deposits, banks, status, openWizard, enterDemo, importDeposits } = usePortfolioContext();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const raw = JSON.parse(event.target?.result as string);
+        if (typeof raw !== "object" || raw === null || raw.version !== 1 || !Array.isArray(raw.deposits)) {
+          throw new Error();
+        }
+        importDeposits(raw.deposits);
+      } catch {
+        toast.error("Import failed", { description: "The file doesn't appear to be a valid YieldFlow backup." });
+      }
+    };
+    reader.readAsText(file);
+  }, [importDeposits]);
 
   const portfolio = usePortfolioData(deposits, banks);
   const thisMonthEntries = (portfolio.currentMonthFull?.entries ?? []) as MonthEntry[];
 
   return (
     <main>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleImportFile}
+        aria-label="Import backup file"
+      />
       <Container className="py-6 space-y-8">
         {status === "empty" && (
           <EmptyLanding
             onAddData={() => openWizard()}
             onTryDemo={enterDemo}
+            onImport={() => fileInputRef.current?.click()}
           />
         )}
 
@@ -130,6 +163,7 @@ export default function DashboardShell() {
           </>
         )}
       </Container>
+      <Toaster />
     </main>
   );
 }

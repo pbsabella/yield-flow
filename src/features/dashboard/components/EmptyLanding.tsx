@@ -1,13 +1,13 @@
-import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface EmptyLandingProps {
   onAddData: () => void;
   onTryDemo: () => void;
+  onImport: () => void;
 }
 
-export function EmptyLanding({ onAddData, onTryDemo }: EmptyLandingProps) {
+export function EmptyLanding({ onAddData, onTryDemo, onImport }: EmptyLandingProps) {
   return (
     <div className="flex min-h-[80dvh] flex-col items-center justify-center gap-8 px-4 text-center">
       {/* Brand mark */}
@@ -44,12 +44,12 @@ export function EmptyLanding({ onAddData, onTryDemo }: EmptyLandingProps) {
         <p>Your data is stored locally and never leaves this device.</p>
         <p>
           Switching devices?{" "}
-          <Link
-            href="/settings"
+          <button
+            onClick={onImport}
             className="underline underline-offset-2 hover:text-foreground transition-colors"
           >
             Import a backup
-          </Link>
+          </button>
         </p>
       </div>
     </div>
