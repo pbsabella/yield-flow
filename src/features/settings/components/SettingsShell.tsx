@@ -265,7 +265,7 @@ export function SettingsShell() {
                         variant="ghost"
                         size="xs"
                         disabled={preferences.bankInsuranceLimit === null}
-                        onClick={() => setPreference("bankInsuranceLimit", undefined)}
+                        onClick={() => handleBankInsuranceLimitChange(undefined)}
                         aria-label="Clear insurance limit"
                       >
                         Clear

@@ -1,7 +1,6 @@
 # YieldFlow — UX Decisions Log
 
 A running record of design and UX decisions made during development.
-Intended as a reference during implementation and source material for a future case study.
 
 ---
 
@@ -9,7 +8,7 @@ Intended as a reference during implementation and source material for a future c
 
 ### No Backend
 
-All data lives in `localStorage`. No accounts, no sync, no servers. The tradeoff — data is local only — is surfaced explicitly to users rather than hidden. This makes the app zero-friction to deploy and use for a portfolio project, while being honest about its constraints.
+All data lives in `localStorage`. No accounts, no sync, no servers. The tradeoff — data is local only — is surfaced explicitly to users rather than hidden. This makes the app zero-friction to deploy and use, while being honest about its constraints.
 
 ---
 
@@ -17,33 +16,33 @@ All data lives in `localStorage`. No accounts, no sync, no servers. The tradeoff
 
 **Empty → Demo → Real** are distinct states, not blended.
 
-- **Empty**: Entry gate (`EmptyLanding`) shown when no stored data exists. Two primary paths: add real data or explore with demo. A third link ("Switching devices? Import a backup") handles the restore-from-file case without hiding it in settings.
-- **Demo**: Purely in-memory. No writes to `localStorage` at any point — not even on the first user action. A persistent banner makes this unambiguous. The settings nav is hidden in demo mode to prevent navigating away and losing the in-memory state.
-- **Real**: Standard mode. localStorage persistence. Settings accessible via gear icon.
+- **Empty**: Entry gate (`EmptyLanding`) shown when no stored data exists. Two primary CTAs: "Add my first investment" or "Explore with demo data". A tertiary link ("Switching devices? Import a backup") handles the restore-from-file case without hiding it in settings.
+- **Demo**: Purely in-memory. No writes to `localStorage` at any point. A persistent banner makes this unambiguous. The settings nav is hidden in demo mode to prevent navigating away and losing in-memory state.
+- **Real**: Standard mode. `localStorage` persistence. Settings accessible via nav.
 
-**Decision rejected:** Auto-seeding demo data when no stored deposits exist (the previous dev-only behavior). It conflated exploration with data entry — the first user action in demo mode silently wrote demo deposits to storage.
+**Decision rejected:** Auto-seeding demo data when no stored deposits exist. It conflated exploration with data entry — the first user action in demo mode silently wrote demo deposits to storage.
 
 ---
 
 ### Settings as a Separate Route
 
-Data management (export, import, clear, caveats) lives at `/settings`, not on the main dashboard. Keeps the primary view focused on portfolio data. The settings page handles its own confirmation dialogs and navigates back to `/` after import or clear — so the user always lands in the correct state without manual navigation.
+Data management lives at `/settings`, not on the main dashboard. Keeps the primary view focused on portfolio data. Settings navigates back to `/` after import or clear so the user always lands in the correct state.
 
 ---
 
 ### Export / Import Format
 
-JSON with `{ version, exportedAt, deposits }` envelope. Chosen over CSV because it can round-trip through import without data loss. The version field is a forward-compatibility hook. Import replaces all data (not merge) — consistent with restore semantics and avoids duplicate detection complexity.
+JSON with `{ version, exportedAt, deposits }` envelope. Chosen over CSV because it can round-trip through import without data loss. The version field is a forward-compatibility hook. Import shows a confirmation dialog with the count of depositis being replaced, then replaces all data — consistent with restore semantics and avoids duplicate detection complexity.
 
 ---
 
 ### Caveats Are Opt-In
 
-Storage limitations are surfaced in a collapsible section in Settings, not as a persistent banner on every page load. The banner approach was tried first — it trained users to ignore it immediately. The caveats are available when relevant (before clearing, before exporting) and out of the way otherwise.
+Storage limitations are surfaced in a collapsible section in Settings ("What you should know about local storage"), not as a persistent banner on every page load. The banner approach trains users to ignore it immediately. The caveats are available when relevant and out of the way otherwise.
 
 ---
 
-## Phase 2: Dashboard and KPI Cards
+## Phase 2: Dashboard Page
 
 ### Three KPIs: Total Principal, Income This Month, Next Maturity
 
@@ -53,13 +52,13 @@ These answer the three questions a yield-ladder user asks on every visit:
 2. **What's coming in right now?** → Income This Month
 3. **What do I need to act on next?** → Next Maturity
 
-Every other stat (individual rates, term lengths, net interest per deposit) belongs in the Investments tab, not the summary view.
+Every other stat belongs in the Investments page, not the summary view.
 
 ---
 
 ### Total Principal Excludes Settled
 
-Settled deposits have already paid out — including them would overstate the active portfolio size. The subtext ("Excludes settled.") makes the definition explicit without requiring a tooltip.
+Settled deposits have already paid out — including them would overstate the active portfolio size. The subtext ("Excludes settled.") makes the definition explicit.
 
 ---
 
@@ -67,447 +66,383 @@ Settled deposits have already paid out — including them would overstate the ac
 
 The card shows a single net total with optional pills breaking it into pending and settled portions. The pills only appear when both values are non-zero — no visual noise when the month is all-pending or all-settled.
 
-**Decision:** Show both pending and settled in the same card rather than splitting into two KPIs. The total is what users plan with; the breakdown is a secondary signal (how much is already confirmed vs. still waiting on a maturity action).
+**Decision:** Show both pending and settled in the same card rather than splitting into two KPIs. The total is what users plan with; the breakdown is a secondary signal.
 
 ---
 
-### Next Maturity: Name + Bank + Net Proceeds
+### Next Maturity: Date + Name + Net Proceeds
 
-Shows enough to decide whether to act (name and bank for identity, net proceeds for the payout amount) without navigating to the Investments tab. The field is blank (`—`) when no active or matured deposits exist.
+Shows the maturity date large, with deposit name and "bank · net proceeds" below. Enough to decide whether to act without navigating to Investments. Shows "—" when no active or matured deposits exist.
 
 ---
 
 ### Net Only in KPI Cards
 
-No gross figures in any KPI card. After-tax net is what users plan with. Gross requires mental math on every glance; showing it would make the summary less useful, not more complete.
+No gross figures in any KPI card. After-tax net is what users plan with. Gross requires mental math on every glance.
 
 ---
 
-## Phase 3: Investments Tab
+### This Month Preview
+
+Below the KPI cards, a compact preview card shows up to 3 of the current month's cash flow entries (name + bank + net amount) with a "View all →" link to `/cashflow`. If there are more than 3, a "+N more" indicator appears. Shows "No payouts scheduled this month." when empty.
+
+**Decision:** Surface a preview of the most immediately relevant cash flow data without making the user navigate to a separate page. Three entries is enough to prompt action or confirm there's nothing urgent.
+
+---
+
+### Bank Exposure Card
+
+Below the month preview, a card shows each bank's total active principal as a progress bar against an optional deposit insurance limit (set in Settings). Bar colors: green (< 80% of limit), amber (80–100%), red (> 100%). Hidden when no active deposits exist, or when the limit is unset (shows amounts only with no bar).
+
+**Decision:** Surface concentration risk at a glance. Users stacking multiple deposits in a single bank may not realise they exceed PDIC limits. A progress bar communicates this without requiring users to do math.
+
+**Tradeoff accepted:** The limit is a user-entered preference — not validated against any regulatory source. The card is a prompt, not a guarantee.
+
+---
+
+## Phase 3: Investments Page
 
 ### Overview
 
-The Investments tab is the primary data view — a scannable list of all time deposits with status, key financials, and actions. It must work well on mobile (primary use case) and provide data density on desktop.
+The Investments page is the primary data view — a scannable list of all deposits with status, key financials, and actions. It must work well on mobile (primary use case) and provide data density on desktop.
 
 ---
 
 ### Layout Strategy: Cards on Mobile, DataTable on Desktop
 
-**Decision:** Render `Card` components (mobile/`sm`) and switch to a shadcn `DataTable` (TanStack Table) at `md+` breakpoints.
+**Decision:** Render `DepositCard` components below `md` breakpoint (768px) and switch to a TanStack Table at `md+`.
 
 **Rationale:**
 
 - Cards avoid horizontal scroll on mobile entirely — critical given ₱ currency strings and date ranges
 - Tables give the data density needed for comparison on desktop
-- The responsive switch at `lg` (1024px) means the table only renders where there's enough room
 - Avoids "responsive table" anti-patterns (hidden columns with horizontal scroll, collapsed rows)
 
-**Tradeoff accepted:** Below `lg`, users see cards only. This is intentional — the table is not degraded, it's replaced.
+**Tradeoff accepted:** Below `md`, users see cards only. This is intentional — the table is not degraded, it's replaced.
 
 ---
 
 ### DataTable Column Design
 
-**Columns and visibility by breakpoint:**
-
-| Column                | `md+` (768px+) | Pinned | Sortable    |
-| --------------------- | -------------- | ------ | ----------- |
-| Deposit (bank + name) | ✓              | Left   | No          |
-| Principal             | ✓              | No     | ✓           |
-| Rate                  | ✓              | No     | ✓           |
-| Maturity Date         | ✓              | No     | ✓           |
-| Days to Maturity      | ✓              | No     | ✓ (default) |
-| Net Interest          | ✓              | No     | ✓           |
-| Payout Frequency      | ✓              | No     | No          |
-| Status                | ✓              | No     | ✓           |
-| Actions               | ✓              | No     | No          |
+| Column           | Pinned | Sortable        |
+| ---------------- | ------ | --------------- |
+| Deposit (bank + name) | Left (frozen) | No |
+| Principal        | No     | ✓               |
+| Rate             | No     | ✓               |
+| Maturity Date    | No     | ✓               |
+| Days to Maturity | No     | ✓ (default ASC) |
+| Net Interest     | No     | ✓               |
+| Payout           | No     | No              |
+| Status           | No     | ✓               |
+| Actions          | No     | No              |
 
 **Default sort:** Days to Maturity ASC — surfaces the most urgent deposits first.
 
-**Overflow safety net:** Table container is still wrapped in `overflow-x-auto` regardless of viewport, protecting against browser zoom and edge cases. Deposit column is pinned left so identity is always visible.
+**Frozen column:** The Deposit column is frozen, so bank + name are always visible while scrolling horizontally.
+
+**New deposit highlight:** When a deposit is added via the modal, the matching row/card receives a highlight that fades over 1s.
 
 ---
 
-### Default Row Sort Order
+### Mobile Card Sort Order
 
-Sorted by urgency, not alphabetically or by creation date:
+Groups are rendered in urgency order with section headers:
 
-1. Matured — sorted by maturityDate ASC (most overdue first; needs action)
-2. Active — sorted by maturityDate ASC (soonest maturity first)
-3. Open-ended active — after term-based active (no deadline, lower urgency)
-4. Settled — sorted by maturityDate DESC (most recent first)
+1. **Matured** — sorted ASC by maturityDate (most overdue first; needs action)
+2. **Active** — sorted ASC by maturityDate (soonest maturity first)
+3. **Open-ended** — after term-based active (no deadline, lower urgency)
+4. **Settled** — sorted DESC by maturityDate (most recent first); hidden unless "Show settled" is on
 
 ---
 
 ### Filter Bar
 
-The toolbar above the list/table contains two controls:
-
 ```
 [All Banks ▼]   Show settled  ○──
 ```
 
-- **Bank filter:** `Select` or `DropdownMenu` — filters to a single bank or all
-- **Show settled Switch:** `Switch` component — toggles visibility of settled deposits
-  - Default: off (settled hidden — they are the least actionable, hiding reduces noise)
-  - On: settled rows/cards appear, visually de-emphasized (reduced opacity)
-  - Binary state; no confirmation needed — it's a view preference, not a data mutation
-
----
-
-### Action Group: Split Button
-
-**Decision:** Each deposit row/card has a split button group — a primary `Button` for Settle and a `DropdownMenuTrigger` for secondary actions, visually joined. Consistent across all viewports (mobile card and desktop table).
-
-```
-[  Settle  |⋮]
-```
-
-**State variants by deposit status:**
-
-| Status    | Left button                                  | Kebab items  |
-| --------- | -------------------------------------------- | ------------ |
-| `active`  | Settle — disabled (not yet matured)          | Edit, Delete |
-| `matured` | Settle — enabled, warning variant            | Edit, Delete |
-| `settled` | Hidden (replaced with muted "Settled" label) | Edit, Delete |
-
-**Settle confirmation behavior:**
-
-- Clicking Settle → opens `AlertDialog` to confirm (one-way financial action; accidental taps are plausible on mobile)
-- Rationale: Settling is semantically significant even in a local app; the dialog prevents a class of accidental state changes
-
-**Dialog content:** Shows deposit name, principal, net interest, and total proceeds (`principal + netInterest`). Confirm button label includes the amount: "Settle ₱20,358.90" — reduces accidental confirmation.
-
-**Kebab items:** Edit, Delete (with destructive styling on Delete).
-
-**Accessibility:** Settle button has `aria-label="Settle [deposit name]"`. Kebab has `aria-label="More options for [deposit name]"`. Neither uses generic labels since multiple action groups exist on the page simultaneously.
-
-**Delete confirmation behavior:**
-
-- Clicking Delete → opens destructive `AlertDialog` to confirm
+- **Bank filter:** `Select` — filters to a single bank or all. Options are derived from the current portfolio (no hard-coded list).
+- **Show settled Switch:** Default off (settled hidden). On: settled rows/cards appear. When all results are filtered out, a "No matching deposits" empty state appears with a "Clear filters" action.
 
 ---
 
 ### Collapsible Cards
 
-**Decision:** Mobile cards are collapsible using shadcn `Collapsible` composed inside `Card`.
-
-**Rationale:**
-
-- Shows the critical snapshot (identity + urgency + actions) without scrolling through full details
-- Full details (rate, exact maturity date, net interest, payout frequency) are available on expand
-- Reduces visual density on mobile where screen space is limited
-- Follows the "act or skip" mental model: collapsed = enough to decide; expanded = enough to understand
+**Decision:** Mobile cards are collapsible (`Collapsible` composed inside `Card`).
 
 **Component composition:**
-
 ```
 Card > Collapsible > [CardHeader > CollapsibleTrigger] + CollapsibleContent + CardFooter
 ```
 
-**Always visible (collapsed):**
+**Always visible (collapsed):** Status badge + deposit name (in CollapsibleTrigger) + maturity label + action buttons (in CardFooter)
 
-- Status badge + deposit name(in CollapsibleTrigger)
-- Maturity date + `[Settle | ⋮]` split button group (in CardFooter, always reachable)
+**Visible only when expanded:** Bank · Principal · Net interest · Rate (shows "Tiered" for tiered-rate deposits) · Term (omitted for open-ended) · Payout frequency
 
-**Visible only when expanded (CollapsibleContent):**
-
-- Bank name
-- Principal
-- Net Interest
-- Rate
-- Payout Frequency
-
-**Trigger:** Entire `CardHeader` row is the collapse trigger. Chevron icon rotates on state change. `CollapsibleTrigger` renders as `<button>` — not overridden with `asChild` on a non-button element.
+**Maturity label (MaturityLabel sub-component):**
+- > 30 days away: "Matures [date]"
+- 1–30 days: "Due in Nd" (amber)
+- Today: "Due today" (amber)
+- Past maturity: "Nd overdue" (amber)
+- Open-ended: "Open-ended"
+- Settled: "—"
 
 ---
 
-### Collapsed Card Snapshot
+### Action Group: Split Button
 
-The snapshot answers three questions without expanding:
+Each card footer has a joined button group — Settle button + kebab trigger visually connected.
 
-1. **What is this?** — Deposit name + status badge
-2. **What state is it in?** — Status badge (Active / Matured / Settled)
-3. **Should I act on it?** — Days to Maturity
+```
+[  Settle  |⋮]
+```
 
-This is the minimum viable context for a user to decide whether to expand or move on.
+| Status    | Settle button                  | Kebab items  |
+| --------- | ------------------------------ | ------------ |
+| `active`  | Not shown                      | Edit, Delete |
+| `matured` | Shown, triggers confirm dialog | Edit, Delete |
+| `settled` | Not shown                      | Edit, Delete |
 
----
+**Settle confirmation dialog:** Shows deposit name, net interest, and total proceeds. Confirm requires a second click — prevents accidental settlement of a one-way financial action.
 
-### Empty State
+**Delete confirmation dialog:** Destructive `AlertDialog`. No undo.
 
-When no deposits exist:
-
-- Centered illustration/icon
-- "No investments tracked yet" heading
-- Short explanation line
-- Primary CTA: "+ Add Investment"
-
-Same CTA as the header button — reinforces the action path for first-time users.
+**Accessibility:** Settle button `aria-label="Settle [deposit name]"`. Kebab `aria-label="More options for [deposit name]"`.
 
 ---
 
-### Accessibility Decisions
+### Empty States
 
-#### List Semantics
+- **No deposits:** Icon + "No investments tracked yet" + "Add investment" CTA (disabled, since the wizard is triggered from the nav).
+- **No results (filters active):** Icon + "No matching deposits" + "Clear filters" CTA that resets the bank filter.
 
-- Container: `<ul role="list" aria-label="Investment deposits">`
-- Each item: `<li>` wrapping `<Card>`
-- `role="list"` preserves list semantics in Safari (stripped by `list-style: none`)
+---
 
-#### Card Identity
+### Accessibility
 
+- `<ul role="list">` preserves list semantics in Safari (stripped by `list-style: none`)
 - Each card: `<article aria-labelledby="deposit-{id}-name">`
-- Heading: `<h2 id="deposit-{id}-name">` — gives screen readers a meaningful label per card
-
-#### Collapsible Trigger
-
-- `CollapsibleTrigger` renders as `<button>` (Radix default) — not overridden
-- `aria-expanded` managed automatically by shadcn/Radix
-- Chevron: `aria-hidden="true"` (decorative)
-
-#### Progress Bar (if ever reintroduced)
-
-- `role="progressbar"`, `aria-valuenow`, `aria-valuemin="0"`, `aria-valuemax="100"`, `aria-label="X% of term elapsed"`
-
-#### Action Labels
-
-- Settle button: `aria-label="Settle [deposit name]"` — never just "Settle"
-- Kebab: `aria-label="More options for [deposit name]"` — never just "More options"
-- DropdownMenu items: `role="menuitem"` (managed by shadcn)
-
-#### Keyboard Navigation (per collapsed card)
-
-1. `Tab` → CollapsibleTrigger — `Enter`/`Space` toggles expand
-2. `Tab` → Settle button — `Enter` opens confirm dialog
-3. `Tab` → Kebab button — `Enter`/`Space` opens menu; `Escape` closes
-
-3 tab stops per collapsed card. Expanded adds tab stops within CollapsibleContent.
-
-#### Live Region for Settle
-
-- `<div role="status" aria-live="polite" className="sr-only">` announces settlement
-- `role="status"` = polite live region (waits for reader to finish current announcement)
-- Example output: "OwnBank 30D marked as settled."
-
-#### Reduced Motion
-
-- Collapsible expand/collapse animation respects `prefers-reduced-motion`
-- Verify Radix UI animation CSS uses `@media (prefers-reduced-motion: no-preference)` guard
+- `aria-expanded` managed automatically by Radix Collapsible
+- `<div role="status" aria-live="polite" className="sr-only">` announces "{{name}} marked as settled." after settling
 
 ---
 
-## Phase 4: Cash Flow Tab
+## Phase 4: Cash Flow Page
 
 ### Overview
 
-The Cash Flow tab answers a question the Investments tab doesn't: _when will money arrive, and how much?_ Where the Investments tab is about individual deposits, the Cash Flow tab is about the aggregate income stream — month by month, looking forward.
+The Cash Flow page answers: _when will money arrive, and how much?_ Where Investments is about individual deposits, Cash Flow is about the aggregate income stream — month by month, looking forward.
 
 ---
 
-### Dual-Mode Layout: Chart + Collapsible Row List
+### Dual-Mode Layout: Area Chart + Collapsible Month Rows
 
-**Decision:** The tab combines a horizontal bar chart (macro view) with a list of collapsible month rows (detail view). They are always visible together, not toggled.
+**Decision:** The page combines a smooth SVG area chart (macro view) with a list of collapsible month rows (detail view). They are always visible together, not toggled.
 
 **Rationale:**
 
-- The chart gives immediate shape — which months are heavy, which are sparse, where the peaks are
-- The row list gives the _why_ — which specific deposits contribute to a given month, and for how much
-- Separating them into tabs would force users to cross-reference from memory
-- Stacking them vertically lets the chart serve as navigation context while the rows serve as drill-down
+- The chart gives immediate shape — which months are heavy, sparse, where the peaks are
+- The row list gives the _why_ — which specific deposits contribute, and for how much
+- Separating them would force users to cross-reference from memory
 
-**Tradeoff accepted:** More vertical space consumed. Acceptable because this is a dedicated tab, not a dashboard widget.
+**Chart details:**
+- SVG area chart with a cubic bezier smooth curve
+- Filled gradient area below the line (primary color, 35% → 0% opacity)
+- Current month: filled dot marker
+- Peak month: value label above the point
+- X-axis: month abbreviations; current month bold
 
 ---
 
 ### Window Filter: 3M / 6M / 12M / All
 
-**Decision:** A compact toggle lets users narrow the chart and row list to 3, 6, or 12 months ahead, or show all projected months.
+A compact `ToggleGroup` (card variant) lets users narrow the chart and row list to 3, 6, or 12 future months, or show all projected months.
 
-**Rationale:**
+**Default:** 12 months. Provides useful annual context without the long tail.
 
-- Most users care about the next 3–6 months for cash planning; 12 months for annual view
-- Showing all months by default creates visual noise and chart distortion when far-future months dwarf near-term ones
-- A toggle is faster than a date picker and matches the mental model ("how far ahead do I want to see?")
-
-**Default:** 12 months. Provides useful annual context without showing the full long tail.
+**Behaviour:** "All" shows every month with any projected income, regardless of how far out. Months with no payouts are omitted — they do not appear as empty rows.
 
 ---
 
 ### Projection Excludes Settled Deposits
 
-**Decision:** The 12-month chart and future month rows are built from active and matured deposits only. Settled deposits are excluded from the projection.
+Settled deposits have already paid out — their cash has been received. Including them would misrepresent future income.
 
-**Rationale:**
-
-- Settled deposits have already paid out — their cash has been received and is no longer "incoming"
-- Including them would misrepresent future income as higher than it actually is
-- Users should see what is still owed to them, not a historical record
-
-**Exception:** The current month row includes settled entries in its entry list (see below). The projected total for future months stays clean.
+**Exception:** The current month row shows the complete picture — active, matured, and settled entries — because income for the current month is already partially realised.
 
 ---
 
-### Open-Ended Deposits: 12-Payout Projection Anchored to Start Date
+### Open-Ended Deposits: 12-Payout Projection
 
-**Decision:** Open-ended (savings) deposits are projected as 12 monthly payouts. The projection starts from the first payout month ≥ the current calendar month, and the payout day-of-month is anchored to the deposit's `startDate` — not to today.
+Open-ended (savings) deposits are projected as 12 monthly payouts, anchored to the deposit's `startDate` — not to today. The first projected month is the earliest payout month ≥ the current calendar month.
 
-**Rationale:**
-
-- Open-ended deposits have no maturity date, so there is no natural projection end. 12 months provides a practical annual planning horizon.
-- Anchoring to `startDate` preserves the actual payout rhythm. A savings account opened on January 20 pays on the 20th of each month — the projection uses February 20, March 20, April 20, etc., not February 15 (today + 1 month), which would drift from the real schedule.
-- Starting from the first payout month ≥ the current month (rather than always starting next month) ensures the current month is included when a payout falls within it. A user who opened a savings account on January 10 and checks on March 20 sees March 10's payout in the current month row.
-
-**Algorithm:**
-
-1. Find the first `n ≥ 1` such that `addMonths(startDate, n)` falls in the current calendar month or later.
-2. Project 12 payouts: `addMonths(startDate, n)`, `addMonths(startDate, n+1)`, …, `addMonths(startDate, n+11)`.
-
-**Months with no payouts are omitted** — empty months do not appear as collapsed rows.
-
-**Tradeoff accepted:** Each projected payout is `netInterest / 12` — the yield engine's 12-month net interest divided evenly. This is an approximation for planning purposes; the actual monthly payout from a live savings account may vary.
-
----
-
-### Current Month: Full Picture vs. Projection
-
-**Decision:** The current month row shows the complete income picture — active, matured, and settled entries — with a header total that includes confirmed settled amounts. Future month rows show projection only (active + matured).
-
-**Rationale:**
-
-- For the current month, income is already partially realized. Hiding settled amounts would undercount the month's true earnings.
-- The "Income This Month" KPI card already shows the full net including settled. The Cash Flow row should agree with it — inconsistency between the two would erode trust.
-- Future months have no settled entries by definition, so the distinction only matters for the present.
-
-**Tradeoff accepted:** The current month row can show more entries than future rows, which feels slightly asymmetric. The value of accuracy outweighs the visual inconsistency.
-
----
-
-### Grouping Entries by Payout Type
-
-**Decision:** Within each expanded month, entries are grouped under "At maturity payouts" and "Monthly payouts" sub-headers. Groups are shown only when non-empty.
-
-**Rationale:**
-
-- At-maturity payouts are lump sums often 10–20× larger than monthly payouts from the same deposit; mixing them in a flat list distorts the reading of the monthly total
-- Users asking "will this be enough for monthly expenses?" care about recurring income separately from lump-sum windfalls
-- Grouping surfaces the structural difference without requiring users to remember which deposits pay how
-
----
-
-### Status in Entry List: Matured vs. Settled
-
-**Decision:** Within the current month entry list, matured entries get a "Due now" warning badge. Settled entries appear muted with "(settled)" appended. Active entries get no badge.
-
-**Rationale:**
-
-- "Due now" signals action needed — the deposit has matured but hasn't been settled. It earns a badge because it has an implication beyond just "this money is coming."
-- "Pending" (previous label for active entries) was removed because it added noise without adding meaning. An active deposit appearing in this month's list is self-evidently pending — the label stated the obvious.
-- Settled entries are already done; they belong in the list for completeness (showing what the month's total is made of) but shouldn't compete visually with actionable items.
+**Rationale:** Anchoring to `startDate` preserves the actual payout rhythm. A savings account opened on Jan 20 pays on the 20th of each month — the projection uses Feb 20, Mar 20, etc., not today + 1 month.
 
 ---
 
 ### Current Month Row Is Open by Default
 
-**Decision:** The current month row initializes in the expanded state. All other rows initialize collapsed.
+The current month row initialises in the expanded state. All other rows initialise collapsed.
 
-**Rationale:**
+**Rationale:** The current month is the most immediately relevant period for almost every user session. Auto-expanding saves a tap for the most common interaction.
 
-- The current month is the most immediately relevant period for almost every user session
-- Auto-expanding it saves a tap/click for the most common interaction
-- The collapsed state for all other months keeps the initial view clean while still allowing quick drill-down
+---
+
+### Grouping Entries by Payout Type
+
+Within each expanded month, entries are grouped under "At maturity payouts" and "Monthly payouts" sub-headers. Groups are shown only when non-empty.
+
+**Rationale:** At-maturity payouts are lump sums often 10–20× larger than monthly payouts; mixing them in a flat list distorts the reading of the monthly total.
+
+---
+
+### Status Badges in Entry List
+
+Within the **current month** entry list only:
+
+- `matured` entries → "Due now" alert badge (action needed)
+- `settled` entries → "Settled" success badge (muted signal)
+- `active` entries → no badge (self-evidently pending)
+
+**Decision:** "Pending" label was removed from active entries. An active deposit in the current month's list is self-evidently pending — the label stated the obvious.
+
+---
+
+### Principal Returned Line
+
+When a maturity payout entry has `principalReturned > 0`, a secondary line appears below the net interest amount: "+₱X principal returned". This surfaces the full cash event without confusing it with income.
 
 ---
 
 ### Amounts Are Always Net
 
-**Decision:** Every number in the Cash Flow tab — chart bars, month totals, entry amounts — is net of 20% withholding tax. A single disclaimer line appears once above the chart.
-
-**Rationale:**
-
-- Users plan with take-home amounts, not gross figures. Gross income would require mental math on every number.
-- A repeated per-row "net" label would add clutter with no new information after the first instance
-- The disclaimer is visible before the chart rather than buried at the bottom, so users see it before reading any amounts
+Every number in the Cash Flow page — chart, month totals, entry amounts — is net of withholding tax. A single disclaimer line ("All amounts are net of withholding tax") appears once above the chart via an `<Info>` icon.
 
 ---
 
-### Bar Chart: Current Month Uses Full Net (Including Settled)
+### Empty State
 
-**Decision:** The current month bar height and value label use the full net — active + matured + settled — matching the row header total. Future month bars use projection only (active + matured).
-
-**Rationale:**
-
-- The bar value and the row header showed different numbers for the same month, which eroded trust. A user glancing at the chart and then reading the row would see a discrepancy with no obvious explanation.
-- Aligning the bar to the row header resolves the confusion without any added visual complexity.
-
-**Alternatives considered:**
-
-- _Stacked bar (primary for active/matured, grey for settled portion)_ — communicates composition but the bars are 32px wide. The settled slice would often be a few pixels, too thin to read reliably and likely to feel like a rendering artifact rather than a deliberate signal.
-
-**Tradeoff to revisit:** The current month bar is built from a different data source than future bars (realized + projected vs. pure projection). This means month-to-month bar heights are not strictly comparable — a settled deposit inflates the current month relative to what a future month would show for the same deposit mix. If users start to notice the inconsistency, the right fix is probably a stacked bar once bar widths are large enough to render two segments legibly, or a visual treatment that explicitly marks the current month as "actual vs. projected."
+When there are no future months with projected income, a centred empty state appears: "No upcoming cash flow" + "Add active deposits in the Investments tab to see your 12-month income projection."
 
 ---
 
-## Phase 5: Add / Edit Investment Wizard
+## Phase 5: Add / Edit Investment Modal
 
-### Single-Step Dialog (replacing 2-step wizard + templates)
+### Single-Step Dialog
 
-**Decision:** Collapsed the original 2-step wizard into a single centered dialog with a live calc panel on the right (desktop) or compact strip below (mobile). Bank product templates were removed entirely.
+A single centered `Dialog` with the form on the left (scrollable) and a live calc panel on the right (desktop) or compact strip below (mobile). No steps, no templates, no multi-screen wizard.
+
+**Decision:** Collapsed the original 2-step wizard into a single form. Bank product templates were removed entirely.
 
 **Rationale:**
 
-- Templates go stale immediately when banks change rates — maintenance cost with no payoff
-- The step split only made sense when templates drove Step 1 pre-fill; with free-text input, Step 1 became a single field with no reason to exist as a separate screen
+- Templates go stale immediately when banks change rates
+- The step split only made sense when templates drove pre-fill; with free-text input, Step 1 became a single field with no reason to be a separate screen
 - A single form with clear field groups is faster to complete and easier to orient in
 
-**Tradeoff accepted:** Users must manually enter every value (no pre-fill). Accepted because rates change constantly — a pre-filled rate is misleading more often than it's helpful.
+---
+
+### Dialog Behaviour
+
+- **No outside-click close:** `onInteractOutside` is prevented. Accidental dismissal would lose the user's inputs.
+- **ESC → discard confirm (if dirty):** If `isDirty`, ESC opens an `AlertDialog`: "Discard changes?" / "Discard this investment?" with Keep editing / Discard options. If not dirty, ESC closes cleanly.
+- **Close button (X):** Same `requestClose()` path as ESC — triggers discard confirm if dirty.
+- **Title changes by mode:** "Add investment" / "Edit investment"
+- **Submit button label:** "Add investment" / "Save changes". Disabled until `canSubmit`.
+
+---
+
+### Form Fields (in order)
+
+1. **Bank** — free-text `<input list>` with `<datalist>` populated from existing deposit bank names. Required.
+2. **Product type** — radio cards (not a Select): Time Deposit · TD Monthly Payout · Savings. Required. Sets `payoutFrequency` and `isOpenEnded` as side-effects.
+3. **Name** — optional label. Placeholder auto-fills with "{bankName} deposit" when bank is entered.
+4. **Principal** — ₱ prefix, currency-masked input. Required.
+5. **Start date** — `DatePicker`. Uses `toISODate()` (local timezone safe).
+6. **Interest rate** — flat `%` input **or** tiered `TierBuilder` (toggled by "Tiered rates" switch in the label row). Required. Soft warning outside 0.01–25%.
+7. **Withholding tax** — default 20%, editable. Labeled generically (no geographic mention).
+8. **Day count** — `[365][360]` toggle (card variant). Default 365.
+9. **Compounding** — `[Daily][Monthly]` toggle. Always shown.
+10. **Term** — numeric input + `[Months][Days]` unit toggle. Shown for fixed-term products (TD, TD Monthly) and non-open-ended Savings. Mutually exclusive: switching unit clears the other field.
+11. **Payout frequency** — `[Monthly][At maturity]` toggle. Fixed-term products only.
+12. **Open-ended switch** — Savings product only. When on: hides Term field.
+
+---
+
+### Tiered Rate Builder
+
+The `TierBuilder` component renders a grid of tier rows: [Balance up to] · [Annual rate %] · [Remove button].
+
+- Last tier's "balance up to" column is replaced with a disabled "and above" chip.
+- "+ Add tier" inserts a new row above the last (inheriting the last tier's rate as a default).
+- Tiers with a single row disable the remove button.
 
 ---
 
 ### Free-Text Bank Name
 
-**Decision:** Bank is a plain text input with a `<datalist>` populated from existing deposit `bankId` values, rather than a searchable bank registry.
+Bank is a plain text input with a `<datalist>` populated from existing deposit `bankId` values. No curated registry.
 
-**Rationale:**
-
-- A curated bank list requires ongoing maintenance; this app has no server to pull updates from
-- Datalist gives autocomplete for repeat entries (same bank, multiple deposits) without a registry
-- `bankId` is stored as-is; `usePortfolioData` synthesizes a `Bank` object when no match is found, so display is always correct regardless of how the name was entered
+**Rationale:** A curated bank list requires ongoing maintenance with no server to pull updates from. Datalist gives autocomplete for repeat entries without a registry.
 
 ---
 
 ### Product Type as Radio Cards
 
-**Decision:** Three product cards — TD (maturity), TD Monthly, Savings — replace the bank product template selector.
-
-**Rationale:**
-
-- Product type drives real form behavior (payout frequency, open-ended, term visibility) and is universally applicable across any bank
-- Card selection makes the three modes visually distinct and scannable; a dropdown would hide the options
-
----
-
-### Toggle Card Variant (ToggleGroup + Toggle)
-
-**Decision:** All `ToggleGroup` components (day count, compounding, term presets, payout) use a `card` variant matching the radio card appearance: border + `border-primary` + `bg-primary/5` when selected.
-
-**Rationale:**
-
-- Consistent selection affordance across all segmented controls in the form
-- Distinguishes clearly from disabled/unselected state without relying on color alone
+Three product cards replace the old template selector. Card selection makes the three modes visually distinct and scannable; a dropdown would hide the options.
 
 ---
 
 ### Snapshot-Based Dirty Tracking for Edit Mode
 
-**Decision:** `isDirty = JSON.stringify(formState) !== JSON.stringify(initialState)`. On open, `initialState` is set to either `EMPTY_STATE` (add) or the loaded deposit's form state (edit). This means edit mode opens with `isDirty = false`.
+`isDirty = JSON.stringify(formState) !== JSON.stringify(initialState)`. On open, `initialState` is set to either `EMPTY_STATE` (add) or the loaded deposit's form state (edit). Edit mode opens with `isDirty = false`.
 
-**Rationale:**
-
-- Field-level empty checks (the previous approach) would immediately flag edit mode as dirty since all fields are populated
-- JSON snapshot comparison handles arrays (tiers) correctly without per-field logic
-- Users can cancel out of an unmodified edit session without a discard prompt
+**Rationale:** Field-level empty checks would immediately flag edit mode as dirty since all fields are populated. JSON snapshot comparison handles arrays (tiers) correctly without per-field logic. Users can cancel out of an unmodified edit session without a discard prompt.
 
 **Tradeoff accepted:** A JSON stringify on every render for the `isDirty` memo. Acceptable — form state is a flat object with at most ~15 fields plus a small tiers array.
 
 ---
+
+## Phase 6: Settings Page
+
+### Overview
+
+Settings is the data management and personalisation hub. It is fully self-contained — actions navigate back to `/` on completion rather than mutating state in-place. Organised into four cards: Appearance, Preferences, Data management, and an About footer.
+
+---
+
+### Appearance Card
+
+Theme toggle (light/dark) lives here, not in the nav. Keeps the primary nav clean; appearance is an infrequent, intentional action.
+
+---
+
+### Preferences Card
+
+**Currency selector:** Changes the currency symbol used across all formatted amounts (₱, $, €, etc.). Does not convert numbers — display only. Saved to `localStorage` via `setPreference`.
+
+**Deposit insurance limit:** Optional numeric input. When set, the Bank Exposure card on the Dashboard renders progress bars against this limit. A "Clear" inline button resets it. Preferences are saved explicitly via a "Save changes" button, which shows a `sonner` toast on success.
+
+---
+
+### Data Management Card
+
+| Action | Trigger | Behaviour |
+| --- | --- | --- |
+| **Export JSON** | Button click | Downloads `yieldflow-export-{date}.json`. Disabled when no deposits. |
+| **Import JSON** | Button click → file picker | Validates schema (version = 1, required fields per deposit). Valid: shows "Replace all data?" confirm dialog with old/new counts. Confirm: replaces deposits, navigates to `/`. Invalid: shows inline error below the button; stays on `/settings`. File input value is reset after each pick so the same file can be re-selected. |
+| **Clear all** | Button click | Destructive confirm: "Clear all data?" → "Clear all data" (destructive). Confirm: clears deposits, navigates to `/`. Disabled when no deposits. |
+
+---
+
+### Caveats Section
+
+A collapsible section within the Data management card: "What you should know about local storage". Surfaces five limitations: unencrypted storage, no cross-device sync, browser-history clearing erases data, sensitive data in exports, not recommended on shared computers.
+
+**Decision:** Opt-in collapsible, not a banner. The banner approach trains users to ignore it; the caveats are visible when relevant (before clearing, before exporting) and collapsed otherwise.
+
+---
+
+### No Direct State Mutation
+
+Settings never writes to `localStorage` directly. All mutations go through `PortfolioContext` (`importDeposits`, `clearDeposits`, `setPreference`). This keeps the data layer isolated and testable.

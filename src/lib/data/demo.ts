@@ -33,171 +33,64 @@ export const banks: Bank[] = [
 
 export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
-  // OVERDUE + SETTLED — matured in Feb 2026, user has clicked Settle
-  // Tests: settled pill on Income This Month, excluded from Total Principal
+  // RECENTLY SETTLED (Current Month)
+  // Logic: Matured and settled within the last 48 hours.
+  // Tests: Populates "Income This Month" with actual realized gains.
   // ─────────────────────────────────────────────
   {
-    id: "td-overdue-settled-001",
-    bankId: "cimb",
-    name: "CIMB - 3M",
-    principal: 250000,
-    startDate: monthsAgo(3),
-    termMonths: 3,
+    id: "td-recent-settled-001",
+    bankId: "ownbank",
+    name: "OwnBank - 360D Promo",
+    principal: 500000,
+    startDate: monthsAgo(12),
+    termMonths: 12,
     interestMode: "simple",
-    interestTreatment: "reinvest",
+    interestTreatment: "payout",
     compounding: "monthly",
     taxRateOverride: 0.2,
-    flatRate: 0.045,
-    tiers: [{ upTo: null, rate: 0.045 }],
+    flatRate: 0.075,
+    tiers: [{ upTo: null, rate: 0.075 }],
     payoutFrequency: "maturity",
     status: "settled",
   },
 
   // ─────────────────────────────────────────────
-  // OVERDUE + UNSETTLED — matured in Feb 2026, user has NOT settled yet
-  // Tests: yellow highlight, Settle CTA, pending pill on Income This Month,
-  //        still counts toward Total Principal
+  // MATURED + UNSETTLED (Action Required)
+  // Logic: Matured last week, awaiting user action.
+  // Tests: Dashboard "Action Required" list, pending income calculations.
   // ─────────────────────────────────────────────
   {
     id: "td-overdue-pending-001",
     bankId: "tonik",
-    name: "Tonik - 6M",
-    principal: 100000,
+    name: "Tonik - Time Deposit",
+    principal: 250000,
     startDate: monthsAgo(6),
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "reinvest",
     compounding: "monthly",
     taxRateOverride: 0.2,
-    flatRate: 0.055,
-    tiers: [{ upTo: null, rate: 0.055 }],
+    flatRate: 0.06,
+    tiers: [{ upTo: null, rate: 0.06 }],
     payoutFrequency: "maturity",
     status: "matured",
   },
 
   // ─────────────────────────────────────────────
-  // MATURING SOON — within the next 7 days
-  // Tests: Next Maturity card with a real near-term date
+  // HIGH EXPOSURE (Bank Limit Trigger)
+  // Logic: Large principal in one bank to trigger PDIC/Limit warnings.
+  // Tests: UI Warning badges in Sidebar/Dashboard for institutional risk.
   // ─────────────────────────────────────────────
   {
-    id: "td-soon-001",
-    bankId: "ownbank",
-    name: "OwnBank - 30D",
-    principal: 250000,
-    startDate: daysAgo(25),
-    termMonths: 1,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: "monthly",
-    taxRateOverride: 0.2,
-    flatRate: 0.048,
-    tiers: [{ upTo: null, rate: 0.048 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-
-  // ─────────────────────────────────────────────
-  // SHORT TERM — 1 month, simple flat rate, maturity payout
-  // Tests: shortest possible TD, edge cases in interest calculation
-  // ─────────────────────────────────────────────
-  {
-    id: "td-short-001",
-    bankId: "cimb-prime",
-    name: "CIMB Prime - 1M",
-    principal: 100000,
-    startDate: daysAgo(10),
-    termMonths: 1,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: "monthly",
-    taxRateOverride: 0.2,
-    flatRate: 0.035,
-    tiers: [{ upTo: null, rate: 0.035 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-
-  // ─────────────────────────────────────────────
-  // MID TERM — 3–6 months, flat rate, maturity payout
-  // ─────────────────────────────────────────────
-  {
-    id: "td-mid-001",
-    bankId: "cimb",
-    name: "CIMB - 3M",
-    principal: 250000,
-    startDate: daysAgo(5),
-    termMonths: 3,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: "monthly",
-    taxRateOverride: 0.2,
-    flatRate: 0.045,
-    tiers: [{ upTo: null, rate: 0.045 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-  {
-    id: "td-mid-002",
-    bankId: "cimb-prime",
-    name: "CIMB Prime - 6M",
-    principal: 500000,
-    startDate: daysAgo(45),
-    termMonths: 6,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: "monthly",
-    taxRateOverride: 0.2,
-    flatRate: 0.052,
-    tiers: [{ upTo: null, rate: 0.052 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-  {
-    id: "td-mid-003",
-    bankId: "ownbank",
-    name: "OwnBank - 180D",
-    principal: 210000,
-    startDate: daysAgo(18),
-    termMonths: 6,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: "monthly",
-    taxRateOverride: 0.2,
-    flatRate: 0.048,
-    tiers: [{ upTo: null, rate: 0.048 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-  {
-    id: "td-mid-004",
-    bankId: "maya",
-    name: "Maya - 6M",
-    principal: 100000,
-    startDate: daysAgo(18),
-    termMonths: 6,
-    interestMode: "simple",
-    interestTreatment: "reinvest",
-    compounding: undefined,
-    taxRateOverride: 0.2,
-    flatRate: 0.048,
-    tiers: [{ upTo: null, rate: 0.048 }],
-    payoutFrequency: "maturity",
-    status: "active",
-  },
-
-  // ─────────────────────────────────────────────
-  // LONG TERM — 12+ months, flat rate, maturity payout
-  // ─────────────────────────────────────────────
-  {
-    id: "td-long-001",
-    bankId: "tonik",
-    name: "Tonik - 12M",
-    principal: 320000,
-    startDate: monthsAgo(1),
+    id: "td-high-exposure-001",
+    bankId: "uno",
+    name: "Uno High Yield",
+    principal: 1200000,
+    startDate: daysAgo(15),
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "reinvest",
-    compounding: undefined,
+    compounding: "monthly",
     taxRateOverride: 0.2,
     flatRate: 0.065,
     tiers: [{ upTo: null, rate: 0.065 }],
@@ -206,66 +99,42 @@ export const deposits: TimeDeposit[] = [
   },
 
   // ─────────────────────────────────────────────
-  // TIERED RATE — maturity payout
-  // Tests: tiered interest calculation at end of term (not open-ended)
+  // MATURING SOON (Next 48 Hours)
+  // Logic: Strategic startDate to hit the "Next Maturity" card.
   // ─────────────────────────────────────────────
   {
-    id: "td-tiered-maturity-001",
-    bankId: "cimb",
-    name: "CIMB - Tiered 6M",
-    principal: 350000,
-    startDate: daysAgo(18),
-    termMonths: 6,
-    interestMode: "tiered",
+    id: "td-imminent-001",
+    bankId: "maya",
+    name: "Maya Personal Goal",
+    principal: 300000,
+    startDate: daysAgo(29), // Assuming 30-day month
+    termMonths: 1,
+    interestMode: "simple",
     interestTreatment: "reinvest",
     compounding: "monthly",
     taxRateOverride: 0.2,
-    flatRate: 0.045,
-    tiers: [
-      { upTo: 200000, rate: 0.045 },
-      { upTo: null, rate: 0.055 },
-    ],
+    flatRate: 0.05,
+    tiers: [{ upTo: null, rate: 0.05 }],
     payoutFrequency: "maturity",
     status: "active",
   },
 
   // ─────────────────────────────────────────────
-  // MONTHLY PAYOUT — fixed term
-  // Tests: interest paid monthly, principal returned only at maturity
+  // TIERED OPEN-ENDED (Savings Multiplier)
+  // Logic: High balance Maya savings to test daily tiered compounding.
   // ─────────────────────────────────────────────
   {
-    id: "td-monthly-001",
-    bankId: "uno",
-    name: "UnoEarn - 24M",
-    principal: 280000,
-    startDate: daysAgo(16),
-    termMonths: 24,
-    interestMode: "simple",
-    interestTreatment: "payout",
-    compounding: undefined,
-    taxRateOverride: 0.2,
-    flatRate: 0.05,
-    tiers: [{ upTo: null, rate: 0.05 }],
-    payoutFrequency: "monthly",
-    status: "active",
-  },
-
-  // ─────────────────────────────────────────────
-  // OPEN-ENDED — no maturity date, monthly payout, tiered rate
-  // Tests: ongoing investments with no end date in timeline + cash flow
-  // ─────────────────────────────────────────────
-  {
-    id: "td-open-001",
+    id: "td-open-maya-001",
     bankId: "maya",
-    name: "Maya - SA",
-    principal: 140000,
-    startDate: monthsAgo(1),
+    name: "Maya Savings (Boosted)",
+    principal: 450000,
+    startDate: monthsAgo(2),
     termMonths: 12,
     interestMode: "tiered",
     interestTreatment: "payout",
     compounding: "daily",
     taxRateOverride: 0.2,
-    flatRate: 0.1,
+    flatRate: 0.1, // Promotional rate
     tiers: [
       { upTo: 100000, rate: 0.1 },
       { upTo: null, rate: 0.035 },
@@ -274,11 +143,38 @@ export const deposits: TimeDeposit[] = [
     isOpenEnded: true,
     status: "active",
   },
+
+  // ─────────────────────────────────────────────
+  // RECURRING MONTHLY PAYOUT (Cash Flow Density)
+  // Logic: 24-month term with monthly payout.
+  // Tests: Populates the Cash Flow bar chart for the entire 12M view.
+  // ─────────────────────────────────────────────
   {
-    id: "td-open-002",
+    id: "td-monthly-payout-001",
+    bankId: "uno",
+    name: "UnoEarn - Monthly",
+    principal: 400000,
+    startDate: daysAgo(20),
+    termMonths: 24,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "monthly",
+    taxRateOverride: 0.2,
+    flatRate: 0.06,
+    tiers: [{ upTo: null, rate: 0.06 }],
+    payoutFrequency: "monthly",
+    status: "active",
+  },
+
+  // ─────────────────────────────────────────────
+  // MULTI-TIER MARIBANK (Institutional Anchor)
+  // Logic: Large institutional balance.
+  // ─────────────────────────────────────────────
+  {
+    id: "td-open-maribank-001",
     bankId: "maribank",
-    name: "MariBank - SA",
-    principal: 1150000,
+    name: "MariBank Savings",
+    principal: 1500000,
     startDate: monthsAgo(1),
     termMonths: 12,
     interestMode: "tiered",
@@ -292,6 +188,26 @@ export const deposits: TimeDeposit[] = [
     ],
     payoutFrequency: "monthly",
     isOpenEnded: true,
+    status: "active",
+  },
+
+  // ─────────────────────────────────────────────
+  // SHORT-TERM REINVESTMENT
+  // ─────────────────────────────────────────────
+  {
+    id: "td-short-002",
+    bankId: "gotyme", // Assuming GoTyme exists in your bank list
+    name: "GoTyme - 32D",
+    principal: 150000,
+    startDate: daysAgo(5),
+    termMonths: 1,
+    interestMode: "simple",
+    interestTreatment: "reinvest",
+    compounding: "monthly",
+    taxRateOverride: 0.2,
+    flatRate: 0.05,
+    tiers: [{ upTo: null, rate: 0.05 }],
+    payoutFrequency: "maturity",
     status: "active",
   },
 ];

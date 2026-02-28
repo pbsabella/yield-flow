@@ -96,7 +96,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
             ))}
             {entries.length > 3 && (
               <p className="text-xs text-center text-muted-foreground pt-1">
-                +{entries.length - 3} more ·{" "}
+                +{entries.length - 3} more
               </p>
             )}
           </div>
