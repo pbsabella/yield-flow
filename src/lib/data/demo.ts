@@ -22,13 +22,13 @@ function monthsAgo(months: number): string {
 }
 
 export const banks: Bank[] = [
-  { id: "cimb", name: "CIMB", taxRate: 0.2 },
-  { id: "cimb-prime", name: "CIMB Prime", taxRate: 0.2 },
-  { id: "tonik", name: "Tonik", taxRate: 0.2 },
-  { id: "ownbank", name: "OwnBank", taxRate: 0.2 },
-  { id: "maribank", name: "MariBank", taxRate: 0.2 },
-  { id: "maya", name: "Maya", taxRate: 0.2 },
-  { id: "uno", name: "Uno", taxRate: 0.2 },
+  { id: "apex", name: "Apex Bank", taxRate: 0.2 },
+  { id: "nexus", name: "Nexus Bank", taxRate: 0.2 },
+  { id: "horizon", name: "Horizon Bank", taxRate: 0.2 },
+  { id: "meridian", name: "Meridian Bank", taxRate: 0.2 },
+  { id: "cascade", name: "Cascade Bank", taxRate: 0.2 },
+  { id: "summit", name: "Summit Bank", taxRate: 0.2 },
+  { id: "valley", name: "Valley Bank", taxRate: 0.2 },
 ];
 
 export const deposits: TimeDeposit[] = [
@@ -39,8 +39,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-recent-settled-001",
-    bankId: "ownbank",
-    name: "OwnBank - 360D Promo",
+    bankId: "horizon",
+    name: "360-Day Fixed Term",
     principal: 500000,
     startDate: monthsAgo(12),
     termMonths: 12,
@@ -61,8 +61,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-overdue-pending-001",
-    bankId: "tonik",
-    name: "Tonik - Time Deposit",
+    bankId: "nexus",
+    name: "6-Month Time Deposit",
     principal: 250000,
     startDate: monthsAgo(6),
     termMonths: 6,
@@ -83,8 +83,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-high-exposure-001",
-    bankId: "uno",
-    name: "Uno High Yield",
+    bankId: "summit",
+    name: "High Yield Fixed",
     principal: 1200000,
     startDate: daysAgo(15),
     termMonths: 12,
@@ -104,8 +104,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-imminent-001",
-    bankId: "maya",
-    name: "Maya Personal Goal",
+    bankId: "cascade",
+    name: "1-Month Term Deposit",
     principal: 300000,
     startDate: daysAgo(29), // Assuming 30-day month
     termMonths: 1,
@@ -121,12 +121,12 @@ export const deposits: TimeDeposit[] = [
 
   // ─────────────────────────────────────────────
   // TIERED OPEN-ENDED (Savings Multiplier)
-  // Logic: High balance Maya savings to test daily tiered compounding.
+  // Logic: High balance savings to test daily tiered compounding.
   // ─────────────────────────────────────────────
   {
-    id: "td-open-maya-001",
-    bankId: "maya",
-    name: "Maya Savings (Boosted)",
+    id: "td-open-cascade-001",
+    bankId: "cascade",
+    name: "Tiered Savings Plus",
     principal: 450000,
     startDate: monthsAgo(2),
     termMonths: 12,
@@ -151,8 +151,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-monthly-payout-001",
-    bankId: "uno",
-    name: "UnoEarn - Monthly",
+    bankId: "summit",
+    name: "24-Month Monthly Payout",
     principal: 400000,
     startDate: daysAgo(20),
     termMonths: 24,
@@ -167,13 +167,13 @@ export const deposits: TimeDeposit[] = [
   },
 
   // ─────────────────────────────────────────────
-  // MULTI-TIER MARIBANK (Institutional Anchor)
+  // MULTI-TIER (Institutional Anchor)
   // Logic: Large institutional balance.
   // ─────────────────────────────────────────────
   {
-    id: "td-open-maribank-001",
-    bankId: "maribank",
-    name: "MariBank Savings",
+    id: "td-open-meridian-001",
+    bankId: "meridian",
+    name: "Multi-Tier Savings",
     principal: 1500000,
     startDate: monthsAgo(1),
     termMonths: 12,
@@ -196,8 +196,8 @@ export const deposits: TimeDeposit[] = [
   // ─────────────────────────────────────────────
   {
     id: "td-short-002",
-    bankId: "gotyme", // Assuming GoTyme exists in your bank list
-    name: "GoTyme - 32D",
+    bankId: "valley",
+    name: "30-Day Short Term",
     principal: 150000,
     startDate: daysAgo(5),
     termMonths: 1,
