@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     title: "YieldFlow Lab",
     description: "Visualize spendable reality with net-of-tax interest tracking.",
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 };
 
 export default function RootLayout({
