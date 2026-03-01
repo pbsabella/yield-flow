@@ -36,6 +36,7 @@ export function buildDepositSummary(deposit: TimeDeposit, bank: Bank): DepositSu
     principal: deposit.principal,
     startDate: deposit.startDate,
     termMonths: deposit.termMonths,
+    termDays: deposit.termDays,
     flatRate: deposit.flatRate,
     tiers: deposit.tiers,
     interestMode: deposit.interestMode,
