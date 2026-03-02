@@ -27,18 +27,11 @@ function formatDate(date: Date | undefined) {
   })
 }
 
-function isValidDate(date: Date | undefined) {
-  if (!date) {
-    return false
-  }
-  return !isNaN(date.getTime())
-}
-
 interface DatePickerProps {
   id: string
   selected: Date | undefined
   timeZone?: string
-  onSelect: (date: Date | undefined) => void // Allow undefined if user clears input
+  onSelect: (date: Date | undefined) => void
 }
 
 export function DatePicker({ id, selected, timeZone, onSelect }: DatePickerProps) {
@@ -52,26 +45,15 @@ export function DatePicker({ id, selected, timeZone, onSelect }: DatePickerProps
     if (selected) setMonth(selected)
   }, [selected])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value
-    setValue(inputValue)
-
-    const parsedDate = new Date(inputValue)
-    if (isValidDate(parsedDate)) {
-      onSelect(parsedDate)
-      setMonth(parsedDate)
-    } else if (inputValue === "") {
-      onSelect(undefined)
-    }
-  }
-
   return (
     <InputGroup>
       <InputGroupInput
         id={id}
         value={value}
         placeholder="June 01, 2025"
-        onChange={handleInputChange}
+        readOnly
+        className="cursor-pointer"
+        onClick={() => setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault()

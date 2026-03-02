@@ -26,10 +26,11 @@ import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner"
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
-import { SUPPORTED_CURRENCIES } from "@/lib/domain/format";
+import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import type { TimeDeposit } from "@/types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
+import { useCurrencyInput } from '@/components/ui/use-currency-input';
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -93,6 +94,18 @@ export function SettingsShell() {
   const [preferencesDraft, setPreferencesDraft] = useState({
     currency: preferences.currency,
     bankInsuranceLimit: preferences.bankInsuranceLimit,
+  });
+
+  // Local string state bridges useCurrencyInput (string) ↔ draft (number | undefined)
+  const [insuranceLimitStr, setInsuranceLimitStr] = useState(
+    preferences.bankInsuranceLimit?.toString() ?? ""
+  );
+  const { ref: insuranceLimitRef, ...insuranceLimitInputProps } = useCurrencyInput({
+    value: insuranceLimitStr,
+    onChange: (raw) => {
+      setInsuranceLimitStr(raw);
+      setPreferencesDraft((prev) => ({ ...prev, bankInsuranceLimit: raw === "" ? undefined : Number(raw) }));
+    },
   });
 
   // ─── Export ────────────────────────────────────────────────────────────────
@@ -180,319 +193,318 @@ export function SettingsShell() {
 
   return (
     <RouteGuard>
-    <div className="bg-background">
-      {/* Main content */}
-      <main>
-        <Container className="py-6 space-y-6">
-          <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
+      <div className="bg-background">
+        {/* Main content */}
+        <main>
+          <Container className="py-6 space-y-6">
+            <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
 
-          {/* Appearance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>Customize how YieldFlow looks.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Theme</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Switch between light and dark mode.
-                  </p>
+            {/* Appearance */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize how YieldFlow looks.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Theme</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Switch between light and dark mode.
+                    </p>
+                  </div>
+                  <ThemeToggle />
                 </div>
-                <ThemeToggle />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Preferences card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferences</CardTitle>
-              <CardAction>
-                <Button size="sm" onClick={handleSavePreferences}>Save changes</Button>
-              </CardAction>
-              <CardDescription>Display settings for your portfolio.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Currency */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium">Currency</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Changes how amounts are displayed. Does not convert your values: numbers stay the same.
-                  </p>
-                </div>
-                <Select
-                  value={preferencesDraft.currency}
-                  onValueChange={handleCurrencyChange}
-                >
-                  <SelectTrigger
-                    aria-label="Display currency"
+            {/* Preferences card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Preferences</CardTitle>
+                <CardAction>
+                  <Button size="sm" onClick={handleSavePreferences}>Save changes</Button>
+                </CardAction>
+                <CardDescription>Display settings for your portfolio.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Currency */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Currency</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Changes how amounts are displayed. Does not convert your values: numbers stay the same.
+                    </p>
+                  </div>
+                  <Select
+                    value={preferencesDraft.currency}
+                    onValueChange={handleCurrencyChange}
                   >
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectGroup>
-                      {SUPPORTED_CURRENCIES.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>
-                          {c.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="border-t border-border" />
-
-              {/* Bank insurance limit */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Deposit insurance limit</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Optional. Set to see exposure warnings per bank on the dashboard.
-                  </p>
+                    <SelectTrigger
+                      aria-label="Display currency"
+                    >
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectGroup>
+                        {SUPPORTED_CURRENCIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="shrink-0 flex items-center gap-2">
-                  {/* TODO: Format currency */}
-                  <InputGroup>
-                    <InputGroupInput
-                      type="number"
-                      min={0}
-                      className="w-36 text-sm"
-                      placeholder="e.g. 500000"
-                      value={preferencesDraft.bankInsuranceLimit ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value === "" ? undefined : Number(e.target.value);
-                        handleBankInsuranceLimitChange(val);
-                      }}
-                      aria-label="Bank insurance limit amount"
+
+                <div className="border-t border-border" />
+
+                {/* Bank insurance limit */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Deposit insurance limit</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Optional. Set to see exposure warnings per bank on the dashboard.
+                    </p>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <InputGroup>
+                      <InputGroupAddon align="inline-start">
+                        <InputGroupText>{getCurrencySymbol(preferencesDraft.currency)}</InputGroupText>
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        ref={insuranceLimitRef}
+                        className="w-36 text-sm"
+                        placeholder="e.g. 500,000"
+                        aria-label="Bank insurance limit amount"
+                        {...insuranceLimitInputProps}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => {
+                            setInsuranceLimitStr("");
+                            handleBankInsuranceLimitChange(undefined);
+                          }}
+                          aria-label="Clear insurance limit"
+                        >
+                          Clear
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Data management card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Data management</CardTitle>
+                <CardDescription>
+                  Your investments are stored locally in this browser; no servers, no accounts.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Export */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Export</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Download a backup file with all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""}.
+                      Keep it somewhere safe.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExport}
+                    disabled={deposits.length === 0 || isDemoMode}
+                    className="shrink-0"
+                  >
+                    <Download className="size-4" />
+                    Export JSON
+                  </Button>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Import */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Import</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Restore from a previously exported backup. This replaces all current data.
+                    </p>
+                    {importError && (
+                      <p className="text-xs text-destructive mt-1">{importError}</p>
+                    )}
+                  </div>
+                  <div className="shrink-0">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={handleFileChange}
+                      aria-label="Import backup file"
                     />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        variant="ghost"
-                        size="xs"
-                        disabled={preferences.bankInsuranceLimit === null}
-                        onClick={() => handleBankInsuranceLimitChange(undefined)}
-                        aria-label="Clear insurance limit"
-                      >
-                        Clear
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isDemoMode}
+                    >
+                      <Upload className="size-4" />
+                      Import JSON
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Data management card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data management</CardTitle>
-              <CardDescription>
-                Your investments are stored locally in this browser; no servers, no accounts.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Export */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium">Export</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Download a backup file with all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""}.
-                    Keep it somewhere safe.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExport}
-                  disabled={deposits.length === 0 || isDemoMode}
-                  className="shrink-0"
-                >
-                  <Download className="size-4" />
-                  Export JSON
-                </Button>
-              </div>
+                <div className="border-t border-border" />
 
-              <div className="border-t border-border" />
-
-              {/* Import */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium">Import</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Restore from a previously exported backup. This replaces all current data.
-                  </p>
-                  {importError && (
-                    <p className="text-xs text-destructive mt-1">{importError}</p>
+                {/* Clear */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Clear all data</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Permanently delete all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""} from this browser.
+                      Export a backup first.
+                    </p>
+                  </div>
+                  {isDemoMode ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExitDemo}
+                      className="shrink-0"
+                    >
+                      Exit Demo
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setClearConfirmOpen(true)}
+                      disabled={deposits.length === 0}
+                      className="shrink-0"
+                    >
+                      <Trash2 className="size-4" />
+                      Clear all
+                    </Button>
                   )}
                 </div>
-                <div className="shrink-0">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    onChange={handleFileChange}
-                    aria-label="Import backup file"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isDemoMode}
+
+                <Separator />
+
+
+
+                {/* Caveats */}
+                <Collapsible open={caveatsOpen} onOpenChange={setCaveatsOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center gap-1.5 text-sm font-medium transition-colors py-1">
+                      <ChevronDown
+                        className={["size-4 transition-transform", caveatsOpen ? "rotate-180" : ""].filter(Boolean).join(" ")}
+                        aria-hidden="true"
+                      />
+                      What you should know about local storage
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside pl-1">
+                      <li>
+                        Your data is stored <strong className="text-foreground font-medium">unencrypted</strong> — browser extensions running on this site can read it.
+                      </li>
+                      <li>Data is not synced between devices or browsers.</li>
+                      <li>Clearing your browser history or site data will erase all investments.</li>
+                      <li>
+                        Exported files contain sensitive financial data — store them securely, like you would a document with bank details.
+                      </li>
+                      <li>Not recommended on shared or public computers.</li>
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
+            </Card>
+
+            {/* About */}
+            <div className="text-xs text-muted-foreground mt-2 text-center">
+              <div className="mb-1">
+                <span>
+                  YieldFlow Beta by{' '}
+                  <a
+                    href="https://pbsabella.vercel.app/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary font-medium hover:underline dark:text-primary-subtle"
                   >
-                    <Upload className="size-4" />
-                    Import JSON
-                  </Button>
-                </div>
+                    pbsabella
+                  </a>
+                </span>
               </div>
-
-              <div className="border-t border-border" />
-
-              {/* Clear */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium">Clear all data</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Permanently delete all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""} from this browser.
-                    Export a backup first.
-                  </p>
-                </div>
-                {isDemoMode ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExitDemo}
-                    className="shrink-0"
-                  >
-                    Exit Demo
-                  </Button>
-                ) : (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setClearConfirmOpen(true)}
-                    disabled={deposits.length === 0}
-                    className="shrink-0"
-                  >
-                    <Trash2 className="size-4" />
-                    Clear all
-                  </Button>
-                )}
-              </div>
-
-              <Separator />
-
-
-
-              {/* Caveats */}
-              <Collapsible open={caveatsOpen} onOpenChange={setCaveatsOpen}>
-                <CollapsibleTrigger asChild>
-                  <button className="flex items-center gap-1.5 text-sm font-medium transition-colors py-1">
-                    <ChevronDown
-                      className={["size-4 transition-transform", caveatsOpen ? "rotate-180" : ""].filter(Boolean).join(" ")}
-                      aria-hidden="true"
-                    />
-                    What you should know about local storage
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside pl-1">
-                    <li>
-                      Your data is stored <strong className="text-foreground font-medium">unencrypted</strong> — browser extensions running on this site can read it.
-                    </li>
-                    <li>Data is not synced between devices or browsers.</li>
-                    <li>Clearing your browser history or site data will erase all investments.</li>
-                    <li>
-                      Exported files contain sensitive financial data — store them securely, like you would a document with bank details.
-                    </li>
-                    <li>Not recommended on shared or public computers.</li>
-                  </ul>
-                </CollapsibleContent>
-              </Collapsible>
-            </CardContent>
-          </Card>
-
-          {/* About */}
-          <div className="text-xs text-muted-foreground mt-2 text-center">
-            <div className="mb-1">
-              <span>
-                YieldFlow Beta by{' '}
+              <div className="flex gap-1 justify-center">
                 <a
-                  href="https://pbsabella.vercel.app/"
+                  href="https://github.com/pbsabella/yield-flow"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-primary font-medium hover:underline dark:text-primary-subtle"
+                  className="hover:underline"
                 >
-                  pbsabella
+                  View source
                 </a>
-              </span>
+                <span className="text-foreground">·</span>
+                <a
+                  href="https://github.com/pbsabella/yield-flow/issues"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  Feedback
+                </a>
+              </div>
             </div>
-            <div className="flex gap-1 justify-center">
-              <a
-                href="https://github.com/pbsabella/yield-flow"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline"
-              >
-                View source
-              </a>
-              <span className="text-foreground">·</span>
-              <a
-                href="https://github.com/pbsabella/yield-flow/issues"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline"
-              >
-                Feedback
-              </a>
-            </div>
-          </div>
-        </Container>
-        <Toaster />
-      </main>
+          </Container>
+          <Toaster />
+        </main>
 
-      {/* Import confirmation */}
-      <AlertDialog open={importConfirmOpen} onOpenChange={setImportConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Replace all data?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will replace your {deposits.length} current deposit{deposits.length !== 1 ? "s" : ""} with {importPreview?.length ?? 0} imported deposit{(importPreview?.length ?? 0) !== 1 ? "s" : ""}.
-              This cannot be undone. Export a backup first if you want to keep your current data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setImportPreview(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleImportConfirm}>
-              Replace
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Import confirmation */}
+        <AlertDialog open={importConfirmOpen} onOpenChange={setImportConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Replace all data?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will replace your {deposits.length} current deposit{deposits.length !== 1 ? "s" : ""} with {importPreview?.length ?? 0} imported deposit{(importPreview?.length ?? 0) !== 1 ? "s" : ""}.
+                This cannot be undone. Export a backup first if you want to keep your current data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setImportPreview(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleImportConfirm}>
+                Replace
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      {/* Clear confirmation */}
-      <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Clear all data?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""} from this browser.
-              Export a backup before clearing if you want to keep your data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleClearConfirm}>
-              Clear all data
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {/* Clear confirmation */}
+        <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear all data?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""} from this browser.
+                Export a backup before clearing if you want to keep your data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={handleClearConfirm}>
+                Clear all data
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </RouteGuard>
   );
 }
