@@ -13,7 +13,7 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { monthKey } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { MonthlyAllowance } from "@/types";
@@ -330,12 +330,12 @@ function MonthRow({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-interface CashFlowTabProps {
+interface CashFlowViewProps {
   monthlyAllowance: MonthlyAllowance[];
   currentMonthFull: MonthlyAllowance | null;
 }
 
-export function CashFlowTab({ monthlyAllowance, currentMonthFull }: CashFlowTabProps) {
+export function CashFlowView({ monthlyAllowance, currentMonthFull }: CashFlowViewProps) {
   const { fmtCurrency } = usePortfolioContext();
   const [window, setWindow] = useState<Window>("12");
   const currentMonthKey = monthKey(new Date());

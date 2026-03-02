@@ -3,9 +3,9 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RouteGuard } from "@/components/layout/RouteGuard";
-import { InvestmentsTab } from "@/features/dashboard/components/InvestmentsTab";
-import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { InvestmentsView } from "./InvestmentsView";
+import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
 function Container({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -43,7 +43,7 @@ export function InvestmentsShell() {
             </Button>
           </div>
 
-          <InvestmentsTab
+          <InvestmentsView
             summaries={portfolio.summaries}
             onSettle={handleSettle}
             onDelete={handleDelete}

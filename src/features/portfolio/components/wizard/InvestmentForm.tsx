@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { toISODate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { InterestTier } from "@/types";
@@ -30,7 +30,7 @@ import type {
   FieldErrors,
   FieldWarnings,
   ProductType,
-} from "@/features/dashboard/hooks/useWizardState";
+} from "@/features/portfolio/hooks/useWizardState";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
