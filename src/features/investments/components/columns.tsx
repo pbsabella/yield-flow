@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
-import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
 
 // ─── TableMeta augmentation ───────────────────────────────────────────────────

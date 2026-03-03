@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
 type Props = {
   summary: EnrichedSummary | null;
@@ -39,7 +39,7 @@ export function DeleteConfirmDialog({ summary, open, onOpenChange, onConfirm }: 
             variant="destructive"
             onClick={() => onConfirm(deposit.id)}
           >
-            Delete
+            Delete {deposit.name}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
 const LEFT_TABS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },

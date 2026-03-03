@@ -25,7 +25,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner"
 import { RouteGuard } from "@/components/layout/RouteGuard";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import type { TimeDeposit } from "@/types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

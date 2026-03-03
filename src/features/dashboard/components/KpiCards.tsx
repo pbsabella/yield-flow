@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, formatMonthLabel, parseLocalDate } from "@/lib/domain/date";
-import type { CurrentMonthBreakdown, NextMaturity } from "@/features/dashboard/hooks/usePortfolioData";
+import type { CurrentMonthBreakdown, NextMaturity } from "@/features/portfolio/hooks/usePortfolioData";
 
 type KpiCardsProps = {
   totalPrincipal: number;

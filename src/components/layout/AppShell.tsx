@@ -6,9 +6,9 @@ import { PrototypeBanner } from "@/components/layout/PrototypeBanner";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { SplashScreen } from "@/components/layout/SplashScreen";
-import { DemoBanner } from "@/features/dashboard/components/DemoBanner";
-import { InvestmentWizard } from "@/features/dashboard/components/wizard/InvestmentWizard";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { DemoBanner } from "@/components/layout/DemoBanner";
+import { InvestmentWizard } from "@/features/portfolio/components/wizard/InvestmentWizard";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();

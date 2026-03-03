@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { cn } from "@/lib/utils";
 
 type BankGroup = {

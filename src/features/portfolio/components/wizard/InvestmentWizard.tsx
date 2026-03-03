@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useWizardState } from "@/features/dashboard/hooks/useWizardState";
+import { useWizardState } from "@/features/portfolio/hooks/useWizardState";
 import { InvestmentForm } from "./InvestmentForm";
 import { LiveCalcPreview } from "./LiveCalcPreview";
 import type { TimeDeposit } from "@/types";

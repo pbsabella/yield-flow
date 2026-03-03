@@ -30,15 +30,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
-import { createColumns } from "@/features/dashboard/components/columns";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
-import { DepositCard } from "@/features/dashboard/components/DepositCard";
-import { DeleteConfirmDialog } from "@/features/dashboard/components/DeleteConfirmDialog";
-import { SettleConfirmDialog } from "@/features/dashboard/components/SettleConfirmDialog";
+import { createColumns } from "./columns";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { DepositCard } from "./DepositCard";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { SettleConfirmDialog } from "./SettleConfirmDialog";
 import { Wallet, SearchX } from "lucide-react";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import { cn } from "@/lib/utils";
-import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsTab({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
+export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
   const { fmtCurrency } = usePortfolioContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [showSettled, setShowSettled] = useState(false);

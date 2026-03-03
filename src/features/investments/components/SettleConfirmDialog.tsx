@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
-import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
 type Props = {
   summary: EnrichedSummary | null;

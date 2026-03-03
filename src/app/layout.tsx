@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { PortfolioProvider } from "@/features/dashboard/context/PortfolioContext";
+import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
 import { AppShell } from "@/components/layout/AppShell";
 
 const geistSans = Geist({

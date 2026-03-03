@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveCalcPreview } from "../LiveCalcPreview";
-import { PortfolioProvider } from "@/features/dashboard/context/PortfolioContext";
+import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
 import type { YieldInput } from "@/lib/domain/yield-engine";
 
 const VALID_INPUT: YieldInput = {

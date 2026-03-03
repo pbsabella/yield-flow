@@ -10,8 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
-import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatMonthLabel } from "@/lib/domain/date";
 
 // ─── Layout helpers ────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
 import type { YieldInput } from "@/lib/domain/yield-engine";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Badge } from '@/components/ui/badge';
 
 interface LiveCalcPreviewProps {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
-import { PortfolioProvider } from "@/features/dashboard/context/PortfolioContext";
-import type { CurrentMonthBreakdown, NextMaturity } from "@/features/dashboard/hooks/usePortfolioData";
+import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
+import type { CurrentMonthBreakdown, NextMaturity } from "@/features/portfolio/hooks/usePortfolioData";
 
 const emptyBreakdown: CurrentMonthBreakdown = { net: 0, pendingNet: 0, settledNet: 0 };
 

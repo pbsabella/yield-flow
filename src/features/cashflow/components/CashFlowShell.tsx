@@ -3,9 +3,9 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RouteGuard } from "@/components/layout/RouteGuard";
-import { CashFlowTab } from "@/features/dashboard/components/CashFlowTab";
-import { usePortfolioData } from "@/features/dashboard/hooks/usePortfolioData";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { CashFlowView } from "./CashFlowView";
+import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
 function Container({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -40,7 +40,7 @@ export function CashFlowShell() {
             </Button>
           </div>
 
-          <CashFlowTab
+          <CashFlowView
             monthlyAllowance={portfolio.monthlyAllowance}
             currentMonthFull={portfolio.currentMonthFull}
           />

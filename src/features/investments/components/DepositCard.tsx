@@ -16,10 +16,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { usePortfolioContext } from "@/features/dashboard/context/PortfolioContext";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
-import type { EnrichedSummary } from "@/features/dashboard/hooks/usePortfolioData";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
 
 type Props = {
