@@ -118,4 +118,48 @@ describe("useLocalStorage — persistWhen", () => {
     // Initial value is [] which fails persistWhen, so nothing should be written
     expect(localStorage.getItem(KEY)).toBeNull();
   });
+
+  it("writes when persistWhen returns true", async () => {
+    const { result } = renderHook(() =>
+      useLocalStorage<number[]>(KEY, [], {
+        persistWhen: (v) => v.length > 0,
+        skipInitialWrite: true,
+      }),
+    );
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => {
+      result.current.setValue([1, 2, 3]);
+    });
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem(KEY)!);
+      expect(stored).toEqual([1, 2, 3]);
+    });
+  });
+});
+
+describe("useLocalStorage — skipInitialWrite: true (isolated)", () => {
+  it("does not write the initial value to localStorage", async () => {
+    const { result } = renderHook(() =>
+      useLocalStorage(KEY, "initial-value", { skipInitialWrite: true }),
+    );
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("does persist values set after hydration", async () => {
+    const { result } = renderHook(() =>
+      useLocalStorage(KEY, "initial-value", { skipInitialWrite: true }),
+    );
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => {
+      result.current.setValue("written-later");
+    });
+
+    await waitFor(() => {
+      expect(JSON.parse(localStorage.getItem(KEY)!)).toBe("written-later");
+    });
+  });
 });
