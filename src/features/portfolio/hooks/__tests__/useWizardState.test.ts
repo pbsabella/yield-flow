@@ -74,6 +74,51 @@ describe("useWizardState — productType side effects", () => {
     expect(result.current.formState.termMonths).toBeNull();
     expect(result.current.formState.termDays).toBeNull();
   });
+
+  it("switching from td-monthly to savings resets payoutFrequency to maturity", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("productType", "td-monthly");
+    });
+
+    expect(result.current.formState.payoutFrequency).toBe("monthly");
+
+    act(() => {
+      result.current.setField("productType", "savings");
+    });
+
+    expect(result.current.formState.payoutFrequency).toBe("maturity");
+  });
+});
+
+// ─── termUnit side effects ─────────────────────────────────────────────────────
+
+describe("useWizardState — termUnit side effects", () => {
+  it("switching to days nulls termMonths", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("termMonths", 6);
+      result.current.setField("termUnit", "days");
+    });
+
+    expect(result.current.formState.termMonths).toBeNull();
+    expect(result.current.formState.termUnit).toBe("days");
+  });
+
+  it("switching to months nulls termDays", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.setField("termUnit", "days");
+      result.current.setField("termDays", 91);
+      result.current.setField("termUnit", "months");
+    });
+
+    expect(result.current.formState.termDays).toBeNull();
+    expect(result.current.formState.termUnit).toBe("months");
+  });
 });
 
 // ─── Tiered rate toggle ────────────────────────────────────────────────────────
