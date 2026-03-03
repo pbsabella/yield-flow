@@ -67,7 +67,7 @@ test("cash flow page — empty state redirects home", async ({ page }) => {
   // RouteGuard redirects empty users away from sub-pages to the empty landing
   await page.goto("/cashflow");
   await page.waitForURL("/");
-  await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
 });
 
 test("cash flow page — with portfolio data", async ({ page }) => {

@@ -44,7 +44,7 @@ const seedDeposits: TimeDeposit[] = [
 
 test("dashboard page — empty state Percy snapshot", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
   await percySnapshot(page, "Dashboard Page - empty");
 });
 

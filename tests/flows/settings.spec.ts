@@ -68,7 +68,7 @@ test("settings — clear all data removes deposits and redirects home", async ({
 
   // Should redirect to dashboard and show empty landing
   await expect(page).toHaveURL("/");
-  await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
 });
 
 test("settings — cancelling clear all leaves data intact", async ({ page }) => {
