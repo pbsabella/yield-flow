@@ -20,6 +20,28 @@ export function formatCurrency(value: number, currency: string): string {
   }).format(value);
 }
 
+const REGION_TO_CURRENCY: Partial<Record<string, CurrencyCode>> = {
+  PH: "PHP",
+  US: "USD", GB: "GBP", AU: "AUD", CA: "CAD",
+  SG: "SGD", JP: "JPY", HK: "HKD",
+  DE: "EUR", FR: "EUR", ES: "EUR", IT: "EUR", NL: "EUR",
+  BE: "EUR", AT: "EUR", PT: "EUR", FI: "EUR", IE: "EUR",
+};
+
+/**
+ * Infers a supported currency from the browser locale (navigator.language).
+ * Falls back to "USD" for unrecognized regions. Safe to call during SSR.
+ */
+export function getLocaleCurrency(): CurrencyCode {
+  if (typeof window === "undefined") return "USD";
+  try {
+    const region = new Intl.Locale(navigator.language).region ?? "";
+    return REGION_TO_CURRENCY[region] ?? "USD";
+  } catch {
+    return "USD";
+  }
+}
+
 /**
  * Extracts the currency symbol for use in input addons.
  * e.g. "PHP" → "₱", "USD" → "$"

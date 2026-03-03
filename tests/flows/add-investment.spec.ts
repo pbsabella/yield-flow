@@ -4,7 +4,7 @@ import percySnapshot from "@percy/playwright";
 test("add an investment via wizard — empty state → portfolio visible", async ({ page }) => {
   // Empty users land on the EmptyLanding hero at "/"
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Welcome to YieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
 
   // Open wizard from empty landing CTA
   await page.getByRole("button", { name: "Add my first investment" }).click();

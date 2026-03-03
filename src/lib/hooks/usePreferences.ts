@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
+import { getLocaleCurrency } from "@/lib/domain/format";
 
 export type Preferences = {
   /** Display currency code (e.g. "PHP"). Vanity only — does not convert values. */
@@ -10,14 +11,14 @@ export type Preferences = {
   bankInsuranceLimit?: number;
 };
 
-const DEFAULT_PREFERENCES: Preferences = {
-  currency: "PHP",
-};
+function getInitialPreferences(): Preferences {
+  return { currency: getLocaleCurrency() };
+}
 
 export function usePreferences() {
   const { value: preferences, setValue: setPreferences } = useLocalStorage<Preferences>(
     "yf:preferences",
-    DEFAULT_PREFERENCES,
+    getInitialPreferences(),
   );
 
   const setPreference = useCallback(
