@@ -258,11 +258,7 @@ export function InvestmentForm({
           variant="card"
           value={formState.termUnit}
           onValueChange={(val) => {
-            if (val) {
-              setField("termUnit", val as "months" | "days");
-              if (val === "months") setField("termDays", null);
-              else setField("termMonths", null);
-            }
+            if (val) setField("termUnit", val as "months" | "days");
           }}
         >
           <ToggleGroupItem value="months">Months</ToggleGroupItem>
@@ -366,7 +362,7 @@ export function InvestmentForm({
 
       {/* Start date */}
       <Field>
-        <FieldLabel htmlFor="inv-start-date">Start date</FieldLabel>
+        <FieldLabel htmlFor="inv-start-date">Start date <Req /></FieldLabel>
         <DatePicker
           id="inv-start-date"
           selected={startDateObj}
@@ -481,49 +477,11 @@ export function InvestmentForm({
         </FieldDescription>
       </Field>
 
-      {/* Compounding — always shown */}
-      <Field>
-        <FieldLabel>Compounding</FieldLabel>
-        <ToggleGroup
-          type="single"
-          variant="card"
-          value={formState.compounding}
-          onValueChange={(val) => {
-            if (val) setField("compounding", val as "daily" | "monthly");
-          }}
-        >
-          <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
-          <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-        </ToggleGroup>
-        <FieldDescription>
-          How often interest is added back to your balance — daily grows slightly faster
-        </FieldDescription>
-      </Field>
-
       {/* ── Fixed-term fields ───────────────────────────────── */}
-      {isFixedTerm && (
-        <>
-          {termField}
-
-          <Field>
-            <FieldLabel>Payout frequency</FieldLabel>
-            <ToggleGroup
-              type="single"
-              variant="card"
-              value={formState.payoutFrequency}
-              onValueChange={(val) => {
-                if (val) setField("payoutFrequency", val as "monthly" | "maturity");
-              }}
-            >
-              <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-              <ToggleGroupItem value="maturity">At maturity</ToggleGroupItem>
-            </ToggleGroup>
-            <FieldDescription>
-              Monthly = interest paid periodically; At maturity = everything at the end
-            </FieldDescription>
-          </Field>
-        </>
-      )}
+      {/* Payout frequency is implicit in the product type:
+          td-maturity → at maturity (reinvest), td-monthly → monthly (payout).
+          No user-facing toggle needed; payoutFrequency is set by the productType handler in the hook. */}
+      {isFixedTerm && termField}
 
       {/* ── Savings fields ──────────────────────────────────── */}
       {isSavings && (
@@ -547,6 +505,39 @@ export function InvestmentForm({
           {!formState.isOpenEnded && termField}
         </>
       )}
+
+      {/* Compounding — only shown for tiered mode.
+          The engine's simple branch uses: principal * rate * (days / convention), which is
+          pure simple interest and ignores the compounding setting entirely. Showing the toggle
+          for simple deposits would imply it affects the yield number when it doesn't. */}
+      {formState.interestMode === "tiered" && (() => {
+        const isPayoutMode = formState.payoutFrequency === "monthly";
+        return (
+          <Field>
+            <FieldLabel>Compounding</FieldLabel>
+            <ToggleGroup
+              type="single"
+              variant="card"
+              value={formState.compounding}
+              onValueChange={(val) => {
+                if (val) setField("compounding", val as "daily" | "monthly");
+              }}
+            >
+              <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
+              <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+            </ToggleGroup>
+            {isPayoutMode ? (
+              <FieldDescription>
+                How often interest is calculated before being distributed to you
+              </FieldDescription>
+            ) : (
+              <FieldDescription>
+                How often interest compounds back into your principal — daily grows slightly faster
+              </FieldDescription>
+            )}
+          </Field>
+        );
+      })()}
     </div>
   );
 }

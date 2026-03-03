@@ -180,9 +180,16 @@ export function useWizardState() {
             next.isOpenEnded = false;
           } else if (value === "savings") {
             next.isOpenEnded = true;
+            next.payoutFrequency = "maturity";
             next.termMonths = null;
             next.termDays = null;
           }
+        }
+
+        // termUnit change: null the inactive field
+        if (key === "termUnit") {
+          if (value === "months") next.termDays = null;
+          else next.termMonths = null;
         }
 
         // Tiered switch: seed first tier from current flat rate
