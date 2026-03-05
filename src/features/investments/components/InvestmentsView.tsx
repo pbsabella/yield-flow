@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { GanttChart, LayoutList, Wallet, SearchX } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,8 +37,8 @@ import { usePortfolioContext } from "@/features/portfolio/context/PortfolioConte
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { SettleConfirmDialog } from "./SettleConfirmDialog";
-import { Wallet, SearchX } from "lucide-react";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
+import { LadderView } from "./LadderView";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
@@ -85,6 +87,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
   const { fmtCurrency } = usePortfolioContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
+  const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
@@ -224,6 +227,23 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
             Show settled
           </Label>
         </div>
+
+        <ToggleGroup
+          type="single"
+          variant="card"
+          value={view}
+          onValueChange={(v) => v && setView(v as "list" | "ladder")}
+          className="ml-auto"
+        >
+          <ToggleGroupItem value="list" className="gap-1.5 px-3">
+            <LayoutList size={14} />
+            <span>List</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="ladder" className="gap-1.5 px-3">
+            <GanttChart size={14} />
+            <span>Ladder</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       {/* Content */}
@@ -241,6 +261,8 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           description="Try adjusting the bank filter or enabling settled deposits."
           action={{ label: "Clear filters", onClick: () => setBankFilter("all") }}
         />
+      ) : view === "ladder" ? (
+        <LadderView summaries={filtered} />
       ) : isMd ? (
         /* ── Desktop table (horizontally scrollable, Deposit column frozen) ── */
         <div className="overflow-x-auto rounded-lg border">
