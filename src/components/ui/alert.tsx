@@ -59,6 +59,7 @@ function AlertDescription({
   )
 }
 
+// @shadcn-override: AlertAction — absolute dismiss/action slot (top-right of alert)
 function AlertAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

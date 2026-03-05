@@ -17,6 +17,7 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
+  // @shadcn-override: buttonVariant prop — controls nav button style; defaults to "ghost"
   buttonVariant = "ghost",
   locale,
   formatters,
@@ -133,6 +134,7 @@ function Calendar({
         hidden: cn("invisible", defaultClassNames.hidden),
         ...classNames,
       }}
+      // @shadcn-override: custom components object — Root adds data-slot="calendar"; Chevron uses lucide icons; DayButton delegates to CalendarDayButton; WeekNumber uses div layout
       components={{
         Root: ({ className, rootRef, ...props }) => {
           return (
@@ -180,6 +182,7 @@ function Calendar({
   )
 }
 
+// @shadcn-override: CalendarDayButton — non-standard export; wraps Button with range/selection data-attrs and auto-focus on keyboard nav
 function CalendarDayButton({
   className,
   day,

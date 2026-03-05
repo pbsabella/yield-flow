@@ -36,7 +36,7 @@ export function BankExposureCard() {
           Exposure by Bank
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-stack-sm">
         {groups.map((group) => {
           const pct = limit ? (group.total / limit) * 100 : null;
           const barColor =

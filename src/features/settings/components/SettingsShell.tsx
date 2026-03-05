@@ -22,7 +22,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner"
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
@@ -31,17 +30,8 @@ import type { TimeDeposit } from "@/types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
 import { useCurrencyInput } from '@/components/ui/use-currency-input';
-
-// ─── Layout helpers ───────────────────────────────────────────────────────────
-
-function Container({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
-      {...props}
-    />
-  );
-}
+import { Container } from "@/components/layout/Container";
+import { SettingRow } from "./SettingRow";
 
 // ─── Import validation ────────────────────────────────────────────────────────
 
@@ -196,7 +186,7 @@ export function SettingsShell() {
       <div className="bg-background">
         {/* Main content */}
         <main>
-          <Container className="py-6 space-y-6">
+          <Container className="py-6 space-y-stack-lg">
             <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
 
             {/* Appearance */}
@@ -227,22 +217,17 @@ export function SettingsShell() {
                 </CardAction>
                 <CardDescription>Display settings for your portfolio.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-stack-md">
                 {/* Currency */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Currency</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Changes how amounts are displayed. Does not convert your values: numbers stay the same.
-                    </p>
-                  </div>
+                <SettingRow
+                  label="Currency"
+                  description="Changes how amounts are displayed. Does not convert your values: numbers stay the same."
+                >
                   <Select
                     value={preferencesDraft.currency}
                     onValueChange={handleCurrencyChange}
                   >
-                    <SelectTrigger
-                      aria-label="Display currency"
-                    >
+                    <SelectTrigger aria-label="Display currency">
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent position="popper">
@@ -255,18 +240,14 @@ export function SettingsShell() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="border-t border-border" />
+                </SettingRow>
 
                 {/* Bank insurance limit */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">Deposit insurance limit</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Optional. Set to see exposure warnings per bank on the dashboard.
-                    </p>
-                  </div>
+                <SettingRow
+                  label="Deposit insurance limit"
+                  description="Optional. Set to see exposure warnings per bank on the dashboard."
+                  separator={false}
+                >
                   <div className="shrink-0 flex items-center gap-2">
                     <InputGroup>
                       <InputGroupAddon align="inline-start">
@@ -294,7 +275,7 @@ export function SettingsShell() {
                       </InputGroupAddon>
                     </InputGroup>
                   </div>
-                </div>
+                </SettingRow>
               </CardContent>
             </Card>
 
@@ -306,16 +287,12 @@ export function SettingsShell() {
                   Your investments are stored locally in this browser; no servers, no accounts.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-stack-md">
                 {/* Export */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Export</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Download a backup file with all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""}.
-                      Keep it somewhere safe.
-                    </p>
-                  </div>
+                <SettingRow
+                  label="Export"
+                  description={`Download a backup file with all ${deposits.length} deposit${deposits.length !== 1 ? "s" : ""}. Keep it somewhere safe.`}
+                >
                   <Button
                     variant="outline"
                     size="sm"
@@ -326,21 +303,14 @@ export function SettingsShell() {
                     <Download className="size-4" />
                     Export JSON
                   </Button>
-                </div>
-
-                <div className="border-t border-border" />
+                </SettingRow>
 
                 {/* Import */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Import</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Restore from a previously exported backup. This replaces all current data.
-                    </p>
-                    {importError && (
-                      <p className="text-xs text-destructive mt-1">{importError}</p>
-                    )}
-                  </div>
+                <SettingRow
+                  label="Import"
+                  description="Restore from a previously exported backup. This replaces all current data."
+                  note={importError && <p className="text-xs text-destructive mt-1">{importError}</p>}
+                >
                   <div className="shrink-0">
                     <input
                       ref={fileInputRef}
@@ -360,19 +330,13 @@ export function SettingsShell() {
                       Import JSON
                     </Button>
                   </div>
-                </div>
-
-                <div className="border-t border-border" />
+                </SettingRow>
 
                 {/* Clear */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Clear all data</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Permanently delete all {deposits.length} deposit{deposits.length !== 1 ? "s" : ""} from this browser.
-                      Export a backup first.
-                    </p>
-                  </div>
+                <SettingRow
+                  label="Clear all data"
+                  description={`Permanently delete all ${deposits.length} deposit${deposits.length !== 1 ? "s" : ""} from this browser. Export a backup first.`}
+                >
                   {isDemoMode ? (
                     <Button
                       variant="outline"
@@ -394,9 +358,7 @@ export function SettingsShell() {
                       Clear all
                     </Button>
                   )}
-                </div>
-
-                <Separator />
+                </SettingRow>
 
 
 

@@ -31,6 +31,7 @@ function SelectValue({
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+// @shadcn-override: size prop ("sm"|"default") on SelectTrigger — data-size drives height via data selectors
 function SelectTrigger({
   className,
   size = "default",

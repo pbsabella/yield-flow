@@ -1,20 +1,11 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsView } from "./InvestmentsView";
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
-
-function Container({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
-      {...props}
-    />
-  );
-}
+import { Container } from "@/components/layout/Container";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export function InvestmentsShell() {
   const { deposits, banks, highlightedId, handleSettle, handleDelete, handleEdit, openWizard } =
@@ -24,24 +15,16 @@ export function InvestmentsShell() {
   return (
     <RouteGuard>
       <main>
-        <Container className="py-6 space-y-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold md:text-3xl">Investments</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {portfolio.summaries.length > 0
-                  ? `${portfolio.summaries.length} deposit${portfolio.summaries.length !== 1 ? "s" : ""} tracked`
-                  : "No investments yet"}
-              </p>
-            </div>
-            <Button
-              onClick={() => openWizard()}
-              className="hidden md:flex shrink-0"
-            >
-              <Plus className="size-4" />
-              Add investment
-            </Button>
-          </div>
+        <Container className="py-6 space-y-stack-lg">
+          <PageHeader
+            title="Investments"
+            subtitle={
+              portfolio.summaries.length > 0
+                ? `${portfolio.summaries.length} deposit${portfolio.summaries.length !== 1 ? "s" : ""} tracked`
+                : "No investments yet"
+            }
+            action={{ onClick: () => openWizard() }}
+          />
 
           <InvestmentsView
             summaries={portfolio.summaries}

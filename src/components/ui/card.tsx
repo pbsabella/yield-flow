@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// @shadcn-override: size prop ("default"|"sm") — data-size drives responsive gap/padding via data selectors
 function Card({
   className,
   size = "default",
@@ -50,6 +51,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// @shadcn-override: CardAction — grid-positioned action slot in card header (col-start-2)
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
