@@ -2,22 +2,17 @@
 
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { ChevronDown, Info, TrendingUp } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Info, TrendingUp } from "lucide-react";
 import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
+import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { monthKey } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { MonthlyAllowance } from "@/types";
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -267,8 +262,6 @@ function MonthRow({
   currentMonthFull: MonthlyAllowance | null;
   fmtCurrency: (value: number) => string;
 }) {
-  const [open, setOpen] = useState(isCurrent);
-
   const displayEntries = isCurrent ? (currentMonthFull?.entries ?? month.entries) : month.entries;
   const displayNet = isCurrent ? (currentMonthFull?.net ?? month.net) : month.net;
 
@@ -276,55 +269,39 @@ function MonthRow({
   const monthlyEntries = displayEntries.filter((e) => e.payoutFrequency === "monthly");
 
   return (
-    <Card className="p-0">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader className="p-0">
-          <CollapsibleTrigger
-            className={cn(
-              "w-full flex items-center justify-between px-4 py-3 gap-2 text-sm font-medium hover:bg-muted transition-colors",
-              open && "bg-primary/5",
+    <CollapsibleCard
+      defaultOpen={isCurrent}
+      triggerClassName="text-sm font-medium"
+      contentClassName="py-2 pr-10 space-y-stack-md"
+      trigger={
+        <span className="flex flex-1 items-center justify-between mr-2">
+          <span className="flex flex-wrap items-center gap-stack-xs">
+            <span>{month.label}</span>
+            {isCurrent && (
+              <Badge variant="info" className="font-normal">
+                Current month
+              </Badge>
             )}
-          >
-            <span className="flex flex-wrap items-center gap-stack-xs">
-              <span>{month.label}</span>
-              {isCurrent && (
-                <Badge variant="info" className="font-normal">
-                  Current month
-                </Badge>
-              )}
-            </span>
-            <span className="flex items-center gap-stack-xs tabular-nums ml-auto">
-              <span className={cn(isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
-                {fmtCurrency(displayNet)}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "size-4 text-muted-foreground transition-transform duration-200",
-                  open && "rotate-180",
-                )}
-              />
-            </span>
-          </CollapsibleTrigger>
-        </CardHeader>
-
-        <CollapsibleContent>
-          <CardContent className="border-t py-2 pr-10 space-y-stack-md">
-            <EntryGroup
-              label="At maturity payouts"
-              entries={maturityEntries}
-              isCurrent={isCurrent}
-              fmtCurrency={fmtCurrency}
-            />
-            <EntryGroup
-              label="Monthly payouts"
-              entries={monthlyEntries}
-              isCurrent={isCurrent}
-              fmtCurrency={fmtCurrency}
-            />
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+          </span>
+          <span className={cn("tabular-nums", isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
+            {fmtCurrency(displayNet)}
+          </span>
+        </span>
+      }
+    >
+      <EntryGroup
+        label="At maturity payouts"
+        entries={maturityEntries}
+        isCurrent={isCurrent}
+        fmtCurrency={fmtCurrency}
+      />
+      <EntryGroup
+        label="Monthly payouts"
+        entries={monthlyEntries}
+        isCurrent={isCurrent}
+        fmtCurrency={fmtCurrency}
+      />
+    </CollapsibleCard>
   );
 }
 

@@ -1,12 +1,11 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { CashFlowView } from "./CashFlowView";
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Container } from "@/components/layout/Container";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export function CashFlowShell() {
   const { deposits, banks, openWizard } = usePortfolioContext();
@@ -16,21 +15,11 @@ export function CashFlowShell() {
     <RouteGuard>
       <main>
         <Container className="py-6 space-y-stack-lg">
-          <div className="flex items-start justify-between gap-stack-md">
-            <div>
-              <h1 className="text-2xl font-semibold md:text-3xl">Cash Flow</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Interest projection by payout date
-              </p>
-            </div>
-            <Button
-              onClick={() => openWizard()}
-              className="hidden md:flex shrink-0"
-            >
-              <Plus className="size-4" />
-              Add investment
-            </Button>
-          </div>
+          <PageHeader
+            title="Cash Flow"
+            subtitle="Interest projection by payout date"
+            action={{ onClick: () => openWizard() }}
+          />
 
           <CashFlowView
             monthlyAllowance={portfolio.monthlyAllowance}

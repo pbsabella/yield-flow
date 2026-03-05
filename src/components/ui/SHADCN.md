@@ -2,58 +2,24 @@
 
 ## File Classification
 
-### Pure shadcn — safe to overwrite
-
-These files have no local customizations. Run `npx shadcn@latest add <component> --overwrite` freely.
-
-| File | Component |
-|------|-----------|
-| `alert-dialog.tsx` | AlertDialog |
-| `collapsible.tsx` | Collapsible |
-| `dialog.tsx` | Dialog |
-| `dropdown-menu.tsx` | DropdownMenu |
-| `input.tsx` | Input |
-| `label.tsx` | Label |
-| `popover.tsx` | Popover |
-| `radio-group.tsx` | RadioGroup |
-| `separator.tsx` | Separator |
-| `sheet.tsx` | Sheet |
-| `sidebar.tsx` | Sidebar |
-| `skeleton.tsx` | Skeleton |
-| `switch.tsx` | Switch |
-| `table.tsx` | Table |
-| `textarea.tsx` | Textarea |
-| `toggle-group.tsx` | ToggleGroup |
-| `tooltip.tsx` | Tooltip |
-
 ### Customized shadcn — re-apply overrides after upgrade
 
 These files diverge from upstream. After overwriting, run the grep command below to find every site to re-apply.
 
-| File | What was changed |
-|------|-----------------|
-| `badge.tsx` | Status variants (`info/warning/success/alert`) imported from `variants.ts` and spread into cva; `asChild` prop via `Slot.Root` |
-| `button.tsx` | `buttonVariants` defined in `variants.ts` and imported here (not inline) |
-| `card.tsx` | `size` prop (`"default"\|"sm"`) on `Card`; `CardAction` component added |
-| `alert.tsx` | `AlertAction` component added (absolute top-right slot) |
-| `select.tsx` | `size` prop (`"sm"\|"default"`) on `SelectTrigger` |
-| `field.tsx` | `fieldVariants` defined in `variants.ts`; 6 non-standard exports: `FieldSeparator`, `FieldTitle`, `FieldContent`, `FieldError`, `FieldSet`, `FieldLegend` |
-| `toggle.tsx` | `toggleVariants` (including `card` variant) defined in `variants.ts` and imported here |
-| `calendar.tsx` | `buttonVariant` prop on `Calendar`; custom `components` object (Root/Chevron/DayButton/WeekNumber); `CalendarDayButton` function exported |
+| File           | What was changed                                                                                                                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `badge.tsx`    | Status variants (`info/warning/success/alert`) imported from `variants.ts` and spread into cva; `asChild` prop via `Slot.Root`                            |
+| `button.tsx`   | `buttonVariants` defined in `variants.ts` and imported here (not inline)                                                                                  |
+| `card.tsx`     | `size` prop (`"default"\|"sm"`) on `Card`; `CardAction` component added                                                                                   |
+| `alert.tsx`    | `AlertAction` component added (absolute top-right slot)                                                                                                   |
+| `select.tsx`   | `size` prop (`"sm"\|"default"`) on `SelectTrigger`                                                                                                        |
+| `field.tsx`    | `fieldVariants` defined in `variants.ts`; 6 non-standard exports: `FieldSeparator`, `FieldTitle`, `FieldContent`, `FieldError`, `FieldSet`, `FieldLegend` |
+| `toggle.tsx`   | `toggleVariants` (including `card` variant) defined in `variants.ts` and imported here                                                                    |
+| `calendar.tsx` | `buttonVariant` prop on `Calendar`; custom `components` object (Root/Chevron/DayButton/WeekNumber); `CalendarDayButton` function exported                 |
 
-### Custom (non-shadcn) — never touched by upgrades
+### Pure shadcn and Custom (non-shadcn) — safe to overwrite
 
-These files are not part of shadcn/ui and will never be overwritten.
-
-| File | Description |
-|------|-------------|
-| `variants.ts` | Canonical CVA extension point — all custom variants live here |
-| `input-group.tsx` | Custom input wrapper with prefix/suffix slot support |
-| `date-picker.tsx` | Popover-based date picker built on Calendar |
-| `combobox.tsx` | Searchable select built on Popover + Command |
-| `sonner.tsx` | Toast provider wired to the app theme |
-| `use-currency-input.ts` | Hook for formatted PHP currency input |
-| `__tests__/use-currency-input.test.ts` | Tests for the currency input hook |
+These files have no local customizations or never touched by upgrades. Run `npx shadcn@latest add <component> --overwrite` freely.
 
 ---
 
@@ -101,11 +67,11 @@ grep -rn "@shadcn-override" src/components/ui/
 
 `src/components/ui/variants.ts` is the single source of truth for all CVA definitions:
 
-| Export | Used by |
-|--------|---------|
-| `badgeStatusVariants` | `badge.tsx` |
-| `buttonVariants` | `button.tsx`, `calendar.tsx` |
-| `fieldVariants` | `field.tsx` |
-| `toggleVariants` | `toggle.tsx` |
+| Export                | Used by                      |
+| --------------------- | ---------------------------- |
+| `badgeStatusVariants` | `badge.tsx`                  |
+| `buttonVariants`      | `button.tsx`, `calendar.tsx` |
+| `fieldVariants`       | `field.tsx`                  |
+| `toggleVariants`      | `toggle.tsx`                 |
 
 When shadcn upgrades a component that previously defined variants inline (e.g. `buttonVariants` used to live in `button.tsx`), do **not** copy the upstream cva back into the component file. Instead, keep the import from `variants.ts` and merge any new upstream variant additions into `variants.ts`.

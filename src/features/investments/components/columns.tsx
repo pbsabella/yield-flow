@@ -2,8 +2,8 @@
 
 import { type ColumnDef, type Column, type RowData } from "@tanstack/react-table";
 import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -207,14 +207,7 @@ export function createColumns(
         };
         return weight(a.original) - weight(b.original);
       },
-      cell: ({ row }) => {
-        const status = row.original.effectiveStatus;
-        if (status === "settled")
-          return <Badge variant="success">Settled</Badge>;
-        if (status === "matured")
-          return <Badge variant="warning">Matured</Badge>;
-        return <Badge variant="secondary">Active</Badge>;
-      },
+      cell: ({ row }) => <StatusBadge status={row.original.effectiveStatus} />,
     },
 
     // 9. Actions

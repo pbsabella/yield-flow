@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useRef } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // ─── Quick cash flow preview for this month ────────────────────────────────────
 
@@ -125,21 +126,11 @@ export default function DashboardShell() {
 
         {status === "ready" && (
           <>
-            <div className="flex items-start justify-between gap-stack-md">
-              <div>
-                <h1 className="text-2xl font-semibold md:text-3xl">Portfolio</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Consolidated view of active yields
-                </p>
-              </div>
-              <Button
-                onClick={() => openWizard()}
-                className="hidden md:flex shrink-0"
-              >
-                <Plus className="size-4" />
-                Add investment
-              </Button>
-            </div>
+            <PageHeader
+              title="Portfolio"
+              subtitle="Consolidated view of active yields"
+              action={{ onClick: () => openWizard() }}
+            />
 
             <KpiCards
               totalPrincipal={portfolio.totalPrincipal}

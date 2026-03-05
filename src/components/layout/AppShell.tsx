@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         ) : (
-          <main className="flex-1">{children}</main>
+          <div className="flex-1">{children}</div>
         )}
       </div>
 

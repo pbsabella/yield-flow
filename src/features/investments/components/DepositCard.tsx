@@ -1,15 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,83 +71,29 @@ function MaturityLabel({
 
 export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
   const { fmtCurrency } = usePortfolioContext();
-  const [open, setOpen] = useState(false);
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
-  const statusBadge =
-    effectiveStatus === "settled" ? (
-      <Badge variant="success">Settled</Badge>
-    ) : effectiveStatus === "matured" ? (
-      <Badge variant="warning">Matured</Badge>
-    ) : (
-      <Badge variant="secondary">Active</Badge>
-    );
+  const statusBadge = <StatusBadge status={effectiveStatus} />;
 
   return (
     <li>
       <article aria-labelledby={`deposit-${deposit.id}-name`}>
-        <Card className={cn("p-0 transition duration-1000", isNew && "ring-2 ring-primary/40 bg-primary/5")}>
-          <Collapsible open={open} onOpenChange={setOpen}>
-            {/* Trigger row */}
-            <CardHeader className="p-0">
-              <CollapsibleTrigger className={`flex w-full items-center justify-between gap-stack-xs px-4 py-3 hover:bg-muted${open ? " bg-primary/5" : ""}`}>
-                <div className="flex items-center gap-stack-xs">
-                  {statusBadge}
-                  <h2
-                    id={`deposit-${deposit.id}-name`}
-                    className="text-sm font-medium"
-                  >
-                    {deposit.name}
-                  </h2>
-                </div>
-                <ChevronDown
-                  aria-hidden="true"
-                  className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200${open ? " rotate-180" : ""}`}
-                />
-              </CollapsibleTrigger>
-            </CardHeader>
-
-            {/* Expanded details */}
-            <CollapsibleContent>
-              <CardContent className="grid grid-cols-2 gap-y-stack-xs border-t py-3 text-sm">
-                <span className="text-muted-foreground">Bank</span>
-                <span className="text-right">{bank.name}</span>
-
-                <span className="text-muted-foreground">Principal</span>
-                <span className="text-right font-medium">
-                  {fmtCurrency(deposit.principal)}
-                </span>
-
-                <span className="text-muted-foreground">Net interest</span>
-                <span className="text-right">{fmtCurrency(netInterest)}</span>
-
-                <span className="text-muted-foreground">Rate</span>
-                <span className="text-right">
-                  {deposit.interestMode === "tiered"
-                    ? "Tiered"
-                    : `${(deposit.flatRate * 100).toFixed(2)}%`}
-                </span>
-
-                {!deposit.isOpenEnded && (
-                  <>
-                    <span className="text-muted-foreground">Term</span>
-                    <span className="text-right">
-                      {deposit.termDays != null
-                        ? `${deposit.termDays}d`
-                        : `${deposit.termMonths} mo`}
-                    </span>
-                  </>
-                )}
-
-                <span className="text-muted-foreground">Payout</span>
-                <span className="text-right">
-                  {deposit.payoutFrequency === "monthly" ? "Monthly" : "At maturity"}
-                </span>
-              </CardContent>
-            </CollapsibleContent>
-
-            {/* Footer: always visible */}
-            <CardFooter className="justify-between">
+        <CollapsibleCard
+          cardClassName={cn("transition duration-1000", isNew && "ring-2 ring-primary/40 bg-primary/5")}
+          trigger={
+            <div className="flex items-center gap-stack-xs">
+              {statusBadge}
+              <h2
+                id={`deposit-${deposit.id}-name`}
+                className="text-sm font-medium"
+              >
+                {deposit.name}
+              </h2>
+            </div>
+          }
+          contentClassName="grid grid-cols-2 gap-y-stack-xs py-3 text-sm"
+          footer={
+            <>
               <MaturityLabel
                 maturityDate={maturityDate}
                 isOpenEnded={deposit.isOpenEnded}
@@ -197,9 +137,44 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            </CardFooter>
-          </Collapsible>
-        </Card>
+            </>
+          }
+          footerClassName="justify-between"
+        >
+          <span className="text-muted-foreground">Bank</span>
+          <span className="text-right">{bank.name}</span>
+
+          <span className="text-muted-foreground">Principal</span>
+          <span className="text-right font-medium">
+            {fmtCurrency(deposit.principal)}
+          </span>
+
+          <span className="text-muted-foreground">Net interest</span>
+          <span className="text-right">{fmtCurrency(netInterest)}</span>
+
+          <span className="text-muted-foreground">Rate</span>
+          <span className="text-right">
+            {deposit.interestMode === "tiered"
+              ? "Tiered"
+              : `${(deposit.flatRate * 100).toFixed(2)}%`}
+          </span>
+
+          {!deposit.isOpenEnded && (
+            <>
+              <span className="text-muted-foreground">Term</span>
+              <span className="text-right">
+                {deposit.termDays != null
+                  ? `${deposit.termDays}d`
+                  : `${deposit.termMonths} mo`}
+              </span>
+            </>
+          )}
+
+          <span className="text-muted-foreground">Payout</span>
+          <span className="text-right">
+            {deposit.payoutFrequency === "monthly" ? "Monthly" : "At maturity"}
+          </span>
+        </CollapsibleCard>
       </article>
     </li>
   );
