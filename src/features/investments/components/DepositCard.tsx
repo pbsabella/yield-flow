@@ -96,8 +96,8 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
           <Collapsible open={open} onOpenChange={setOpen}>
             {/* Trigger row */}
             <CardHeader className="p-0">
-              <CollapsibleTrigger className={`flex w-full items-center justify-between gap-2 px-4 py-3 hover:bg-muted${open ? " bg-primary/5" : ""}`}>
-                <div className="flex items-center gap-2">
+              <CollapsibleTrigger className={`flex w-full items-center justify-between gap-stack-xs px-4 py-3 hover:bg-muted${open ? " bg-primary/5" : ""}`}>
+                <div className="flex items-center gap-stack-xs">
                   {statusBadge}
                   <h2
                     id={`deposit-${deposit.id}-name`}
@@ -115,7 +115,7 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
 
             {/* Expanded details */}
             <CollapsibleContent>
-              <CardContent className="grid grid-cols-2 gap-y-2 border-t py-3 text-sm">
+              <CardContent className="grid grid-cols-2 gap-y-stack-xs border-t py-3 text-sm">
                 <span className="text-muted-foreground">Bank</span>
                 <span className="text-right">{bank.name}</span>
 

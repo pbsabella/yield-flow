@@ -285,7 +285,7 @@ function MonthRow({
               open && "bg-primary/5",
             )}
           >
-            <span className="flex flex-wrap items-center gap-2">
+            <span className="flex flex-wrap items-center gap-stack-xs">
               <span>{month.label}</span>
               {isCurrent && (
                 <Badge variant="info" className="font-normal">
@@ -293,7 +293,7 @@ function MonthRow({
                 </Badge>
               )}
             </span>
-            <span className="flex items-center gap-2 tabular-nums ml-auto">
+            <span className="flex items-center gap-stack-xs tabular-nums ml-auto">
               <span className={cn(isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
                 {fmtCurrency(displayNet)}
               </span>
@@ -308,7 +308,7 @@ function MonthRow({
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="border-t py-2 pr-10 space-y-4">
+          <CardContent className="border-t py-2 pr-10 space-y-stack-md">
             <EntryGroup
               label="At maturity payouts"
               entries={maturityEntries}
@@ -356,8 +356,8 @@ export function CashFlowView({ monthlyAllowance, currentMonthFull }: CashFlowVie
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-stack-md">
+      <div className="flex flex-wrap items-center justify-between gap-stack-md">
         <p className="flex gap-1 items-center text-xs text-muted-foreground">
           <Info className="shrin-0" size="13" aria-hidden="true" />
           All amounts are net of withholding tax
@@ -365,7 +365,7 @@ export function CashFlowView({ monthlyAllowance, currentMonthFull }: CashFlowVie
         <WindowFilter value={window} onChange={setWindow} />
       </div>
       <AreaChart months={slicedMonths} currentMonthKey={currentMonthKey} currentMonthFull={currentMonthFull} fmtCurrency={fmtCurrency} />
-      <div className="space-y-3">
+      <div className="space-y-stack-sm">
         {slicedMonths.map((month) => (
           <MonthRow
             key={month.monthKey}

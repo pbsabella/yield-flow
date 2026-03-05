@@ -1,9 +1,11 @@
 "use client"
 
 import { useMemo } from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+// @shadcn-override: fieldVariants defined in variants.ts (not inline) — re-add import after upgrade
+import { fieldVariants } from "@/components/ui/variants"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 
@@ -45,21 +47,6 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-const fieldVariants = cva("data-[invalid=true]:text-destructive gap-2 group/field flex w-full", {
-  variants: {
-    orientation: {
-      vertical:
-        "flex-col *:w-full [&>.sr-only]:w-auto",
-      horizontal:
-        "flex-row items-center *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-      responsive:
-        "flex-col *:w-full [&>.sr-only]:w-auto @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:*:data-[slot=field-label]:flex-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-    },
-  },
-  defaultVariants: {
-    orientation: "vertical",
-  },
-})
 
 function Field({
   className,
@@ -77,6 +64,7 @@ function Field({
   )
 }
 
+// @shadcn-override: FieldContent — non-standard export; flex wrapper for label+description stack
 function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -107,6 +95,7 @@ function FieldLabel({
   )
 }
 
+// @shadcn-override: FieldTitle — non-standard export; unstyled label-role div (used alongside FieldLabel)
 function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -135,6 +124,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
+// @shadcn-override: FieldSeparator — non-standard export; divider with optional centered label text
 function FieldSeparator({
   children,
   className,
@@ -162,6 +152,7 @@ function FieldSeparator({
   )
 }
 
+// @shadcn-override: FieldError — non-standard export; renders deduplicated error messages from an errors array
 function FieldError({
   className,
   children,

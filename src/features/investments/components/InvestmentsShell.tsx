@@ -6,15 +6,7 @@ import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsView } from "./InvestmentsView";
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
-
-function Container({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
-      {...props}
-    />
-  );
-}
+import { Container } from "@/components/layout/Container";
 
 export function InvestmentsShell() {
   const { deposits, banks, highlightedId, handleSettle, handleDelete, handleEdit, openWizard } =
@@ -24,8 +16,8 @@ export function InvestmentsShell() {
   return (
     <RouteGuard>
       <main>
-        <Container className="py-6 space-y-6">
-          <div className="flex items-start justify-between gap-4">
+        <Container className="py-6 space-y-stack-lg">
+          <div className="flex items-start justify-between gap-stack-md">
             <div>
               <h1 className="text-2xl font-semibold md:text-3xl">Investments</h1>
               <p className="text-sm text-muted-foreground mt-1">

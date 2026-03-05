@@ -81,6 +81,34 @@
   --color-banner-border: var(--color-banner-border);
 
   --color-table-frozen-bg: var(--color-table-frozen-bg);
+
+  /* ─── Typography scale ──────────────────────────────────────────── */
+  --text-xs:   var(--font-size-xs);
+  --text-sm:   var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg:   var(--font-size-lg);
+  --text-xl:   var(--font-size-xl);
+  --text-2xl:  var(--font-size-2xl);
+  --text-3xl:  var(--font-size-3xl);
+
+  --font-weight-normal:   var(--font-weight-normal);
+  --font-weight-medium:   var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold:     var(--font-weight-bold);
+
+  --leading-tight:   var(--leading-tight);
+  --leading-snug:    var(--leading-snug);
+  --leading-normal:  var(--leading-normal);
+  --leading-relaxed: var(--leading-relaxed);
+
+  /* ─── Spacing rhythm ─────────────────────────────────────────────── */
+  --spacing-stack-xs: var(--spacing-stack-xs);
+  --spacing-stack-sm: var(--spacing-stack-sm);
+  --spacing-stack-md: var(--spacing-stack-md);
+  --spacing-stack-lg: var(--spacing-stack-lg);
+  --spacing-stack-xl: var(--spacing-stack-xl);
+  --spacing-card-x:   var(--spacing-card-x);
+  --spacing-card-y:   var(--spacing-card-y);
 }
 
 :root {
@@ -158,6 +186,34 @@
 
   /* Frozen (sticky) table column — faint indigo wash, distinct from white rows */
   --color-table-frozen-bg: oklch(0.975 0.012 277);
+
+  /* ─── Typography scale ──────────────────────────────────────────── */
+  --font-size-xs:   0.75rem;    /* 12px */
+  --font-size-sm:   0.875rem;   /* 14px  ← default body */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg:   1.125rem;   /* 18px */
+  --font-size-xl:   1.25rem;    /* 20px */
+  --font-size-2xl:  1.5rem;     /* 24px */
+  --font-size-3xl:  1.875rem;   /* 30px */
+
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+
+  /* ─── Spacing rhythm ─────────────────────────────────────────────── */
+  --spacing-stack-xs: 0.5rem;   /*  8px — tight item groupings */
+  --spacing-stack-sm: 0.75rem;  /* 12px — within cards */
+  --spacing-stack-md: 1rem;     /* 16px — between cards */
+  --spacing-stack-lg: 1.5rem;   /* 24px — between sections */
+  --spacing-stack-xl: 2rem;     /* 32px — page-level sections */
+  --spacing-card-x:   1rem;     /* 16px — card horizontal inset */
+  --spacing-card-y:   1rem;     /* 16px — card vertical inset */
 }
 
 .dark {

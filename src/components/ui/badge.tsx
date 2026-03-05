@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+// @shadcn-override: status variants (info/warning/success/alert) — re-add import + spread after upgrade
 import { badgeStatusVariants } from "@/components/ui/variants"
 
 const badgeVariants = cva(
@@ -16,7 +17,7 @@ const badgeVariants = cva(
         outline: "border-border text-foreground [a]:hover:bg-accent-hover-bg [a]:hover:text-muted-foreground",
         ghost: "hover:bg-accent-hover-bg hover:text-muted-foreground dark:hover:bg-accent-hover-bg/50",
         link: "text-primary underline-offset-4 hover:underline",
-        // ↓ extended via lib/ui/variants.ts — re-add after shadcn upgrades
+        // @shadcn-override: spread status variants from variants.ts
         ...badgeStatusVariants,
       },
     },
@@ -26,6 +27,7 @@ const badgeVariants = cva(
   }
 )
 
+// @shadcn-override: asChild support via Slot.Root (renders badge as child element)
 function Badge({
   className,
   variant = "default",

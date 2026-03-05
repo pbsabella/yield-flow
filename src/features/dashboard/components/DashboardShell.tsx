@@ -13,17 +13,7 @@ import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatMonthLabel } from "@/lib/domain/date";
-
-// ─── Layout helpers ────────────────────────────────────────────────────────────
-
-function Container({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
-      {...props}
-    />
-  );
-}
+import { Container } from "@/components/layout/Container";
 
 // ─── Quick cash flow preview for this month ────────────────────────────────────
 
@@ -58,7 +48,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
         {preview.length === 0 ? (
           <p className="text-sm text-muted-foreground">No payouts scheduled this month.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             {preview.map((entry) => (
               <div
                 key={entry.depositId}
@@ -68,7 +58,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
                   <span className="font-medium">{entry.name || entry.bankName}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{entry.bankName}</span>
                 </div>
-                <span className="font-medium tabular-nums text-pr dark:text-primary-subtle">
+                <span className="font-medium tabular-nums text-primary dark:text-primary-subtle">
                   {fmtCurrency(entry.amountNet)}
                 </span>
               </div>
@@ -124,7 +114,7 @@ export default function DashboardShell() {
         onChange={handleImportFile}
         aria-label="Import backup file"
       />
-      <Container className="py-6 space-y-8">
+      <Container className="py-6 space-y-stack-xl">
         {status === "empty" && (
           <EmptyLanding
             onAddData={() => openWizard()}
@@ -135,7 +125,7 @@ export default function DashboardShell() {
 
         {status === "ready" && (
           <>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-stack-md">
               <div>
                 <h1 className="text-2xl font-semibold md:text-3xl">Portfolio</h1>
                 <p className="text-sm text-muted-foreground mt-1">

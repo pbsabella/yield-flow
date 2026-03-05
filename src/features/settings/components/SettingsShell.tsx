@@ -31,17 +31,7 @@ import type { TimeDeposit } from "@/types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
 import { useCurrencyInput } from '@/components/ui/use-currency-input';
-
-// ─── Layout helpers ───────────────────────────────────────────────────────────
-
-function Container({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={["mx-auto w-full max-w-5xl px-4 sm:px-6", className].filter(Boolean).join(" ")}
-      {...props}
-    />
-  );
-}
+import { Container } from "@/components/layout/Container";
 
 // ─── Import validation ────────────────────────────────────────────────────────
 
@@ -196,7 +186,7 @@ export function SettingsShell() {
       <div className="bg-background">
         {/* Main content */}
         <main>
-          <Container className="py-6 space-y-6">
+          <Container className="py-6 space-y-stack-lg">
             <h1 className="text-2xl font-semibold md:text-3xl">Settings</h1>
 
             {/* Appearance */}
@@ -227,9 +217,9 @@ export function SettingsShell() {
                 </CardAction>
                 <CardDescription>Display settings for your portfolio.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-stack-md">
                 {/* Currency */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-stack-md">
                   <div>
                     <p className="text-sm font-medium">Currency</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -260,7 +250,7 @@ export function SettingsShell() {
                 <div className="border-t border-border" />
 
                 {/* Bank insurance limit */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-stack-md">
                   <div className="min-w-0">
                     <p className="text-sm font-medium">Deposit insurance limit</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -306,9 +296,9 @@ export function SettingsShell() {
                   Your investments are stored locally in this browser; no servers, no accounts.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-stack-md">
                 {/* Export */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-stack-md">
                   <div>
                     <p className="text-sm font-medium">Export</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -331,7 +321,7 @@ export function SettingsShell() {
                 <div className="border-t border-border" />
 
                 {/* Import */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-stack-md">
                   <div>
                     <p className="text-sm font-medium">Import</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -365,7 +355,7 @@ export function SettingsShell() {
                 <div className="border-t border-border" />
 
                 {/* Clear */}
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-stack-md">
                   <div>
                     <p className="text-sm font-medium">Clear all data</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
