@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LayoutList, Settings, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -48,9 +49,9 @@ export function SidebarNav() {
       {/* Logo */}
       <div className="flex h-14 items-center px-4 border-b border-sidebar-border">
         <span className="text-primary font-semibold tracking-tight dark:text-primary-subtle">YieldFlow</span>
-        <span className="ml-2 rounded-full bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium text-sidebar-accent-foreground">
+        <Badge className="ml-2" variant="secondary">
           beta
-        </span>
+        </Badge>
       </div>
 
       {/* Nav */}

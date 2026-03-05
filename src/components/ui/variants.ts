@@ -24,6 +24,7 @@ export const badgeStatusVariants = {
   warning: "bg-status-warning-bg border-status-warning-border text-status-warning-fg",
   success: "bg-status-success-bg border-status-success-border text-status-success-fg",
   alert:   "bg-status-alert-bg border-status-alert-border text-status-alert-fg",
+  primary: "bg-primary/10 border-transparent text-primary dark:text-primary-subtle",
 } as const;
 
 // ─── Button ───────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import { CalendarClock, TrendingUp, BarChart2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LandingAnimation } from "./LandingAnimation";
 
@@ -14,9 +15,7 @@ export function EmptyLanding({ onAddData, onTryDemo, onImport }: EmptyLandingPro
       {/* ── Hero copy ── */}
       <div className="flex flex-col gap-6">
         {/* Eyebrow */}
-        <span className="inline-flex w-fit items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary dark:text-primary-subtle">
-          Fixed-income tracker
-        </span>
+        <Badge variant="primary">Fixed-income tracker</Badge>
 
         {/* Headline */}
         <h1 className="text-3xl font-semibold tracking-tight leading-tight md:text-4xl">

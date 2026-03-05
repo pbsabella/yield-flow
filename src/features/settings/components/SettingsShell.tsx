@@ -247,7 +247,7 @@ export function SettingsShell() {
                   </Select>
                 </div>
 
-                <div className="border-t border-border" />
+                <Separator />
 
                 {/* Bank insurance limit */}
                 <div className="flex flex-wrap items-start justify-between gap-stack-md">
@@ -318,7 +318,7 @@ export function SettingsShell() {
                   </Button>
                 </div>
 
-                <div className="border-t border-border" />
+                <Separator />
 
                 {/* Import */}
                 <div className="flex flex-wrap items-start justify-between gap-stack-md">
@@ -352,7 +352,7 @@ export function SettingsShell() {
                   </div>
                 </div>
 
-                <div className="border-t border-border" />
+                <Separator />
 
                 {/* Clear */}
                 <div className="flex flex-wrap items-start justify-between gap-stack-md">
