@@ -94,7 +94,7 @@ Below the KPI cards, a compact preview card shows up to 3 of the current month's
 
 Below the month preview, a card shows each bank's total active principal as a progress bar against an optional deposit insurance limit (set in Settings). Bar colors: green (< 80% of limit), amber (80–100%), red (> 100%). Hidden when no active deposits exist, or when the limit is unset (shows amounts only with no bar).
 
-**Decision:** Surface concentration risk at a glance. Users stacking multiple deposits in a single bank may not realise they exceed PDIC limits. A progress bar communicates this without requiring users to do math.
+**Decision:** Surface concentration risk at a glance. Users stacking multiple deposits in a single bank may not realise they exceed bank insurance limits. A progress bar communicates this without requiring users to do math.
 
 **Tradeoff accepted:** The limit is a user-entered preference — not validated against any regulatory source. The card is a prompt, not a guarantee.
 
@@ -124,17 +124,17 @@ The Investments page is the primary data view — a scannable list of all deposi
 
 ### DataTable Column Design
 
-| Column           | Pinned | Sortable        |
-| ---------------- | ------ | --------------- |
-| Deposit (bank + name) | Left (frozen) | No |
-| Principal        | No     | ✓               |
-| Rate             | No     | ✓               |
-| Maturity Date    | No     | ✓               |
-| Days to Maturity | No     | ✓ (default ASC) |
-| Net Interest     | No     | ✓               |
-| Payout           | No     | No              |
-| Status           | No     | ✓               |
-| Actions          | No     | No              |
+| Column                | Pinned        | Sortable        |
+| --------------------- | ------------- | --------------- |
+| Deposit (bank + name) | Left (frozen) | No              |
+| Principal             | No            | ✓               |
+| Rate                  | No            | ✓               |
+| Maturity Date         | No            | ✓               |
+| Days to Maturity      | No            | ✓ (default ASC) |
+| Net Interest          | No            | ✓               |
+| Payout                | No            | No              |
+| Status                | No            | ✓               |
+| Actions               | No            | No              |
 
 **Default sort:** Days to Maturity ASC — surfaces the most urgent deposits first.
 
@@ -171,6 +171,7 @@ Groups are rendered in urgency order with section headers:
 **Decision:** Mobile cards are collapsible (`Collapsible` composed inside `Card`).
 
 **Component composition:**
+
 ```
 Card > Collapsible > [CardHeader > CollapsibleTrigger] + CollapsibleContent + CardFooter
 ```
@@ -180,6 +181,7 @@ Card > Collapsible > [CardHeader > CollapsibleTrigger] + CollapsibleContent + Ca
 **Visible only when expanded:** Bank · Principal · Net interest · Rate (shows "Tiered" for tiered-rate deposits) · Term (omitted for open-ended) · Payout frequency
 
 **Maturity label (MaturityLabel sub-component):**
+
 - > 30 days away: "Matures [date]"
 - 1–30 days: "Due in Nd" (amber)
 - Today: "Due today" (amber)
@@ -246,6 +248,7 @@ The Cash Flow page answers: _when will money arrive, and how much?_ Where Invest
 - Separating them would force users to cross-reference from memory
 
 **Chart details:**
+
 - SVG area chart with a cubic bezier smooth curve
 - Filled gradient area below the line (primary color, 35% → 0% opacity)
 - Current month: filled dot marker
@@ -427,11 +430,11 @@ Theme toggle (light/dark) lives here, not in the nav. Keeps the primary nav clea
 
 ### Data Management Card
 
-| Action | Trigger | Behaviour |
-| --- | --- | --- |
-| **Export JSON** | Button click | Downloads `yieldflow-export-{date}.json`. Disabled when no deposits. |
+| Action          | Trigger                    | Behaviour                                                                                                                                                                                                                                                                                                                          |
+| --------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export JSON** | Button click               | Downloads `yieldflow-export-{date}.json`. Disabled when no deposits.                                                                                                                                                                                                                                                               |
 | **Import JSON** | Button click → file picker | Validates schema (version = 1, required fields per deposit). Valid: shows "Replace all data?" confirm dialog with old/new counts. Confirm: replaces deposits, navigates to `/`. Invalid: shows inline error below the button; stays on `/settings`. File input value is reset after each pick so the same file can be re-selected. |
-| **Clear all** | Button click | Destructive confirm: "Clear all data?" → "Clear all data" (destructive). Confirm: clears deposits, navigates to `/`. Disabled when no deposits. |
+| **Clear all**   | Button click               | Destructive confirm: "Clear all data?" → "Clear all data" (destructive). Confirm: clears deposits, navigates to `/`. Disabled when no deposits.                                                                                                                                                                                    |
 
 ---
 
