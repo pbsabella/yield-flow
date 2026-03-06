@@ -24,7 +24,7 @@ export const badgeStatusVariants = {
   warning: "bg-status-warning-bg border-status-warning-border text-status-warning-fg",
   success: "bg-status-success-bg border-status-success-border text-status-success-fg",
   alert:   "bg-status-alert-bg border-status-alert-border text-status-alert-fg",
-  primary: "bg-primary/10 border-transparent text-primary dark:text-primary-subtle",
+  primary: "bg-primary/10 border-transparent text-accent-fg",
 } as const;
 
 // ─── Button ───────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ export const buttonVariants = cva(
         secondary:   "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:       "hover:bg-accent-hover-bg hover:text-foreground dark:hover:bg-accent-hover-bg/50 aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive: "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-status-alert-fg focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
-        link:        "text-primary underline-offset-4 hover:underline",
+        link:        "text-accent-fg underline-offset-4 hover:underline",
       },
       size: {
         default:   "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",

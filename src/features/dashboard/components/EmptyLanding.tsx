@@ -25,19 +25,19 @@ export function EmptyLanding({ onAddData, onTryDemo, onImport }: EmptyLandingPro
         {/* Feature bullets */}
         <ul className="space-y-3">
           <li className="flex items-start gap-3">
-            <CalendarClock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <CalendarClock className="mt-0.5 size-4 shrink-0 text-accent-fg" aria-hidden="true" />
             <span className="text-sm text-muted-foreground leading-snug">
               Maturity countdown across every deposit
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <TrendingUp className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <TrendingUp className="mt-0.5 size-4 shrink-0 text-accent-fg" aria-hidden="true" />
             <span className="text-sm text-muted-foreground leading-snug">
               Net interest after tax — not misleading gross figures
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <BarChart2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <BarChart2 className="mt-0.5 size-4 shrink-0 text-accent-fg" aria-hidden="true" />
             <span className="text-sm text-muted-foreground leading-snug">
               12-month cash flow forecast across your full portfolio
             </span>

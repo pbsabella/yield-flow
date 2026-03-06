@@ -67,9 +67,15 @@ No `tailwind.config.ts` for colors. No `@layer utilities` for color tokens.
 
 **To add a token:** Add to `:root` + `.dark` → expose in `@theme inline` → use generated class.
 
+**Always prefer semantic tokens over raw Tailwind utilities:**
+
+- Spacing: `gap-stack-xs/sm/md/lg/xl`, `space-y-stack-*`, `px-card-x`, `py-card-y`, `py-stack-*` instead of `gap-2`, `space-y-4`, `px-4`, etc.
+- Colors: `text-accent-fg`, `text-status-*-fg`, `bg-status-*-bg`, etc. instead of `text-primary dark:text-primary-subtle`, palette classes, or hardcoded values
+
 **Never:**
 
 - Hardcode palette classes (`text-indigo-700`, `bg-amber-50`)
+- Use raw Tailwind spacing (`gap-2`, `px-4`, `space-y-6`) when a matching semantic token exists
 - Use `bg-[var(--token)]` inline — register in `@theme inline` first
 - Use inline HSL in any class — reference a CSS variable
 - Add a variable to `:root` without adding to `.dark`
