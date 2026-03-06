@@ -63,13 +63,27 @@ function useRange(summaries: EnrichedSummary[]) {
     today.setHours(0, 0, 0, 0);
 
     if (summaries.length === 0) {
-      return { rangeStart: today, totalDays: 1, monthTicks: [] as Date[], todayPct: 50, today };
+      return {
+        rangeStart: today,
+        totalDays: 1,
+        monthTicks: [] as Date[],
+        todayPct: 50,
+        today,
+        parsedDates: new Map<string, { startDate: Date; endDate: Date }>(),
+      };
     }
 
-    const starts = summaries.map((s) => parseLocalDate(s.deposit.startDate));
-    const ends = summaries.map((s) =>
-      s.maturityDate ? parseLocalDate(s.maturityDate) : addTermMonths(today, 1),
-    );
+    // Parse once and store by deposit ID so render loops can reuse without re-parsing.
+    const parsedDates = new Map<string, { startDate: Date; endDate: Date }>();
+    const starts: Date[] = [];
+    const ends: Date[] = [];
+    for (const s of summaries) {
+      const startDate = parseLocalDate(s.deposit.startDate);
+      const endDate = s.maturityDate ? parseLocalDate(s.maturityDate) : addTermMonths(today, 1);
+      parsedDates.set(s.deposit.id, { startDate, endDate });
+      starts.push(startDate);
+      ends.push(endDate);
+    }
 
     // Snap to the 1st of the month so the first month tick always lands at 0%,
     // avoiding clamping distortion that crowds the first two labels.
@@ -93,7 +107,7 @@ function useRange(summaries: EnrichedSummary[]) {
       Math.min(100, (differenceInCalendarDays(today, rangeStart) / totalDays) * 100),
     );
 
-    return { rangeStart, totalDays, monthTicks, todayPct, today };
+    return { rangeStart, totalDays, monthTicks, todayPct, today, parsedDates };
   }, [summaries]);
 }
 
@@ -108,7 +122,7 @@ function DesktopLadder({
     [summaries],
   );
 
-  const { rangeStart, totalDays, monthTicks, todayPct, today } = useRange(sorted);
+  const { rangeStart, totalDays, monthTicks, todayPct, parsedDates } = useRange(sorted);
 
   function toPercent(date: Date): number {
     return Math.max(
@@ -226,10 +240,8 @@ function DesktopLadder({
 
             {/* Investment rows — screen readers get data from the label column */}
             {sorted.map((s) => {
-              const startDate = parseLocalDate(s.deposit.startDate);
-              const endDate = s.maturityDate
-                ? parseLocalDate(s.maturityDate)
-                : addTermMonths(today, 1);
+              // Reuse dates already parsed by useRange — no redundant parseLocalDate calls.
+              const { startDate, endDate } = parsedDates.get(s.deposit.id)!;
               const leftPct = toPercent(startDate);
               const widthPct = Math.max(
                 0.5,

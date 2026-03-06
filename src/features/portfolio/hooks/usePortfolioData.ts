@@ -93,18 +93,25 @@ export function usePortfolioData(
 
   // Current month: use ALL summaries (including settled) so the Income This Month
   // card reflects the full picture — settled payouts are confirmed income.
-  const currentMonthBreakdown = useMemo<CurrentMonthBreakdown>(() => {
+  // Also derives currentMonthFull here to avoid a second buildMonthlyAllowance(summaries) call.
+  const { currentMonthBreakdown, currentMonthFull } = useMemo(() => {
     const todayKey = monthKey(new Date());
     const allAllowance = buildMonthlyAllowance(summaries);
-    const thisMonth = allAllowance.find((m) => m.monthKey === todayKey);
-    if (!thisMonth) return { net: 0, pendingNet: 0, settledNet: 0 };
-    const pendingNet = thisMonth.entries
-      .filter((e) => e.status === "matured")
-      .reduce((sum, e) => sum + e.amountNet, 0);
-    const settledNet = thisMonth.entries
-      .filter((e) => e.status === "settled")
-      .reduce((sum, e) => sum + e.amountNet, 0);
-    return { net: thisMonth.net, pendingNet, settledNet };
+    const thisMonth = allAllowance.find((m) => m.monthKey === todayKey) ?? null;
+
+    const breakdown: CurrentMonthBreakdown = thisMonth
+      ? {
+          net: thisMonth.net,
+          pendingNet: thisMonth.entries
+            .filter((e) => e.status === "matured")
+            .reduce((sum, e) => sum + e.amountNet, 0),
+          settledNet: thisMonth.entries
+            .filter((e) => e.status === "settled")
+            .reduce((sum, e) => sum + e.amountNet, 0),
+        }
+      : { net: 0, pendingNet: 0, settledNet: 0 };
+
+    return { currentMonthBreakdown: breakdown, currentMonthFull: thisMonth };
   }, [summaries]);
 
   const nextMaturity = useMemo<NextMaturity | null>(() => {
@@ -136,12 +143,6 @@ export function usePortfolioData(
     // Projection excludes settled — their cash has already been received.
     const projectionSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
     return buildMonthlyAllowance(projectionSummaries);
-  }, [summaries]);
-
-  const currentMonthFull = useMemo(() => {
-    const todayKey = monthKey(new Date());
-    const allAllowance = buildMonthlyAllowance(summaries);
-    return allAllowance.find((m) => m.monthKey === todayKey) ?? null;
   }, [summaries]);
 
   return { summaries, totalPrincipal, currentMonthBreakdown, nextMaturity, monthlyAllowance, currentMonthFull };

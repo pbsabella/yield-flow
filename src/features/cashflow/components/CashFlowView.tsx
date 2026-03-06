@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Info, TrendingUp } from "lucide-react";
 import {
@@ -42,7 +42,7 @@ function smoothCurve(pts: { x: number; y: number }[]): string {
 
 // ─── Area chart ───────────────────────────────────────────────────────────────
 
-function AreaChart({
+const AreaChart = memo(function AreaChart({
   months,
   currentMonthKey,
   currentMonthFull,
@@ -154,7 +154,7 @@ function AreaChart({
       </svg>
     </div>
   );
-}
+});
 
 // ─── Window filter ────────────────────────────────────────────────────────────
 

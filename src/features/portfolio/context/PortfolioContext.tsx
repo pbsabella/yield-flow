@@ -6,6 +6,8 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import { usePreferences } from "@/lib/hooks/usePreferences";
 import { formatCurrency, getCurrencySymbol } from "@/lib/domain/format";
 import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
+import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
+import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit, Bank } from "@/types";
 import type { Preferences } from "@/lib/hooks/usePreferences";
 
@@ -51,6 +53,9 @@ interface PortfolioContextValue {
   // Data management (used by Settings)
   importDeposits: (deposits: TimeDeposit[]) => void;
   clearDeposits: () => void;
+
+  // Computed portfolio data (derived from deposits + banks, computed once here)
+  portfolio: PortfolioData;
 }
 
 const PortfolioContext = createContext<PortfolioContextValue | null>(null);
@@ -99,7 +104,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   }, [isDemoMode]);
 
   const deposits = isDemoMode ? liveDemoDeposits : storedDeposits;
-  const banks: Bank[] = isDemoMode ? [...demoBanks] : [];
+  // Memoized so usePortfolioData sees a stable reference and doesn't recompute on every render.
+  const banks = useMemo<Bank[]>(() => (isDemoMode ? [...demoBanks] : []), [isDemoMode]);
 
   const status: AppStatus = !isReady
     ? "booting"
@@ -113,6 +119,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     () => [...new Set(deposits.map((d) => d.bankId))],
     [deposits],
   );
+
+  // Computed once here so all shells (Dashboard, Investments, CashFlow) read from
+  // context instead of each calling usePortfolioData independently.
+  const portfolio = usePortfolioData(deposits, banks);
 
   // ─── Demo ──────────────────────────────────────────────────────────────────
 
@@ -206,32 +216,65 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setDeposits([]);
   }, [remove, setDeposits]);
 
-  const value: PortfolioContextValue = {
-    deposits,
-    banks,
-    isReady,
-    isDemoMode,
-    status,
-    existingBankNames,
-    hasSidebar,
-    preferences,
-    setPreference,
-    fmtCurrency,
-    currencySymbol,
-    wizardOpen,
-    editTarget,
-    highlightedId,
-    enterDemo,
-    exitDemo,
-    openWizard,
-    closeWizard,
-    handleSave,
-    handleSettle,
-    handleDelete,
-    handleEdit,
-    importDeposits,
-    clearDeposits,
-  };
+  // useMemo ensures a new context value object is only created when something
+  // actually changed. Without this, a new object is created every render and
+  // every component calling usePortfolioContext() re-renders unnecessarily.
+  const value = useMemo<PortfolioContextValue>(
+    () => ({
+      deposits,
+      banks,
+      isReady,
+      isDemoMode,
+      status,
+      existingBankNames,
+      hasSidebar,
+      preferences,
+      setPreference,
+      fmtCurrency,
+      currencySymbol,
+      wizardOpen,
+      editTarget,
+      highlightedId,
+      enterDemo,
+      exitDemo,
+      openWizard,
+      closeWizard,
+      handleSave,
+      handleSettle,
+      handleDelete,
+      handleEdit,
+      importDeposits,
+      clearDeposits,
+      portfolio,
+    }),
+    [
+      deposits,
+      banks,
+      isReady,
+      isDemoMode,
+      status,
+      existingBankNames,
+      hasSidebar,
+      preferences,
+      setPreference,
+      fmtCurrency,
+      currencySymbol,
+      wizardOpen,
+      editTarget,
+      highlightedId,
+      enterDemo,
+      exitDemo,
+      openWizard,
+      closeWizard,
+      handleSave,
+      handleSettle,
+      handleDelete,
+      handleEdit,
+      importDeposits,
+      clearDeposits,
+      portfolio,
+    ],
+  );
 
   return (
     <PortfolioContext.Provider value={value}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
@@ -69,7 +70,7 @@ function MaturityLabel({
   );
 }
 
-export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
+export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
   const { fmtCurrency } = usePortfolioContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -178,4 +179,4 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
       </article>
     </li>
   );
-}
+});
