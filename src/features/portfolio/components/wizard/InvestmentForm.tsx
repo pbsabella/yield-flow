@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { toISODate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { InterestTier } from "@/types";
@@ -75,7 +75,7 @@ function TierUpToInput({
   value: string;
   onChange: (raw: string) => void;
 }) {
-  const { currencySymbol } = usePortfolioContext();
+  const { currencySymbol } = useFormatterContext();
   const currencyProps = useCurrencyInput({ value, onChange });
   return (
     <InputGroup>
@@ -202,7 +202,7 @@ export function InvestmentForm({
   existingBankNames,
   timeZone,
 }: InvestmentFormProps) {
-  const { currencySymbol } = usePortfolioContext();
+  const { currencySymbol } = useFormatterContext();
   const principalCurrencyProps = useCurrencyInput({
     value: formState.principal,
     onChange: (raw) => setField("principal", raw),

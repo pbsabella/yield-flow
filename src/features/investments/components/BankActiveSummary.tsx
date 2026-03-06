@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
@@ -19,7 +19,8 @@ type BankGroup = {
 };
 
 export function BankActiveSummary({ summaries }: Props) {
-  const { fmtCurrency, preferences } = usePortfolioContext();
+  const { preferences } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const limit = preferences.bankInsuranceLimit;
 
   const groups = useMemo<BankGroup[]>(() => {

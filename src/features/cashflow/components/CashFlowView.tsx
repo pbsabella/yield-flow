@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { monthKey } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { MonthlyAllowance } from "@/types";
@@ -313,7 +313,7 @@ interface CashFlowViewProps {
 }
 
 export function CashFlowView({ monthlyAllowance, currentMonthFull }: CashFlowViewProps) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const [window, setWindow] = useState<Window>("12");
   const currentMonthKey = monthKey(new Date());
   const futureMonths = monthlyAllowance.filter(

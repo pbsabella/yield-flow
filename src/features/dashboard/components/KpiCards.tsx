@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, formatMonthLabel, parseLocalDate } from "@/lib/domain/date";
 import type { CurrentMonthBreakdown, NextMaturity } from "@/features/portfolio/hooks/usePortfolioData";
 
@@ -12,7 +12,7 @@ type KpiCardsProps = {
 };
 
 export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }: KpiCardsProps) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const { net: incomeThisMonth, pendingNet, settledNet } = currentMonthBreakdown;
   const hasPills = incomeThisMonth > 0 && (pendingNet > 0 || settledNet > 0);
   // useMemo so new Date() isn't called on every re-render. The month label

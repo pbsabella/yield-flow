@@ -8,7 +8,7 @@ import {
   formatDate,
 } from "@/lib/domain/date";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
@@ -372,7 +372,7 @@ function MobileLadder({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function LadderView({ summaries }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
 
   return (
     <>

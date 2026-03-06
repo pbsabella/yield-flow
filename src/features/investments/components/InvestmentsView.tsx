@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { createColumns } from "./columns";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { SettleConfirmDialog } from "./SettleConfirmDialog";
@@ -92,7 +92,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);

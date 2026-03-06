@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
@@ -71,7 +71,7 @@ function MaturityLabel({
 }
 
 export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
   const statusBadge = <StatusBadge status={effectiveStatus} />;

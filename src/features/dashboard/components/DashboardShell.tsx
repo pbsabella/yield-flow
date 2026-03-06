@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -26,7 +26,7 @@ type MonthEntry = {
 };
 
 function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const monthLabel = formatMonthLabel(new Date());
   const preview = entries.slice(0, 3);
 

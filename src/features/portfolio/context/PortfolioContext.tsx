@@ -11,6 +11,23 @@ import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData"
 import type { TimeDeposit, Bank } from "@/types";
 import type { Preferences } from "@/lib/hooks/usePreferences";
 
+// ─── Formatter context (stable — only invalidates on currency pref change) ─────
+
+interface PortfolioFormatterContextValue {
+  /** Pre-bound currency formatter. Uses the user's currency preference. Vanity only — does not convert values. */
+  fmtCurrency: (value: number) => string;
+  /** Currency symbol for input addons (e.g. "₱", "$"). */
+  currencySymbol: string;
+}
+
+const PortfolioFormatterContext = createContext<PortfolioFormatterContextValue | null>(null);
+
+export function useFormatterContext() {
+  const ctx = useContext(PortfolioFormatterContext);
+  if (!ctx) throw new Error("useFormatterContext must be used within PortfolioProvider");
+  return ctx;
+}
+
 // ─── Context shape ─────────────────────────────────────────────────────────────
 
 export type AppStatus = "booting" | "empty" | "ready";
@@ -28,10 +45,6 @@ interface PortfolioContextValue {
   // Preferences
   preferences: Preferences;
   setPreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
-  /** Pre-bound currency formatter. Uses the user's currency preference. Vanity only — does not convert values. */
-  fmtCurrency: (value: number) => string;
-  /** Currency symbol for input addons (e.g. "₱", "$"). */
-  currencySymbol: string;
 
   // Wizard state
   wizardOpen: boolean;
@@ -216,6 +229,13 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setDeposits([]);
   }, [remove, setDeposits]);
 
+  // Formatter context: isolated so currency-formatting consumers don't re-render
+  // on wizard/highlight state changes. Only invalidates when currency pref changes.
+  const formatterValue = useMemo<PortfolioFormatterContextValue>(
+    () => ({ fmtCurrency, currencySymbol }),
+    [fmtCurrency, currencySymbol],
+  );
+
   // useMemo ensures a new context value object is only created when something
   // actually changed. Without this, a new object is created every render and
   // every component calling usePortfolioContext() re-renders unnecessarily.
@@ -230,8 +250,6 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
-      fmtCurrency,
-      currencySymbol,
       wizardOpen,
       editTarget,
       highlightedId,
@@ -257,8 +275,6 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
-      fmtCurrency,
-      currencySymbol,
       wizardOpen,
       editTarget,
       highlightedId,
@@ -277,8 +293,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <PortfolioContext.Provider value={value}>
-      {children}
-    </PortfolioContext.Provider>
+    <PortfolioFormatterContext.Provider value={formatterValue}>
+      <PortfolioContext.Provider value={value}>
+        {children}
+      </PortfolioContext.Provider>
+    </PortfolioFormatterContext.Provider>
   );
 }

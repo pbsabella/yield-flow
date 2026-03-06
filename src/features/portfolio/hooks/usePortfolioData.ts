@@ -58,6 +58,13 @@ export function usePortfolioData(
   deposits: TimeDeposit[],
   banks: Bank[],
 ): PortfolioData {
+  // Single "today" snapshot shared across all memos for a consistent render cycle.
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   const bankMap = useMemo(() => {
     const m = new Map<string, Bank>();
     for (const b of banks) m.set(b.id, b);
@@ -65,10 +72,6 @@ export function usePortfolioData(
   }, [banks]);
 
   const summaries = useMemo<EnrichedSummary[]>(() => {
-    // Normalise "today" to midnight so date comparisons are day-accurate.
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     return deposits.flatMap((deposit) => {
       // Synthesize a bank from the deposit when not in the static map.
       // New deposits store the free-text bank name in bankId; taxRateOverride
@@ -83,7 +86,7 @@ export function usePortfolioData(
       const effectiveStatus = deriveEffectiveStatus(deposit, base.maturityDate, today);
       return [{ ...base, effectiveStatus }];
     });
-  }, [deposits, bankMap]);
+  }, [deposits, bankMap, today]);
 
   const totalPrincipal = useMemo(() => {
     return summaries
@@ -95,7 +98,7 @@ export function usePortfolioData(
   // card reflects the full picture — settled payouts are confirmed income.
   // Also derives currentMonthFull here to avoid a second buildMonthlyAllowance(summaries) call.
   const { currentMonthBreakdown, currentMonthFull } = useMemo(() => {
-    const todayKey = monthKey(new Date());
+    const todayKey = monthKey(today);
     const allAllowance = buildMonthlyAllowance(summaries);
     const thisMonth = allAllowance.find((m) => m.monthKey === todayKey) ?? null;
 
@@ -112,12 +115,9 @@ export function usePortfolioData(
       : { net: 0, pendingNet: 0, settledNet: 0 };
 
     return { currentMonthBreakdown: breakdown, currentMonthFull: thisMonth };
-  }, [summaries]);
+  }, [summaries, today]);
 
   const nextMaturity = useMemo<NextMaturity | null>(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const candidates = summaries
       .filter(
         (s) =>
@@ -137,7 +137,7 @@ export function usePortfolioData(
       maturityDate: next.maturityDate!,
       netProceeds: next.netTotal,
     };
-  }, [summaries]);
+  }, [summaries, today]);
 
   const monthlyAllowance = useMemo(() => {
     // Projection excludes settled — their cash has already been received.
