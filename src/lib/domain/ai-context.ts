@@ -2,7 +2,7 @@ import type { MonthlyAllowance } from "@/types";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { Preferences } from "@/lib/hooks/usePreferences";
 import { formatCurrency } from "@/lib/domain/format";
-import { parseLocalDate, differenceInCalendarDays } from "@/lib/domain/date";
+import { parseLocalDate, differenceInCalendarDays, monthKey } from "@/lib/domain/date";
 
 export type AiContextParams = {
   summaries: EnrichedSummary[];
@@ -19,6 +19,10 @@ function fmt(value: number, currency: string): string {
 
 function pct(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
+}
+
+function cell(value: string): string {
+  return value.replace(/\r?\n/g, " ").replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
 }
 
 function fmtTiers(tiers: { upTo: number | null; rate: number }[]): string {
@@ -39,9 +43,15 @@ export function buildAiContext({
   marketRates,
 }: AiContextParams): string {
   const currency = preferences.currency;
-  const limit = preferences.bankInsuranceLimit;
+  const rawLimit = preferences.bankInsuranceLimit;
+  const limit = rawLimit != null && rawLimit > 0 ? rawLimit : null;
   const todayDate = parseLocalDate(today);
   const lines: string[] = [];
+
+  const currentMonthKey = monthKey(todayDate);
+  const futureMonths = monthlyAllowance
+    .filter((m) => m.monthKey >= currentMonthKey)
+    .slice(0, 12);
 
   // --- Prompt block ---
   const promptLines = prompt
@@ -75,7 +85,7 @@ export function buildAiContext({
   const active = summaries.filter((s) => s.effectiveStatus === "active");
   const overdue = summaries.filter((s) => s.effectiveStatus === "matured");
   const totalPrincipal = nonSettled.reduce((sum, s) => sum + s.deposit.principal, 0);
-  const total12mNet = monthlyAllowance.reduce((sum, m) => sum + m.net, 0);
+  const total12mNet = futureMonths.reduce((sum, m) => sum + m.net, 0);
 
   // Next maturity: earliest active with future maturity date
   const nextMaturitySummary = active
@@ -148,12 +158,12 @@ export function buildAiContext({
 
     const bankTotal = bankTotals.get(bank.id) ?? 0;
     const overLimit = limit != null && bankTotal > limit;
-    const bankLabel = overLimit ? `${bank.name} ⚠️` : bank.name;
+    const bankLabel = overLimit ? `${cell(bank.name)} ⚠️` : cell(bank.name);
 
     const maturityLabel = maturityDate ?? (deposit.isOpenEnded ? "open-ended" : "—");
 
     lines.push(
-      `| ${deposit.name} | ${bankLabel} | ${fmt(deposit.principal, currency)} | ${deposit.interestMode === "tiered" ? fmtTiers(deposit.tiers) : pct(deposit.flatRate)} | ${deposit.startDate} | ${maturityLabel} | ${daysRemaining} | ${fmt(netInterest, currency)} | ${status} |`,
+      `| ${cell(deposit.name)} | ${bankLabel} | ${fmt(deposit.principal, currency)} | ${deposit.interestMode === "tiered" ? fmtTiers(deposit.tiers) : pct(deposit.flatRate)} | ${deposit.startDate} | ${maturityLabel} | ${daysRemaining} | ${fmt(netInterest, currency)} | ${status} |`,
     );
   }
   lines.push("");
@@ -182,7 +192,7 @@ export function buildAiContext({
       const coverageStatus =
         ratio > 100 ? "OVER LIMIT" : ratio > 80 ? "approaching limit" : "safe";
       lines.push(
-        `| ${g.name} | ${fmt(g.principal, currency)} | ${fmt(g.netInterest, currency)} | ${Math.round(ratio)}% | ${coverageStatus} |`,
+        `| ${cell(g.name)} | ${fmt(g.principal, currency)} | ${fmt(g.netInterest, currency)} | ${Math.round(ratio)}% | ${coverageStatus} |`,
       );
     }
     lines.push("");
@@ -191,7 +201,7 @@ export function buildAiContext({
     lines.push("| Bank | Principal | Net Interest |");
     lines.push("|---|---:|---:|");
     for (const g of sortedBanks) {
-      lines.push(`| ${g.name} | ${fmt(g.principal, currency)} | ${fmt(g.netInterest, currency)} |`);
+      lines.push(`| ${cell(g.name)} | ${fmt(g.principal, currency)} | ${fmt(g.netInterest, currency)} |`);
     }
     lines.push("");
     lines.push("_No insurance limit configured._");
@@ -203,11 +213,11 @@ export function buildAiContext({
   lines.push("");
   lines.push("| Month | Expected Net Payout | Sources |");
   lines.push("|---|---:|---|");
-  for (const m of monthlyAllowance) {
+  for (const m of futureMonths) {
     if (m.net === 0) continue;
     const sources = m.entries
       .filter((e) => e.amountNet > 0)
-      .map((e) => e.name)
+      .map((e) => cell(e.name))
       .join(", ");
     lines.push(`| ${m.label} | ${fmt(m.net, currency)} | ${sources} |`);
   }
