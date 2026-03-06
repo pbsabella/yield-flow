@@ -283,7 +283,7 @@ function MonthRow({
               </Badge>
             )}
           </span>
-          <span className={cn("tabular-nums", isCurrent && "text-base font-semibold text-primary dark:text-primary-subtle")}>
+          <span className={cn("tabular-nums", isCurrent && "text-base font-semibold text-accent-fg")}>
             {fmtCurrency(displayNet)}
           </span>
         </span>

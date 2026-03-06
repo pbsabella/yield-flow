@@ -219,9 +219,9 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
   const noResults = summaries.length > 0 && filtered.length === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-stack-lg">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-stack-md">
         <Select value={bankFilter} onValueChange={setBankFilter}>
           <SelectTrigger aria-label="Filter bank" className="w-44">
             <SelectValue placeholder="All banks" />
@@ -238,7 +238,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-stack-xs">
           <Switch
             id="show-settled"
             checked={showSettled}
@@ -271,13 +271,13 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
       {/* Bank active summary — collapsible, defaults closed */}
       {!noDeposits && activeSummaries.length > 0 && (
         <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-3">
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-card-x py-2.5 text-sm hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-stack-sm">
               <span className="font-medium">Active summary</span>
               <span className="text-muted-foreground tabular-nums text-xs">
                 {fmtCurrency(activeTotals.principal)} principal
                 {" · "}
-                <span className="text-income-net-fg">{fmtCurrency(activeTotals.netInterest)}</span>
+                <span className="text-accent-fg">{fmtCurrency(activeTotals.netInterest)}</span>
                 {" net interest"}
               </span>
             </div>
@@ -285,7 +285,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
               className={cn("size-4 text-muted-foreground transition-transform duration-200", summaryOpen && "rotate-180")}
             />
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
+          <CollapsibleContent className="pt-stack-xs">
             <BankActiveSummary summaries={activeSummaries} />
           </CollapsibleContent>
         </Collapsible>
@@ -397,13 +397,13 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
         </div>
       ) : (
         /* ── Mobile cards (single column with group headers) ── */
-        <div className="space-y-6">
+        <div className="space-y-stack-lg">
           {groups.map(({ key, label, items }) => (
-            <div key={key} className="space-y-2">
+            <div key={key} className="space-y-stack-xs">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
-              <ul role="list" className="space-y-3">
+              <ul role="list" className="space-y-stack-sm">
                 {items.map((s) => (
                   <DepositCard
                     key={s.deposit.id}

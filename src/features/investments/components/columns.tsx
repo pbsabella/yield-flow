@@ -195,14 +195,14 @@ export function createColumns(
       enableSorting: true,
       sortingFn: "basic",
       cell: ({ row }) => {
-        return <span className="text-primary dark:text-primary-subtle font-semibold">{fmtCurrency(row.original.netInterest)}</span>
+        return <span className="text-accent-fg font-semibold">{fmtCurrency(row.original.netInterest)}</span>
       },
       footer: ({ table }) => {
         const total = table
           .getRowModel()
           .rows.reduce((sum, row) => sum + row.original.netInterest, 0);
         return (
-          <span className="font-semibold tabular-nums text-primary dark:text-primary-subtle">
+          <span className="font-semibold tabular-nums text-accent-fg">
             {fmtCurrency(total)}
           </span>
         );

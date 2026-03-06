@@ -22,7 +22,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { Toaster } from "@/components/ui/sonner"
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
@@ -399,7 +398,7 @@ export function SettingsShell() {
                     href="https://pbsabella.vercel.app/"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-primary font-medium hover:underline dark:text-primary-subtle"
+                    className="font-medium hover:underline text-accent-fg"
                   >
                     pbsabella
                   </a>
@@ -426,7 +425,6 @@ export function SettingsShell() {
               </div>
             </div>
           </Container>
-          <Toaster />
         </main>
 
         {/* Import confirmation */}

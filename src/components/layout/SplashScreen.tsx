@@ -13,7 +13,7 @@ export function SplashScreen() {
       <div className="flex flex-col items-center gap-4 animate-pulse">
         <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10">
           <TrendingUp
-            className="size-7 text-primary dark:text-primary-subtle"
+            className="size-7 text-accent-fg"
             aria-hidden="true"
           />
         </div>

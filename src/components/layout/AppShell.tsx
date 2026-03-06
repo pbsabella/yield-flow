@@ -9,6 +9,7 @@ import { SplashScreen } from "@/components/layout/SplashScreen";
 import { DemoBanner } from "@/components/layout/DemoBanner";
 import { InvestmentWizard } from "@/features/portfolio/components/wizard/InvestmentWizard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { Toaster } from "@/components/ui/sonner";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -65,6 +66,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom tab bar */}
       {hasSidebar && <BottomTabBar />}
+
+      {/* Global toast — one instance covers all pages */}
+      <Toaster />
 
       {/* Investment wizard — always mounted, available from any page */}
       <InvestmentWizard

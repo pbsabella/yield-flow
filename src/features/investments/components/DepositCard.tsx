@@ -91,7 +91,7 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
               </h2>
             </div>
           }
-          contentClassName="grid grid-cols-2 gap-y-stack-xs py-3 text-sm"
+          contentClassName="grid grid-cols-2 gap-y-stack-xs py-stack-sm text-sm"
           footer={
             <>
               <MaturityLabel

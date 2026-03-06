@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef } from "react";
-import { ArrowRight } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { ArrowRight, BrainCircuit } from "lucide-react";
 import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
@@ -15,6 +14,7 @@ import { usePortfolioContext } from "@/features/portfolio/context/PortfolioConte
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ExportAiDialog } from "@/features/investments/components/ExportAiDialog";
 
 // ─── Quick cash flow preview for this month ────────────────────────────────────
 
@@ -59,7 +59,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
                   <span className="font-medium">{entry.name || entry.bankName}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{entry.bankName}</span>
                 </div>
-                <span className="font-medium tabular-nums text-primary dark:text-primary-subtle">
+                <span className="font-medium tabular-nums text-accent-fg">
                   {fmtCurrency(entry.amountNet)}
                 </span>
               </div>
@@ -79,7 +79,8 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { deposits, banks, status, openWizard, enterDemo, importDeposits } = usePortfolioContext();
+  const { deposits, banks, status, openWizard, enterDemo, importDeposits, preferences } = usePortfolioContext();
+  const [exportOpen, setExportOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -130,6 +131,15 @@ export default function DashboardShell() {
               title="Portfolio"
               subtitle="Consolidated view of active yields"
               action={{ onClick: () => openWizard() }}
+              secondaryAction={{ label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: () => setExportOpen(true) }}
+            />
+
+            <ExportAiDialog
+              open={exportOpen}
+              onOpenChange={setExportOpen}
+              summaries={portfolio.summaries}
+              monthlyAllowance={portfolio.monthlyAllowance}
+              preferences={preferences}
             />
 
             <KpiCards
@@ -144,7 +154,6 @@ export default function DashboardShell() {
           </>
         )}
       </Container>
-      <Toaster />
     </main>
   );
 }

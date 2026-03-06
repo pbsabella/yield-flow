@@ -31,17 +31,17 @@ function shortDate(dateStr: string): string {
 /** Desktop Gantt bar — full bar colored by status */
 function barClasses(s: EnrichedSummary): string {
   const rounded = s.deposit.isOpenEnded ? "rounded-l-bar rounded-r-none" : "rounded-bar";
-  if (s.effectiveStatus === "settled") return cn(rounded, "bg-muted opacity-50");
+  if (s.effectiveStatus === "settled") return cn(rounded, "bg-progress-success-fill");
   if (s.effectiveStatus === "matured")
-    return cn(rounded, "bg-status-warning-bg border border-status-warning-border");
+    return cn(rounded, "bg-progress-warning-fill");
   if (s.deposit.isOpenEnded) return cn(rounded, "bg-primary/40");
   return cn(rounded, "bg-primary");
 }
 
 /** Mobile bar — elapsed segment (left of today) */
 function mobileElapsedClass(s: EnrichedSummary): string {
-  if (s.effectiveStatus === "settled") return "bg-muted opacity-50";
-  if (s.effectiveStatus === "matured") return "bg-status-warning-bg";
+  if (s.effectiveStatus === "settled") return "bg-progress-success-fill";
+  if (s.effectiveStatus === "matured") return "bg-progress-warning-fill";
   if (s.deposit.isOpenEnded) return "bg-primary/50";
   return "bg-primary";
 }
@@ -158,7 +158,7 @@ function DesktopLadder({
             return (
               <div
                 key={s.deposit.id}
-                className="h-16 flex flex-col justify-center px-4 border-b border-border/50 last:border-0"
+                className="h-16 flex flex-col justify-center px-card-x border-b border-border/50 last:border-0"
               >
                 <p className="text-[11px] text-muted-foreground truncate leading-tight">
                   {s.bank.name} · {dateRange}
@@ -167,7 +167,7 @@ function DesktopLadder({
                   {s.deposit.name || "—"}
                 </p>
                 <p className="text-[11px] text-muted-foreground tabular-nums leading-tight">
-                  {fmtCurrency(s.deposit.principal)} · <span className="text-primary dark:text-primary-subtle">+{fmtCurrency(s.netInterest)} net</span>
+                  {fmtCurrency(s.deposit.principal)} · <span className="text-accent-fg">+{fmtCurrency(s.netInterest)} net</span>
                 </p>
               </div>
             );
@@ -208,7 +208,7 @@ function DesktopLadder({
               {todayVisible && (
                 <span
                   style={{ left: `${todayPct}%` }}
-                  className="absolute bottom-2 text-[10px] font-semibold text-primary dark:text-primary-subtle -translate-x-1/2 z-20 bg-card px-0.5"
+                  className="absolute bottom-2 text-[10px] font-semibold text-accent-fg -translate-x-1/2 z-20 bg-card px-0.5"
                 >
                   Today
                 </span>
@@ -278,9 +278,9 @@ function MobileCard({
   // const todayInRange = todayMarkerPct > 0 && todayMarkerPct < 100;
 
   return (
-    <li className="rounded-lg border border-border bg-card p-4 space-y-3">
+    <li className="rounded-lg border border-border bg-card p-4 space-y-stack-sm">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-stack-xs">
         <p className="text-xs text-muted-foreground font-medium truncate">{s.bank.name}</p>
         <StatusBadge status={s.effectiveStatus} />
       </div>
@@ -323,7 +323,7 @@ function MobileCard({
       {/* Principal + net */}
       <p className="text-xs text-muted-foreground tabular-nums">
         {fmtCurrency(s.deposit.principal)} principal{" "}
-        <span className="text-income-net-fg">+{fmtCurrency(s.netInterest)} net</span>
+        <span className="text-accent-fg">+{fmtCurrency(s.netInterest)} net</span>
       </p>
     </li>
   );
@@ -348,7 +348,7 @@ function MobileLadder({
     <ul
       role="list"
       aria-label="Investment ladder"
-      className="md:hidden space-y-3"
+      className="md:hidden space-y-stack-sm"
     >
       {sorted.map((s) => (
         <MobileCard key={s.deposit.id} summary={s} fmtCurrency={fmtCurrency} today={today} />

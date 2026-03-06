@@ -83,6 +83,9 @@
 
   --color-table-frozen-bg: var(--color-table-frozen-bg);
 
+  /* Net interest income — indigo in light, lighter indigo in dark */
+  --color-accent-fg: var(--color-accent-fg);
+
   /* ─── Typography scale ──────────────────────────────────────────── */
   --text-xs:   var(--font-size-xs);
   --text-sm:   var(--font-size-sm);
@@ -174,7 +177,7 @@
 
   /* Warning: Amber/Yellow */
   --color-progress-warning-track: oklch(97% 0.03 95.3);
-  --color-progress-warning-fill: oklch(78% 0.14 95.3);
+  --color-progress-warning-fill: oklch(82% 0.19 85);
   --color-progress-warning-text: oklch(56% 0.16 49);
 
   /* Alert: Critical Red */
@@ -188,6 +191,9 @@
 
   /* Frozen (sticky) table column — faint indigo wash, distinct from white rows */
   --color-table-frozen-bg: oklch(0.975 0.012 277);
+
+  /* Net interest income label */
+  --color-accent-fg: oklch(0.51 0.23 277);
 
   /* ─── Typography scale ──────────────────────────────────────────── */
   --font-size-xs:   0.75rem;    /* 12px */
@@ -293,6 +299,9 @@
   --color-banner-border: oklch(0.32 0.06 277);
 
   --color-table-frozen-bg: oklch(0.19 0.015 277);
+
+  /* Net interest income label */
+  --color-accent-fg: oklch(0.70 0.18 277);
 }
 
 @layer base {
