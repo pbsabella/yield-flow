@@ -68,6 +68,17 @@ export function createColumns(
   fmtCurrency: (value: number) => string,
 ): ColumnDef<EnrichedSummary>[] {
   return [
+    // 0. Row index
+    {
+      id: "rowIndex",
+      header: () => <span className="text-muted-foreground">#</span>,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="tabular-nums text-muted-foreground">{row.index + 1}</span>
+      ),
+      size: 40,
+    },
+
     // 1. Deposit (name + bank) — frozen first column
     {
       id: "deposit",
@@ -84,6 +95,14 @@ export function createColumns(
           </div>
         );
       },
+      footer: ({ table }) => {
+        const count = table.getRowModel().rows.length;
+        return (
+          <span className="text-xs text-muted-foreground font-medium">
+            {count} deposit{count !== 1 ? "s" : ""}
+          </span>
+        );
+      },
     },
 
     // 2. Principal
@@ -94,6 +113,12 @@ export function createColumns(
       enableSorting: true,
       sortingFn: "basic",
       cell: ({ row }) => fmtCurrency(row.original.deposit.principal),
+      footer: ({ table }) => {
+        const total = table
+          .getRowModel()
+          .rows.reduce((sum, row) => sum + row.original.deposit.principal, 0);
+        return <span className="font-semibold tabular-nums">{fmtCurrency(total)}</span>;
+      },
     },
 
     // 3. Rate
@@ -171,6 +196,16 @@ export function createColumns(
       sortingFn: "basic",
       cell: ({ row }) => {
         return <span className="text-primary dark:text-primary-subtle font-semibold">{fmtCurrency(row.original.netInterest)}</span>
+      },
+      footer: ({ table }) => {
+        const total = table
+          .getRowModel()
+          .rows.reduce((sum, row) => sum + row.original.netInterest, 0);
+        return (
+          <span className="font-semibold tabular-nums text-primary dark:text-primary-subtle">
+            {fmtCurrency(total)}
+          </span>
+        );
       },
     },
 

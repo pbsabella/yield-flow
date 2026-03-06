@@ -78,7 +78,7 @@ export const deposits: TimeDeposit[] = [
 
   // ─────────────────────────────────────────────
   // HIGH EXPOSURE (Bank Limit Trigger)
-  // Logic: Large principal in one bank to trigger PDIC/Limit warnings.
+  // Logic: Large principal in one bank to trigger insurance limit warnings.
   // Tests: UI Warning badges in Sidebar/Dashboard for institutional risk.
   // ─────────────────────────────────────────────
   {

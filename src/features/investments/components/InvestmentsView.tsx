@@ -21,10 +21,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { GanttChart, LayoutList, Wallet, SearchX, ChevronDown } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -35,8 +43,9 @@ import { usePortfolioContext } from "@/features/portfolio/context/PortfolioConte
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { SettleConfirmDialog } from "./SettleConfirmDialog";
-import { Wallet, SearchX } from "lucide-react";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
+import { LadderView } from "./LadderView";
+import { BankActiveSummary } from "./BankActiveSummary";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
@@ -85,13 +94,14 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
   const { fmtCurrency } = usePortfolioContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
+  const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EnrichedSummary | null>(null);
   const [sorting, setSorting] = useState<SortingState>([{ id: "daysToMaturity", desc: false }]);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-
   const isMd = useMediaQuery("(min-width: 768px)");
 
   // Unique banks from summaries for filter
@@ -108,6 +118,21 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
     if (bankFilter !== "all") list = list.filter((s) => s.bank.id === bankFilter);
     return list;
   }, [summaries, showSettled, bankFilter]);
+
+  // Active-only summaries for bank summary strip (ignores showSettled toggle)
+  const activeSummaries = useMemo(() => {
+    let list = summaries.filter((s) => s.effectiveStatus === "active");
+    if (bankFilter !== "all") list = list.filter((s) => s.bank.id === bankFilter);
+    return list;
+  }, [summaries, bankFilter]);
+
+  const activeTotals = useMemo(
+    () => ({
+      principal: activeSummaries.reduce((sum, s) => sum + s.deposit.principal, 0),
+      netInterest: activeSummaries.reduce((sum, s) => sum + s.netInterest, 0),
+    }),
+    [activeSummaries],
+  );
 
   // For card view: sorted filtered list
   const sortedForCards = useMemo(() => sortSummaries(filtered), [filtered]);
@@ -224,7 +249,47 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
             Show settled
           </Label>
         </div>
+
+        <ToggleGroup
+          type="single"
+          variant="card"
+          value={view}
+          onValueChange={(v) => v && setView(v as "list" | "ladder")}
+          className="ml-auto"
+        >
+          <ToggleGroupItem value="list" className="gap-1.5 px-3">
+            <LayoutList size={14} />
+            <span>List</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="ladder" className="gap-1.5 px-3">
+            <GanttChart size={14} />
+            <span>Ladder</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
+
+      {/* Bank active summary — collapsible, defaults closed */}
+      {!noDeposits && activeSummaries.length > 0 && (
+        <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="font-medium">Active summary</span>
+              <span className="text-muted-foreground tabular-nums text-xs">
+                {fmtCurrency(activeTotals.principal)} principal
+                {" · "}
+                <span className="text-income-net-fg">{fmtCurrency(activeTotals.netInterest)}</span>
+                {" net interest"}
+              </span>
+            </div>
+            <ChevronDown
+              className={cn("size-4 text-muted-foreground transition-transform duration-200", summaryOpen && "rotate-180")}
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <BankActiveSummary summaries={activeSummaries} />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       {/* Content */}
       {noDeposits ? (
@@ -241,6 +306,8 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           description="Try adjusting the bank filter or enabling settled deposits."
           action={{ label: "Clear filters", onClick: () => setBankFilter("all") }}
         />
+      ) : view === "ladder" ? (
+        <LadderView summaries={filtered} />
       ) : isMd ? (
         /* ── Desktop table (horizontally scrollable, Deposit column frozen) ── */
         <div className="overflow-x-auto rounded-lg border">
@@ -250,6 +317,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const isDeposit = header.column.id === "deposit";
+                    const isRowIndex = header.column.id === "rowIndex";
                     return (
                       <TableHead
                         key={header.id}
@@ -261,6 +329,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                         className={[
                           header.column.getCanSort() ? "cursor-pointer select-none" : "",
                           isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
+                          isRowIndex ? "border-r text-muted-foreground" : "",
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -277,18 +346,22 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "bg-card transition-colors duration-1000",
-                    row.original.deposit.id === highlightedId && "bg-primary/10",
+                    "bg-card transition-colors",
+                    row.original.deposit.id === highlightedId
+                      ? "bg-primary/10 duration-1000"
+                      : "duration-150",
                   )}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const isDeposit = cell.column.id === "deposit";
+                    const isRowIndex = cell.column.id === "rowIndex";
                     return (
                       <TableCell
                         key={cell.id}
-                        className={
-                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : ""
-                        }
+                        className={cn(
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
+                          isRowIndex ? "border-r bg-muted/60" : "",
+                        )}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
@@ -297,6 +370,29 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                 </TableRow>
               ))}
             </TableBody>
+            <TableFooter>
+              {table.getFooterGroups().map((footerGroup) => (
+                <TableRow key={footerGroup.id}>
+                  {footerGroup.headers.map((header) => {
+                    const isDeposit = header.column.id === "deposit";
+                    const isRowIndex = header.column.id === "rowIndex";
+                    return (
+                      <TableCell
+                        key={header.id}
+                        className={cn(
+                          isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
+                          isRowIndex ? "border-r" : "",
+                        )}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.footer, header.getContext())}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableFooter>
           </Table>
         </div>
       ) : (
