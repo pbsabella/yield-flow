@@ -30,7 +30,7 @@ function shortDate(dateStr: string): string {
 
 /** Desktop Gantt bar — full bar colored by status */
 function barClasses(s: EnrichedSummary): string {
-  const rounded = s.deposit.isOpenEnded ? "rounded-l-full rounded-r-sm" : "rounded-full";
+  const rounded = s.deposit.isOpenEnded ? "rounded-l-bar rounded-r-none" : "rounded-bar";
   if (s.effectiveStatus === "settled") return cn(rounded, "bg-muted opacity-50");
   if (s.effectiveStatus === "matured")
     return cn(rounded, "bg-status-warning-bg border border-status-warning-border");
@@ -240,7 +240,7 @@ function MobileCard({
     0,
     Math.min(100, (differenceInCalendarDays(today, startDate) / spanDays) * 100),
   );
-  const todayInRange = todayMarkerPct > 0 && todayMarkerPct < 100;
+  // const todayInRange = todayMarkerPct > 0 && todayMarkerPct < 100;
 
   return (
     <li className="rounded-lg border border-border bg-card p-4 space-y-3">
@@ -273,7 +273,7 @@ function MobileCard({
           />
         </div>
         {/* "Today" label below the divider — only when today falls within the term */}
-        {todayInRange && (
+        {/* {todayInRange && (
           <div aria-hidden="true" className="relative h-4">
             <span
               style={{ left: `${todayMarkerPct}%` }}
@@ -282,7 +282,7 @@ function MobileCard({
               Today
             </span>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Principal + net */}

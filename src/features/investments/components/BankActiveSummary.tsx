@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
@@ -53,7 +54,7 @@ export function BankActiveSummary({ summaries }: Props) {
               Net interest
             </th>
             {hasLimit && (
-              <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground w-40">
+              <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground">
                 Coverage
               </th>
             )}
@@ -62,14 +63,6 @@ export function BankActiveSummary({ summaries }: Props) {
         <tbody>
           {groups.map((group) => {
             const pct = hasLimit ? (group.totalPrincipal / limit) * 100 : null;
-            const barColor =
-              pct == null
-                ? null
-                : pct > 100
-                  ? "bg-progress-alert-fill"
-                  : pct > 80
-                    ? "bg-progress-warning-fill"
-                    : "bg-progress-success-fill";
             const labelColor =
               pct == null
                 ? null
@@ -78,6 +71,8 @@ export function BankActiveSummary({ summaries }: Props) {
                   : pct > 80
                     ? "text-progress-warning-text"
                     : "text-progress-success-text";
+            const CoverageIcon =
+              pct == null ? null : pct > 100 ? ShieldX : pct > 80 ? ShieldAlert : ShieldCheck;
 
             return (
               <tr key={group.id} className="border-b last:border-0">
@@ -89,22 +84,16 @@ export function BankActiveSummary({ summaries }: Props) {
                   {fmtCurrency(group.totalNetInterest)}
                 </td>
                 {hasLimit && (
-                  <td className="px-4 py-2.5 w-40">
-                    {pct != null && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className={cn("h-full rounded-full", barColor)}
-                            style={{ width: `${Math.min(pct, 100)}%` }}
-                          />
-                        </div>
-                        <span className={cn("tabular-nums text-xs font-medium shrink-0 w-14 text-right", labelColor)}>
-                          {pct > 100 ? `${Math.round(pct)}% over` : `${Math.round(pct)}%`}
-                        </span>
-                      </div>
+                  <td className="px-4 py-2.5 text-right">
+                    {pct != null && CoverageIcon != null && (
+                      <span className={cn("inline-flex items-center justify-end gap-1 tabular-nums font-medium", labelColor)}>
+                        <CoverageIcon size={16} aria-hidden="true" />
+                        {pct > 100 ? `${Math.round(pct)}% over` : `${Math.round(pct)}%`}
+                      </span>
                     )}
                   </td>
-                )}
+                )
+                }
               </tr>
             );
           })}
@@ -119,6 +108,6 @@ export function BankActiveSummary({ summaries }: Props) {
           </tfoot>
         )}
       </table>
-    </div>
+    </div >
   );
 }

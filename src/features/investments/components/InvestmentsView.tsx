@@ -102,7 +102,6 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
   const [sorting, setSorting] = useState<SortingState>([{ id: "daysToMaturity", desc: false }]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-
   const isMd = useMediaQuery("(min-width: 768px)");
 
   // Unique banks from summaries for filter
@@ -361,7 +360,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                         key={cell.id}
                         className={cn(
                           isDeposit ? "sticky left-0 z-10 bg-table-frozen-bg border-r" : "",
-                          isRowIndex ? "border-r" : "",
+                          isRowIndex ? "border-r bg-muted/60" : "",
                         )}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
