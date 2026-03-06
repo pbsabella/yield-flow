@@ -21,7 +21,7 @@ export function PageHeader({ title, subtitle, action, secondaryAction }: PageHea
       {(action || secondaryAction) && (
         <div className="flex items-center gap-2 shrink-0">
           {secondaryAction && (
-            <Button variant="outline" size="sm" onClick={secondaryAction.onClick} className="gap-1.5">
+            <Button variant="outline" onClick={secondaryAction.onClick} className="gap-1.5">
               {secondaryAction.icon}
               {secondaryAction.label}
             </Button>
