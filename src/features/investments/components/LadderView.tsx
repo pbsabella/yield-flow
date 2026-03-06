@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import {
   parseLocalDate,
   differenceInCalendarDays,
@@ -71,7 +71,10 @@ function useRange(summaries: EnrichedSummary[]) {
       s.maturityDate ? parseLocalDate(s.maturityDate) : addTermMonths(today, 1),
     );
 
-    const rangeStart = starts.reduce((a, b) => (a < b ? a : b));
+    // Snap to the 1st of the month so the first month tick always lands at 0%,
+    // avoiding clamping distortion that crowds the first two labels.
+    const earliestStart = starts.reduce((a, b) => (a < b ? a : b));
+    const rangeStart = new Date(earliestStart.getFullYear(), earliestStart.getMonth(), 1);
     const maxEnd = ends.reduce((a, b) => (a > b ? a : b));
     // 1-month buffer after the latest end so the last bar isn't flush to the edge
     const rangeEnd = addTermMonths(maxEnd, 1);
@@ -116,7 +119,26 @@ function DesktopLadder({
 
   const todayVisible = todayPct > 0 && todayPct < 100;
 
+  // Scroll the timeline so today is centered on mount.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || todayPct <= 0 || todayPct >= 100) return;
+    const targetLeft = (todayPct / 100) * el.scrollWidth - el.clientWidth / 2;
+    el.scrollLeft = Math.max(0, targetLeft);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const MIN_MONTH_WIDTH = 48;
+  // Filter out ticks that would render too close to the previous visible label.
+  // 44px ≈ max width of "MMM 'YY" at text-[10px] with a small gap.
+  const LABEL_MIN_GAP_PX = 44;
+  const minContainerWidth = monthTicks.length * MIN_MONTH_WIDTH;
+  const shownTicks = monthTicks.reduce<Date[]>((acc, tick) => {
+    if (acc.length === 0) return [tick];
+    const distPx =
+      ((toPercent(tick) - toPercent(acc[acc.length - 1])) / 100) * minContainerWidth;
+    return distPx >= LABEL_MIN_GAP_PX ? [...acc, tick] : acc;
+  }, []);
 
   return (
     <div className="hidden md:block rounded-lg border border-border bg-card overflow-hidden">
@@ -154,26 +176,39 @@ function DesktopLadder({
 
         {/* Timeline area — outer scrolls, inner enforces minimum month width */}
         {/* tabIndex="0" makes the scrollable region keyboard-focusable (WCAG 2.1.1) */}
-        <div className="flex-1 overflow-x-auto min-w-0" tabIndex={0}>
+        <div ref={scrollRef} className="flex-1 overflow-x-auto min-w-0" tabIndex={0}>
           <div
             className="relative"
             style={{ minWidth: monthTicks.length * MIN_MONTH_WIDTH }}
           >
             {/* Month axis */}
             <div className="h-10 relative border-b border-border/50">
-              {monthTicks.map((tick) => (
-                <span
-                  key={tick.getTime()}
-                  style={{ left: `${toPercent(tick)}%` }}
-                  className="absolute bottom-2 text-[10px] text-muted-foreground -translate-x-1/2"
-                >
-                  {tick.toLocaleDateString("en-US", { month: "short" })}
-                </span>
-              ))}
+              {shownTicks.map((tick, i) => {
+                const isFirst = i === 0;
+                const isLast = i === shownTicks.length - 1;
+                const showYear = isFirst || tick.getMonth() === 0;
+                const label =
+                  tick.toLocaleDateString("en-US", { month: "short" }) +
+                  (showYear ? ` '${String(tick.getFullYear()).slice(2)}` : "");
+                const alignClass = isFirst
+                  ? "translate-x-0"
+                  : isLast
+                    ? "-translate-x-full"
+                    : "-translate-x-1/2";
+                return (
+                  <span
+                    key={tick.getTime()}
+                    style={{ left: `${toPercent(tick)}%` }}
+                    className={cn("absolute bottom-2 text-[10px] text-muted-foreground", alignClass)}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
               {todayVisible && (
                 <span
                   style={{ left: `${todayPct}%` }}
-                  className="absolute bottom-2 text-[10px] font-semibold text-primary -translate-x-1/2 z-20 bg-card px-0.5"
+                  className="absolute bottom-2 text-[10px] font-semibold text-primary dark:text-primary-subtle -translate-x-1/2 z-20 bg-card px-0.5"
                 >
                   Today
                 </span>
