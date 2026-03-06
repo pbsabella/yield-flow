@@ -272,7 +272,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
       {!noDeposits && activeSummaries.length > 0 && (
         <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen}>
           <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-card-x py-2.5 text-sm hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-stack-sm">
+            <div className="flex flex-wrap text-left items-center gap-stack-sm">
               <span className="font-medium">Active summary</span>
               <span className="text-muted-foreground tabular-nums text-xs">
                 {fmtCurrency(activeTotals.principal)} principal
@@ -282,7 +282,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
               </span>
             </div>
             <ChevronDown
-              className={cn("size-4 text-muted-foreground transition-transform duration-200", summaryOpen && "rotate-180")}
+              className={cn("size-4 text-muted-foreground shrink-0 transition-transform duration-200", summaryOpen && "rotate-180")}
             />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-stack-xs">
