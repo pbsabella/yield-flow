@@ -223,7 +223,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-stack-md">
         <Select value={bankFilter} onValueChange={setBankFilter}>
-          <SelectTrigger aria-label="Filter bank" className="w-44">
+          <SelectTrigger aria-label="Filter bank" className="w-44 bg-input-bg">
             <SelectValue placeholder="All banks" />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -255,7 +255,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           variant="card"
           value={view}
           onValueChange={(v) => v && setView(v as "list" | "ladder")}
-          className="ml-auto"
+          className="ml-auto bg-input-bg"
         >
           <ToggleGroupItem value="list" className="gap-1.5 px-3">
             <LayoutList size={14} />

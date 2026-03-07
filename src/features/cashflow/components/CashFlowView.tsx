@@ -170,6 +170,7 @@ function WindowFilter({
       type="single"
       variant="card"
       value={value}
+      className="bg-input-bg"
       onValueChange={(v) => {
         if (v) onChange(v as Window);
       }}
