@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
@@ -10,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
@@ -69,8 +70,8 @@ function MaturityLabel({
   );
 }
 
-export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
+  const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
   const statusBadge = <StatusBadge status={effectiveStatus} />;
@@ -178,4 +179,4 @@ export function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick
       </article>
     </li>
   );
-}
+});

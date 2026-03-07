@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
 import type { YieldInput } from "@/lib/domain/yield-engine";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { Badge } from '@/components/ui/badge';
 
 interface LiveCalcPreviewProps {
@@ -22,7 +22,7 @@ type CalcResult = {
 const DEBOUNCE_MS = 300;
 
 export function LiveCalcPreview({ input, compact = false }: LiveCalcPreviewProps) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const [result, setResult] = useState<CalcResult | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

@@ -70,14 +70,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Global toast — one instance covers all pages */}
       <Toaster />
 
-      {/* Investment wizard — always mounted, available from any page */}
-      <InvestmentWizard
-        open={wizardOpen}
-        onOpenChange={(open) => { if (!open) closeWizard(); }}
-        onSave={handleSave}
-        existingBankNames={existingBankNames}
-        initialDeposit={editTarget ?? undefined}
-      />
+      {/* Investment wizard — only mounted when open to avoid idle re-renders */}
+      {wizardOpen && (
+        <InvestmentWizard
+          open={wizardOpen}
+          onOpenChange={(open) => { if (!open) closeWizard(); }}
+          onSave={handleSave}
+          existingBankNames={existingBankNames}
+          initialDeposit={editTarget ?? undefined}
+        />
+      )}
     </>
   );
 }

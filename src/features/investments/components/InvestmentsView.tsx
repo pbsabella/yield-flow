@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { createColumns } from "./columns";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { SettleConfirmDialog } from "./SettleConfirmDialog";
@@ -92,7 +92,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);
@@ -223,7 +223,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-stack-md">
         <Select value={bankFilter} onValueChange={setBankFilter}>
-          <SelectTrigger aria-label="Filter bank" className="w-44">
+          <SelectTrigger aria-label="Filter bank" className="w-44 bg-input-bg">
             <SelectValue placeholder="All banks" />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -255,7 +255,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           variant="card"
           value={view}
           onValueChange={(v) => v && setView(v as "list" | "ladder")}
-          className="ml-auto"
+          className="ml-auto bg-input-bg"
         >
           <ToggleGroupItem value="list" className="gap-1.5 px-3">
             <LayoutList size={14} />

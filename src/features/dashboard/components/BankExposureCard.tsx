@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { cn } from "@/lib/utils";
 
 type BankGroup = {
@@ -11,7 +11,8 @@ type BankGroup = {
 };
 
 export function BankExposureCard() {
-  const { deposits, fmtCurrency, preferences } = usePortfolioContext();
+  const { deposits, preferences } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const limit = preferences.bankInsuranceLimit;
 
   const groups = useMemo<BankGroup[]>(() => {

@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
 type Props = {
@@ -21,7 +21,7 @@ type Props = {
 };
 
 export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: Props) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   if (!summary) return null;
 
   const { deposit, netInterest, netTotal } = summary;

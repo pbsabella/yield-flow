@@ -9,8 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
-import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -27,7 +26,7 @@ type MonthEntry = {
 };
 
 function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const monthLabel = formatMonthLabel(new Date());
   const preview = entries.slice(0, 3);
 
@@ -79,7 +78,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { deposits, banks, status, openWizard, enterDemo, importDeposits, preferences } = usePortfolioContext();
+  const { portfolio, status, openWizard, enterDemo, importDeposits, preferences } = usePortfolioContext();
   const [exportOpen, setExportOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +102,6 @@ export default function DashboardShell() {
     reader.readAsText(file);
   }, [importDeposits]);
 
-  const portfolio = usePortfolioData(deposits, banks);
   const thisMonthEntries = (portfolio.currentMonthFull?.entries ?? []) as MonthEntry[];
 
   return (

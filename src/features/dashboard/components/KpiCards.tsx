@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, formatMonthLabel, parseLocalDate } from "@/lib/domain/date";
 import type { CurrentMonthBreakdown, NextMaturity } from "@/features/portfolio/hooks/usePortfolioData";
 
@@ -11,10 +12,12 @@ type KpiCardsProps = {
 };
 
 export function KpiCards({ totalPrincipal, currentMonthBreakdown, nextMaturity }: KpiCardsProps) {
-  const { fmtCurrency } = usePortfolioContext();
+  const { fmtCurrency } = useFormatterContext();
   const { net: incomeThisMonth, pendingNet, settledNet } = currentMonthBreakdown;
   const hasPills = incomeThisMonth > 0 && (pendingNet > 0 || settledNet > 0);
-  const monthLabel = formatMonthLabel(new Date());
+  // useMemo so new Date() isn't called on every re-render. The month label
+  // is stable for the duration of the session.
+  const monthLabel = useMemo(() => formatMonthLabel(new Date()), []);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-stack-md">

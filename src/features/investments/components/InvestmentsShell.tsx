@@ -4,16 +4,14 @@ import { useState } from "react";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsView } from "./InvestmentsView";
 import { ExportAiDialog } from "./ExportAiDialog";
-import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BrainCircuit } from "lucide-react";
 
 export function InvestmentsShell() {
-  const { deposits, banks, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, preferences } =
+  const { portfolio, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, preferences } =
     usePortfolioContext();
-  const portfolio = usePortfolioData(deposits, banks);
   const [exportOpen, setExportOpen] = useState(false);
 
   return (
