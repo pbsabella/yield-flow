@@ -95,6 +95,7 @@ export default function DashboardShell() {
           throw new Error();
         }
         importDeposits(raw.deposits);
+        toast.success(`${raw.deposits.length} investment${raw.deposits.length === 1 ? "" : "s"} imported`);
       } catch {
         toast.error("Import failed", { description: "The file doesn't appear to be a valid YieldFlow backup." });
       }

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 
@@ -135,6 +135,38 @@ describe("useLocalStorage — persistWhen", () => {
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(KEY)!);
       expect(stored).toEqual([1, 2, 3]);
+    });
+  });
+});
+
+describe("useLocalStorage — QuotaExceededError", () => {
+  beforeEach(() => {
+    vi.mock("sonner", () => ({
+      toast: { success: vi.fn(), error: vi.fn() },
+    }));
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("calls toast.error when localStorage.setItem throws", async () => {
+    const { toast } = await import("sonner");
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError");
+    });
+
+    const { result } = renderHook(() => useLocalStorage(KEY, "initial"));
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => {
+      result.current.setValue("will-fail");
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Couldn't save — your browser storage may be full",
+      );
     });
   });
 });

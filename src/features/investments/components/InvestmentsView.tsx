@@ -4,6 +4,7 @@
 "use no memo";
 
 import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   useReactTable,
   getCoreRowModel,
@@ -175,10 +176,11 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
 
   const handleSettleConfirm = useCallback(
     (id: string) => {
-      onSettle(id);
       const name = settleTarget?.deposit.name ?? "";
+      onSettle(id);
       setSettleTarget(null);
       setAnnouncement(`${name} marked as settled.`);
+      toast.success(`${name} marked as settled`);
     },
     [onSettle, settleTarget],
   );
@@ -193,10 +195,12 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
 
   const handleDeleteConfirm = useCallback(
     (id: string) => {
+      const name = deleteTarget?.deposit.name ?? "";
       onDelete(id);
       setDeleteTarget(null);
+      toast.success(`${name} deleted`);
     },
-    [onDelete],
+    [onDelete, deleteTarget],
   );
 
   // TanStack table instance (desktop only)

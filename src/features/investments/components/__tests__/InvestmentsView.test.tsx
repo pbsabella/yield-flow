@@ -1,0 +1,143 @@
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { InvestmentsView } from "../InvestmentsView";
+import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
+import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
+import type { TimeDeposit, Bank } from "@/types";
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+// Mock DepositCard to expose settle/delete as plain buttons.
+// This isolates InvestmentsView's handler→toast logic from DepositCard's
+// Radix DropdownMenu, which requires real pointer events to open in jsdom.
+vi.mock("../DepositCard", () => ({
+  DepositCard: ({
+    summary,
+    onSettleClick,
+    onDeleteClick,
+  }: {
+    summary: EnrichedSummary;
+    onSettleClick: (s: EnrichedSummary) => void;
+    onDeleteClick: (id: string) => void;
+  }) => (
+    <div>
+      <button
+        aria-label={`Settle ${summary.deposit.name}`}
+        onClick={() => onSettleClick(summary)}
+      >
+        Settle
+      </button>
+      <button
+        aria-label={`Delete ${summary.deposit.name}`}
+        onClick={() => onDeleteClick(summary.deposit.id)}
+      >
+        Delete
+      </button>
+    </div>
+  ),
+}));
+
+// ─── Fixtures ─────────────────────────────────────────────────────────────────
+
+const deposit: TimeDeposit = {
+  id: "dep-1",
+  bankId: "bank-1",
+  name: "My Bank TD",
+  principal: 100_000,
+  startDate: "2025-01-01",
+  termMonths: 12,
+  interestMode: "simple",
+  interestTreatment: "payout",
+  compounding: "daily",
+  flatRate: 0.065,
+  tiers: [],
+  payoutFrequency: "maturity",
+  dayCountConvention: 365,
+  status: "active",
+};
+
+const bank: Bank = { id: "bank-1", name: "Test Bank" };
+
+const summary: EnrichedSummary = {
+  deposit,
+  bank,
+  maturityDate: "2026-01-01",
+  grossInterest: 6_500,
+  netInterest: 5_200,
+  grossTotal: 106_500,
+  netTotal: 105_200,
+  effectiveStatus: "matured",
+};
+
+function renderView(overrides?: Partial<Parameters<typeof InvestmentsView>[0]>) {
+  const defaults = {
+    summaries: [summary],
+    onSettle: vi.fn(),
+    onDelete: vi.fn(),
+    onEdit: vi.fn(),
+    highlightedId: null,
+  };
+  return render(
+    <PortfolioProvider>
+      <InvestmentsView {...defaults} {...overrides} />
+    </PortfolioProvider>,
+  );
+}
+
+// ─── Settle ───────────────────────────────────────────────────────────────────
+
+describe("InvestmentsView — settle toast", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows "{name} marked as settled" toast after confirming settle', async () => {
+    const { toast } = await import("sonner");
+    const onSettle = vi.fn();
+    renderView({ onSettle });
+
+    fireEvent.click(screen.getByRole("button", { name: /settle my bank td/i }));
+
+    // Confirm in the SettleConfirmDialog
+    const confirmBtn = await screen.findByRole("button", {
+      name: /settle/i,
+    });
+    // The dialog confirm button text includes the formatted total — find it via the dialog
+    const allSettle = screen.getAllByRole("button", { name: /settle/i });
+    fireEvent.click(allSettle[allSettle.length - 1]);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("My Bank TD marked as settled");
+    });
+    expect(onSettle).toHaveBeenCalledWith("dep-1");
+  });
+});
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+describe("InvestmentsView — delete toast", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows "{name} deleted" toast after confirming delete', async () => {
+    const { toast } = await import("sonner");
+    const onDelete = vi.fn();
+    renderView({ onDelete });
+
+    fireEvent.click(screen.getByRole("button", { name: /delete my bank td/i }));
+
+    // Confirm in the DeleteConfirmDialog
+    const confirmBtn = await screen.findByRole("button", {
+      name: /delete my bank td/i,
+    });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("My Bank TD deleted");
+    });
+    expect(onDelete).toHaveBeenCalledWith("dep-1");
+  });
+});
