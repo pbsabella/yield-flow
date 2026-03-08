@@ -224,6 +224,7 @@
   --spacing-stack-xl: 2rem;     /* 32px — page-level sections */
   --spacing-card-x:   1rem;     /* 16px — card horizontal inset */
   --spacing-card-y:   1rem;     /* 16px — card vertical inset */
+
 }
 
 .dark {

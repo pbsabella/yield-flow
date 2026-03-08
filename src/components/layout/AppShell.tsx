@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { PrototypeBanner } from "@/components/layout/PrototypeBanner";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
@@ -29,6 +30,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     portfolio,
     preferences,
   } = usePortfolioContext();
+
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const handleExitDemo = useCallback(() => {
     exitDemo();
@@ -73,7 +76,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {hasSidebar && <BottomTabBar />}
 
       {/* Global toast — one instance covers all pages */}
-      <Toaster />
+      {/* offset lifts toasts above the mobile BottomTabBar on small screens */}
+      <Toaster
+        offset={{ bottom: hasSidebar && isMobile ? 80 : undefined }}
+        mobileOffset={{ bottom: hasSidebar ? 80 : undefined }}
+      />
 
       {/* Investment wizard — only mounted when open to avoid idle re-renders */}
       {wizardOpen && (
