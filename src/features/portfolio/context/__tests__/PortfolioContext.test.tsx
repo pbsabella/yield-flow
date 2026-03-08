@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe("usePortfolioContext — guard", () => {
   it("throws when used outside PortfolioProvider", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { });
     expect(() => renderHook(() => usePortfolioContext())).toThrow(
       /usePortfolioContext must be used within PortfolioProvider/,
     );
@@ -342,6 +342,36 @@ describe("PortfolioContext — clearDeposits", () => {
     // "[]" via useLocalStorage's effect, so the key exists but holds an empty array.
     await waitFor(() => expect(result.current.deposits).toEqual([]));
     expect(result.current.status).toBe("empty");
+  });
+});
+
+// ─── Export AI state ─────────────────────────────────────────────────────────────
+
+describe("PortfolioContext — export ai state", () => {
+  it("exportAiOpen is false by default", async () => {
+    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+    expect(result.current.exportAiOpen).toBe(false);
+  });
+
+  it("openExportAi() sets exportAiOpen=true", async () => {
+    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => result.current.openExportAi());
+
+    expect(result.current.exportAiOpen).toBe(true);
+  });
+
+  it("closeExportAi() sets exportAiOpen=false", async () => {
+    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => result.current.openExportAi());
+    expect(result.current.exportAiOpen).toBe(true);
+
+    act(() => result.current.closeExportAi());
+    expect(result.current.exportAiOpen).toBe(false);
   });
 });
 

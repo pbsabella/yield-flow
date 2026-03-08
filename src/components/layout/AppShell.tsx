@@ -2,12 +2,14 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { PrototypeBanner } from "@/components/layout/PrototypeBanner";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { DemoBanner } from "@/components/layout/DemoBanner";
 import { InvestmentWizard } from "@/features/portfolio/components/wizard/InvestmentWizard";
+import { ExportAiDialog } from "@/features/investments/components/ExportAiDialog";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -23,7 +25,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     closeWizard,
     handleSave,
     existingBankNames,
+    exportAiOpen,
+    closeExportAi,
+    portfolio,
+    preferences,
   } = usePortfolioContext();
+
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const handleExitDemo = useCallback(() => {
     exitDemo();
@@ -68,7 +76,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {hasSidebar && <BottomTabBar />}
 
       {/* Global toast — one instance covers all pages */}
-      <Toaster />
+      {/* offset lifts toasts above the mobile BottomTabBar on small screens */}
+      <Toaster
+        offset={{ bottom: hasSidebar && isMobile ? 80 : undefined }}
+        mobileOffset={{ bottom: hasSidebar ? 80 : undefined }}
+      />
 
       {/* Investment wizard — only mounted when open to avoid idle re-renders */}
       {wizardOpen && (
@@ -78,6 +90,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onSave={handleSave}
           existingBankNames={existingBankNames}
           initialDeposit={editTarget ?? undefined}
+        />
+      )}
+
+      {/* Export for AI dialog — global single instance, triggered from any page */}
+      {exportAiOpen && (
+        <ExportAiDialog
+          open={exportAiOpen}
+          onOpenChange={(open) => { if (!open) closeExportAi(); }}
+          summaries={portfolio.summaries}
+          monthlyAllowance={portfolio.monthlyAllowance}
+          preferences={preferences}
         />
       )}
     </>

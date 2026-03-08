@@ -4,6 +4,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 type UseLocalStorageOptions<T> = {
   persistWhen?: (value: T) => boolean;
@@ -53,7 +54,11 @@ export function useLocalStorage<T>(
 
     const shouldPersist = persistWhen ? persistWhen(value) : true;
     if (!shouldPersist) return;
-    window.localStorage.setItem(key, JSON.stringify(value));
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      toast.error("Couldn't save — your browser storage may be full")
+    }
   }, [isReady, key, persistWhen, skipInitialWrite, value]);
 
   const remove = useCallback(() => {

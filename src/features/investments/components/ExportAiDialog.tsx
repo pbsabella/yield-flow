@@ -63,15 +63,20 @@ export function ExportAiDialog({
   }
 
   function handleDownload() {
-    const today = toISODate(new Date());
-    const blob = new Blob([getMarkdown()], { type: "text/markdown; charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `yieldflow-context-${today}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-    onOpenChange(false);
+    try {
+      const today = toISODate(new Date());
+      const blob = new Blob([getMarkdown()], { type: "text/markdown; charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `yieldflow-context-${today}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("File downloaded");
+      onOpenChange(false);
+    } catch {
+      toast.error("Download failed — try copying instead");
+    }
   }
 
   return (

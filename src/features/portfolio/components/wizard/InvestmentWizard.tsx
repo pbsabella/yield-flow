@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -107,6 +108,7 @@ export function InvestmentWizard({
   const handleSubmit = () => {
     const deposit = buildDeposit(initialDeposit?.id ?? crypto.randomUUID());
     onSave(deposit);
+    toast.success(isEditing ? `${deposit.name} updated` : `${deposit.name} added`);
     onOpenChange(false);
   };
 

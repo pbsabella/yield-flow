@@ -100,18 +100,23 @@ export function SettingsShell() {
   // ─── Export ────────────────────────────────────────────────────────────────
 
   const handleExport = useCallback(() => {
-    const payload = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      deposits,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `yieldflow-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        deposits,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `yieldflow-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Backup exported");
+    } catch {
+      toast.error("Export failed — please try again");
+    }
   }, [deposits]);
 
   // ─── Import ────────────────────────────────────────────────────────────────
@@ -140,6 +145,7 @@ export function SettingsShell() {
   const handleImportConfirm = useCallback(() => {
     if (!importPreview) return;
     importDeposits(importPreview);
+    toast.success(`${importPreview.length} investment${importPreview.length === 1 ? "" : "s"} imported`);
     setImportPreview(null);
     setImportConfirmOpen(false);
     router.push("/");

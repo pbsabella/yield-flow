@@ -46,7 +46,9 @@ jobs:
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         run: |
-          if [ -n "$PERCY_TOKEN" ]; then
+          if [[ "${{ github.event.head_commit.message }}" == *"[skip percy]"* ]]; then
+            echo "Skipping Percy ([skip percy] in commit message)"
+          elif [ -n "$PERCY_TOKEN" ]; then
             npm run test:percy
           else
             echo "Skipping Percy (no token)"

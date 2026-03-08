@@ -1,5 +1,6 @@
 "use client";
 
+import { BrainCircuit } from "lucide-react";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { CashFlowView } from "./CashFlowView";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
@@ -7,7 +8,7 @@ import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export function CashFlowShell() {
-  const { portfolio, openWizard } = usePortfolioContext();
+  const { portfolio, openExportAi } = usePortfolioContext();
 
   return (
     <RouteGuard>
@@ -16,7 +17,11 @@ export function CashFlowShell() {
           <PageHeader
             title="Cash Flow"
             subtitle="Interest projection by payout date"
-            action={{ onClick: () => openWizard() }}
+            secondaryAction={
+              portfolio.summaries.length > 0
+                ? { label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: openExportAi }
+                : undefined
+            }
           />
 
           <CashFlowView
