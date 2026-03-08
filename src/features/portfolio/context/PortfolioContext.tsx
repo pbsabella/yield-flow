@@ -51,6 +51,11 @@ interface PortfolioContextValue {
   editTarget: TimeDeposit | null;
   highlightedId: string | null;
 
+  // Export-for-AI dialog state (distinct from the JSON data export in Settings)
+  exportAiOpen: boolean;
+  openExportAi: () => void;
+  closeExportAi: () => void;
+
   // Demo handlers
   enterDemo: () => void;
   exitDemo: () => void;
@@ -105,6 +110,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [exportAiOpen, setExportAiOpen] = useState(false);
 
   // When demo mode is restored from persisted storage, re-populate demo deposits.
   // setState inside an effect is intentional here: we're syncing React state from
@@ -148,6 +154,11 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setIsDemoMode(false);
     setLiveDemoDeposits([]);
   }, [setIsDemoMode]);
+
+  // ─── Export ────────────────────────────────────────────────────────────────
+
+  const openExportAi = useCallback(() => setExportAiOpen(true), []);
+  const closeExportAi = useCallback(() => setExportAiOpen(false), []);
 
   // ─── Wizard ────────────────────────────────────────────────────────────────
 
@@ -253,6 +264,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       wizardOpen,
       editTarget,
       highlightedId,
+      exportAiOpen,
+      openExportAi,
+      closeExportAi,
       enterDemo,
       exitDemo,
       openWizard,
@@ -278,6 +292,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       wizardOpen,
       editTarget,
       highlightedId,
+      exportAiOpen,
+      openExportAi,
+      closeExportAi,
       enterDemo,
       exitDemo,
       openWizard,

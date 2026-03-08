@@ -1,18 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsView } from "./InvestmentsView";
-import { ExportAiDialog } from "./ExportAiDialog";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BrainCircuit } from "lucide-react";
 
 export function InvestmentsShell() {
-  const { portfolio, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, preferences } =
+  const { portfolio, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, openExportAi } =
     usePortfolioContext();
-  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <RouteGuard>
@@ -28,17 +25,9 @@ export function InvestmentsShell() {
             action={{ onClick: () => openWizard() }}
             secondaryAction={
               portfolio.summaries.length > 0
-                ? { label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: () => setExportOpen(true) }
+                ? { label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: openExportAi }
                 : undefined
             }
-          />
-
-          <ExportAiDialog
-            open={exportOpen}
-            onOpenChange={setExportOpen}
-            summaries={portfolio.summaries}
-            monthlyAllowance={portfolio.monthlyAllowance}
-            preferences={preferences}
           />
 
           <InvestmentsView

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { ArrowRight, BrainCircuit } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/c
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ExportAiDialog } from "@/features/investments/components/ExportAiDialog";
 
 // ─── Quick cash flow preview for this month ────────────────────────────────────
 
@@ -78,8 +77,7 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { portfolio, status, openWizard, enterDemo, importDeposits, preferences } = usePortfolioContext();
-  const [exportOpen, setExportOpen] = useState(false);
+  const { portfolio, status, openWizard, openExportAi, enterDemo, importDeposits } = usePortfolioContext();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -130,15 +128,11 @@ export default function DashboardShell() {
               title="Portfolio"
               subtitle="Consolidated view of active yields"
               action={{ onClick: () => openWizard() }}
-              secondaryAction={{ label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: () => setExportOpen(true) }}
-            />
-
-            <ExportAiDialog
-              open={exportOpen}
-              onOpenChange={setExportOpen}
-              summaries={portfolio.summaries}
-              monthlyAllowance={portfolio.monthlyAllowance}
-              preferences={preferences}
+              secondaryAction={
+                portfolio.summaries.length > 0
+                  ? { label: "Export for AI", icon: <BrainCircuit className="size-4" />, onClick: openExportAi }
+                  : undefined
+              }
             />
 
             <KpiCards

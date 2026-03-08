@@ -58,7 +58,7 @@ const deposit: TimeDeposit = {
   status: "active",
 };
 
-const bank: Bank = { id: "bank-1", name: "Test Bank" };
+const bank: Bank = { id: "bank-1", name: "Test Bank", taxRate: 0.2 };
 
 const summary: EnrichedSummary = {
   deposit,
@@ -100,10 +100,6 @@ describe("InvestmentsView — settle toast", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /settle my bank td/i }));
 
-    // Confirm in the SettleConfirmDialog
-    const confirmBtn = await screen.findByRole("button", {
-      name: /settle/i,
-    });
     // The dialog confirm button text includes the formatted total — find it via the dialog
     const allSettle = screen.getAllByRole("button", { name: /settle/i });
     fireEvent.click(allSettle[allSettle.length - 1]);

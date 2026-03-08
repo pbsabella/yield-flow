@@ -8,6 +8,7 @@ import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { DemoBanner } from "@/components/layout/DemoBanner";
 import { InvestmentWizard } from "@/features/portfolio/components/wizard/InvestmentWizard";
+import { ExportAiDialog } from "@/features/investments/components/ExportAiDialog";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -23,6 +24,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     closeWizard,
     handleSave,
     existingBankNames,
+    exportAiOpen,
+    closeExportAi,
+    portfolio,
+    preferences,
   } = usePortfolioContext();
 
   const handleExitDemo = useCallback(() => {
@@ -78,6 +83,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onSave={handleSave}
           existingBankNames={existingBankNames}
           initialDeposit={editTarget ?? undefined}
+        />
+      )}
+
+      {/* Export for AI dialog — global single instance, triggered from any page */}
+      {exportAiOpen && (
+        <ExportAiDialog
+          open={exportAiOpen}
+          onOpenChange={(open) => { if (!open) closeExportAi(); }}
+          summaries={portfolio.summaries}
+          monthlyAllowance={portfolio.monthlyAllowance}
+          preferences={preferences}
         />
       )}
     </>
