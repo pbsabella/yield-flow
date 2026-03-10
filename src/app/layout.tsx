@@ -19,7 +19,15 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+// Dynamically sets the base URL for Production vs Preview vs Local
+const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: {
     default: "YieldFlow Lab",
     template: "%s | YieldFlow Lab",
@@ -37,10 +45,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://yield-flow-lab.vercel.app/",
+    url: "/",
     siteName: "YieldFlow Lab",
     title: "YieldFlow Lab",
     description: "Visualize spendable reality with net-of-tax interest tracking.",
+    images: [
+      {
+        url: "/og-image.png", // Path: public/og-image.png
+        width: 1200,
+        height: 630,
+        alt: "YieldFlow Lab Preview",
+      },
+    ],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
