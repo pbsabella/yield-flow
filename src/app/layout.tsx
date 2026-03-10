@@ -19,10 +19,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// Dynamically sets the base URL for Vercel vs Local
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const baseUrl = "https://yield-flow-lab.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
