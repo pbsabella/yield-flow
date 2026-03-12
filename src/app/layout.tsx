@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     template: "%s | YieldFlow Lab",
   },
   description: "Precision yield ladder tracking and net-of-tax cash flow visualization.",
+  icons: {
+    icon: '/icon.svg',
+  },
   // Blocks search engines from indexing the site
   robots: {
     index: false,
