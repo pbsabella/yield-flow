@@ -31,13 +31,18 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.svg',
   },
-  // Blocks search engines from indexing the site
+  alternates: {
+    canonical: '/',
+  },
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
     googleBot: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
   openGraph: {
