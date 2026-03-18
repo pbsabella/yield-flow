@@ -20,8 +20,16 @@ import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioDat
 import type { MonthlyAllowance } from "@/types";
 import type { Preferences } from "@/lib/hooks/usePreferences";
 
-const DEFAULT_PROMPT =
-  "Given the portfolio snapshot below, suggest next best actions. Consider: upcoming maturities that need renewal decisions, bank concentration vs. the insurance limit, and reinvestment opportunities given current market rates.";
+const DEFAULT_PROMPT = `Given the portfolio snapshot below, suggest next best actions.
+
+Consider: upcoming maturities that need renewal decisions, bank concentration vs. the insurance limit, and reinvestment opportunities given current market rates.
+
+Rule: Principal Replacement Logic
+When calculating bank concentration/exposure, apply a "Replacement" rather than "Addition" logic for matured funds.
+
+The Calculation Formula: [Total Bank Exposure] = [Current Total Principal] + [Net Interest Earned] - [Amount Withdrawn from Bank]
+
+Logical Constraint: Do not add the matured principal to the existing total a second time. It is already included in the bank’s "Active Principal" snapshot. Reinvesting it simply moves it from a "Matured" status to an "Active" status within the same bank.`;
 
 type Props = {
   open: boolean;
