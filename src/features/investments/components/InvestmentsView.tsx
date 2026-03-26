@@ -39,6 +39,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { toISODate } from "@/lib/domain/date";
+import { getRolloverPrincipal } from "@/lib/domain/rollover";
 import { createColumns } from "./columns";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
@@ -49,6 +51,7 @@ import { LadderView } from "./LadderView";
 import { BankActiveSummary } from "./BankActiveSummary";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
+import type { RolloverConfig } from "@/features/portfolio/context/PortfolioContext";
 import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,8 +59,10 @@ import type { TimeDeposit } from "@/types";
 type Props = {
   summaries: EnrichedSummary[];
   onSettle: (id: string) => void;
+  onUnsettle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (deposit: TimeDeposit) => void;
+  onRollOver: (config: RolloverConfig) => void;
   highlightedId?: string | null;
 };
 
@@ -92,7 +97,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlightedId }: Props) {
+export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onEdit, onRollOver, highlightedId }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
@@ -174,15 +179,36 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
     setSettleTarget(summary);
   }, []);
 
+  const handleRollOverRequest = useCallback(
+    (summary: EnrichedSummary) => {
+      setSettleTarget(null);
+      const proceedsPrincipal = getRolloverPrincipal(summary.deposit, summary.netTotal);
+      onRollOver({
+        sourceId: summary.deposit.id,
+        deposit: summary.deposit,
+        proceedsPrincipal,
+        // Always use the original maturity date — roll over means "continue from maturity".
+        // The wizard is editable if the user wants a different start date.
+        startDate: summary.maturityDate ?? toISODate(new Date()),
+      });
+    },
+    [onRollOver],
+  );
+
   const handleSettleConfirm = useCallback(
     (id: string) => {
       const name = settleTarget?.deposit.name ?? "";
       onSettle(id);
       setSettleTarget(null);
       setAnnouncement(`${name} marked as settled.`);
-      toast.success(`${name} marked as settled`);
+      toast.success(`${name} marked as settled`, {
+        action: {
+          label: "Undo",
+          onClick: () => onUnsettle(id),
+        },
+      });
     },
-    [onSettle, settleTarget],
+    [onSettle, onUnsettle, settleTarget],
   );
 
   const handleDeleteRequest = useCallback(
@@ -216,6 +242,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
       onSettleClick: handleSettleClick,
       onDelete: handleDeleteRequest,
       onEdit,
+      onUnsettle,
     },
   });
 
@@ -415,6 +442,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
                     onSettleClick={handleSettleClick}
                     onDeleteClick={handleDeleteRequest}
                     onEditClick={onEdit}
+                    onUnsettleClick={onUnsettle}
                     isNew={s.deposit.id === highlightedId}
                   />
                 ))}
@@ -432,6 +460,7 @@ export function InvestmentsView({ summaries, onSettle, onDelete, onEdit, highlig
           if (!open) setSettleTarget(null);
         }}
         onConfirm={handleSettleConfirm}
+        onRollOver={handleRollOverRequest}
       />
 
       {/* Delete dialog */}

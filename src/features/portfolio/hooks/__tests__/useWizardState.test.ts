@@ -968,3 +968,90 @@ describe("depositToFormState — days mode", () => {
     expect(s.termMonths).toBe(6);
   });
 });
+
+// ─── loadRollover ──────────────────────────────────────────────────────────────
+
+const MATURED_DEPOSIT: TimeDeposit = {
+  ...BASE_DEPOSIT,
+  status: "matured",
+};
+
+const MONTHLY_DEPOSIT: TimeDeposit = {
+  ...BASE_DEPOSIT,
+  payoutFrequency: "monthly",
+  interestTreatment: "payout",
+  status: "matured",
+};
+
+describe("useWizardState — loadRollover", () => {
+  it("seeds principal from proceedsPrincipal, not from deposit.principal", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+    });
+
+    expect(result.current.formState.principal).toBe("103200");
+  });
+
+  it("seeds startDate from the provided maturity date, not from deposit.startDate", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+    });
+
+    expect(result.current.formState.startDate).toBe("2025-07-01");
+  });
+
+  it("copies bank, rate, term, tax, day-count from the source deposit", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+    });
+
+    const s = result.current.formState;
+    expect(s.bankName).toBe("BDO");
+    expect(s.flatRate).toBe("6");
+    expect(s.taxRate).toBe("20");
+    expect(s.termMonths).toBe(6);
+    expect(s.dayCountConvention).toBe(365);
+    expect(s.productType).toBe("td-maturity");
+  });
+
+  it("isDirty is false immediately after loadRollover (opens clean)", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+    });
+
+    expect(result.current.isDirty).toBe(false);
+  });
+
+  it("isDirty becomes true after modifying a field post-rollover-load", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+    });
+
+    act(() => {
+      result.current.setField("flatRate", "7");
+    });
+
+    expect(result.current.isDirty).toBe(true);
+  });
+
+  it("works for TD monthly deposit (uses original principal passed by caller)", () => {
+    const { result } = renderHook(() => useWizardState());
+
+    act(() => {
+      result.current.loadRollover(MONTHLY_DEPOSIT, 500_000, "2025-07-01");
+    });
+
+    expect(result.current.formState.principal).toBe("500000");
+    expect(result.current.formState.productType).toBe("td-monthly");
+  });
+});

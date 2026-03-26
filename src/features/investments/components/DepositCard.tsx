@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -22,6 +22,7 @@ type Props = {
   onSettleClick: (summary: EnrichedSummary) => void;
   onDeleteClick: (id: string) => void;
   onEditClick: (deposit: TimeDeposit) => void;
+  onUnsettleClick: (id: string) => void;
   isNew?: boolean;
 };
 
@@ -70,7 +71,7 @@ function MaturityLabel({
   );
 }
 
-export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, isNew }: Props) {
+export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, onUnsettleClick, isNew }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -128,11 +129,21 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>Edit</DropdownMenuItem>
+                    {effectiveStatus === "settled" && (
+                      <DropdownMenuItem onClick={() => onUnsettleClick(deposit.id)}>
+                        <Undo2 />
+                        Undo Settle
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>
+                      <Pencil />
+                      Edit
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => onDeleteClick(deposit.id)}
                     >
+                      <Trash />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>

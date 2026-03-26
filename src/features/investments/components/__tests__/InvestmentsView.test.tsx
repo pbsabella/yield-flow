@@ -21,6 +21,9 @@ vi.mock("../DepositCard", () => ({
     summary: EnrichedSummary;
     onSettleClick: (s: EnrichedSummary) => void;
     onDeleteClick: (id: string) => void;
+    onUnsettleClick: (id: string) => void;
+    onEditClick: (deposit: TimeDeposit) => void;
+    isNew?: boolean;
   }) => (
     <div>
       <button
@@ -75,8 +78,10 @@ function renderView(overrides?: Partial<Parameters<typeof InvestmentsView>[0]>) 
   const defaults = {
     summaries: [summary],
     onSettle: vi.fn(),
+    onUnsettle: vi.fn(),
     onDelete: vi.fn(),
     onEdit: vi.fn(),
+    onRollOver: vi.fn(),
     highlightedId: null,
   };
   return render(
@@ -105,7 +110,10 @@ describe("InvestmentsView — settle toast", () => {
     fireEvent.click(allSettle[allSettle.length - 1]);
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("My Bank TD marked as settled");
+      expect(toast.success).toHaveBeenCalledWith(
+        "My Bank TD marked as settled",
+        expect.objectContaining({ action: expect.objectContaining({ label: "Undo" }) }),
+      );
     });
     expect(onSettle).toHaveBeenCalledWith("dep-1");
   });

@@ -22,8 +22,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     exitDemo,
     wizardOpen,
     editTarget,
+    rolloverConfig,
     closeWizard,
     handleSave,
+    handleRollOver,
     existingBankNames,
     exportAiOpen,
     closeExportAi,
@@ -88,8 +90,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           open={wizardOpen}
           onOpenChange={(open) => { if (!open) closeWizard(); }}
           onSave={handleSave}
+          onRollOver={handleRollOver}
           existingBankNames={existingBankNames}
           initialDeposit={editTarget ?? undefined}
+          rolloverConfig={rolloverConfig ?? undefined}
         />
       )}
 

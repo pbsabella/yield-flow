@@ -14,16 +14,17 @@
     "test:e2e": "PLAYWRIGHT_WEB_SERVER=1 playwright test --project=e2e",
     "test:a11y": "PLAYWRIGHT_WEB_SERVER=1 playwright test --project=a11y",
     "test:ui": "playwright test --ui",
-    "test:percy": "npm run build && PLAYWRIGHT_WEB_SERVER=1 PLAYWRIGHT_WEB_SERVER_CMD=\"npm run start -- --hostname 127.0.0.1 --port 4173\" percy exec -- playwright test --project=e2e"
+    "test:percy": "npm run build && PLAYWRIGHT_WEB_SERVER=1 PLAYWRIGHT_WEB_SERVER_CMD=\"npm run start -- --hostname 127.0.0.1 --port 4173\" percy exec -- playwright test --project=e2e",
+    "test:percy:dry": "npm run build && PLAYWRIGHT_WEB_SERVER=1 PLAYWRIGHT_WEB_SERVER_CMD=\"npm run start -- --hostname 127.0.0.1 --port 4173\" percy exec --dry-run -- playwright test --project=e2e"
   },
   "dependencies": {
-    "@base-ui/react": "^1.2.0",
+    "@base-ui/react": "^1.3.0",
     "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^1.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "^0.577.0",
     "next": "16.1.7",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
@@ -37,7 +38,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@percy/cli": "^1.31.8",
+    "@percy/cli": "^1.31.10",
     "@percy/playwright": "^1.0.10",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
@@ -46,12 +47,12 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^28.1.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }
