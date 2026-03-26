@@ -4,6 +4,12 @@ on:
   pull_request:
   push:
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      percy_snapshots:
+        description: Upload Percy snapshots
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -45,12 +51,11 @@ jobs:
       - name: Percy
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
-          PERCY_SNAPSHOTS: ${{ vars.PERCY_SNAPSHOTS }}
         run: |
-          if [ "$PERCY_SNAPSHOTS" = "true" ] && [ -n "$PERCY_TOKEN" ]; then
+          if [ "${{ inputs.percy_snapshots }}" = "true" ] && [ -n "$PERCY_TOKEN" ]; then
             echo "Running Percy with snapshot upload"
             npm run test:percy
           else
-            echo "Running Percy in dry-run mode (set PERCY_SNAPSHOTS=true repo var to enable uploads)"
+            echo "Running Percy in dry-run mode (use workflow_dispatch with percy_snapshots=true to enable uploads)"
             npm run test:percy:dry
           fi

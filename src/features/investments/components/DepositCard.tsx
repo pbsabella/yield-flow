@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { MoreHorizontal, Undo2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -135,11 +135,15 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
                         Undo Settle
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>
+                      <Pencil />
+                      Edit
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => onDeleteClick(deposit.id)}
                     >
+                      <Trash />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>

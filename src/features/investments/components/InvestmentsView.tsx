@@ -187,6 +187,8 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
         sourceId: summary.deposit.id,
         deposit: summary.deposit,
         proceedsPrincipal,
+        // Always use the original maturity date — roll over means "continue from maturity".
+        // The wizard is editable if the user wants a different start date.
         startDate: summary.maturityDate ?? toISODate(new Date()),
       });
     },
@@ -199,9 +201,14 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
       onSettle(id);
       setSettleTarget(null);
       setAnnouncement(`${name} marked as settled.`);
-      toast.success(`${name} marked as settled`);
+      toast.success(`${name} marked as settled`, {
+        action: {
+          label: "Undo",
+          onClick: () => onUnsettle(id),
+        },
+      });
     },
-    [onSettle, settleTarget],
+    [onSettle, onUnsettle, settleTarget],
   );
 
   const handleDeleteRequest = useCallback(

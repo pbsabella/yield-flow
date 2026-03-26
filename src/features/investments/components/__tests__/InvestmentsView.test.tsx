@@ -110,7 +110,10 @@ describe("InvestmentsView — settle toast", () => {
     fireEvent.click(allSettle[allSettle.length - 1]);
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("My Bank TD marked as settled");
+      expect(toast.success).toHaveBeenCalledWith(
+        "My Bank TD marked as settled",
+        expect.objectContaining({ action: expect.objectContaining({ label: "Undo" }) }),
+      );
     });
     expect(onSettle).toHaveBeenCalledWith("dep-1");
   });
