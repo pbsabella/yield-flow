@@ -230,6 +230,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       } else {
         setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
       }
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 2500);
     },
     [isDemoMode, storedDeposits, setDeposits],
   );
@@ -243,6 +245,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       } else {
         setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)));
       }
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 2500);
     },
     [isDemoMode, storedDeposits, setDeposits],
   );
@@ -260,6 +264,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
           newDeposit,
         ]);
       }
+      setHighlightedId(newDeposit.id);
+      setTimeout(() => setHighlightedId(null), 2500);
     },
     [isDemoMode, storedDeposits, setDeposits],
   );
