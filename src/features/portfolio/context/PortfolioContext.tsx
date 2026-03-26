@@ -243,12 +243,14 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
           prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
         );
       } else {
-        setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)));
+        setDeposits((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
+        );
       }
       setHighlightedId(id);
       setTimeout(() => setHighlightedId(null), 2500);
     },
-    [isDemoMode, storedDeposits, setDeposits],
+    [isDemoMode, setDeposits],
   );
 
   const handleRollOver = useCallback(
