@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef, type Column, type RowData } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
@@ -22,6 +22,7 @@ declare module "@tanstack/react-table" {
     onSettleClick: (summary: EnrichedSummary) => void;
     onDelete: (id: string) => void;
     onEdit: (deposit: TimeDeposit) => void;
+    onUnsettle: (id: string) => void;
   }
 }
 
@@ -253,7 +254,7 @@ export function createColumns(
       cell: ({ row, table }) => {
         const summary = row.original;
         const { effectiveStatus, deposit } = summary;
-        const { onSettleClick, onDelete, onEdit } = table.options.meta!;
+        const { onSettleClick, onDelete, onEdit, onUnsettle } = table.options.meta!;
 
         return (
           <div className="flex items-center justify-end">
@@ -284,6 +285,12 @@ export function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {effectiveStatus === "settled" && (
+                  <DropdownMenuItem onClick={() => onUnsettle(deposit.id)}>
+                    <Undo2 />
+                    Undo Settle
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => onEdit(deposit)}>
                   <Pencil />
                   Edit

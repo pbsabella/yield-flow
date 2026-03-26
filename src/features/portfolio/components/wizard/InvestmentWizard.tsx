@@ -25,6 +25,7 @@ import { useWizardState } from "@/features/portfolio/hooks/useWizardState";
 import { InvestmentForm } from "./InvestmentForm";
 import { LiveCalcPreview } from "./LiveCalcPreview";
 import type { TimeDeposit } from "@/types";
+import type { RolloverConfig } from "@/features/portfolio/context/PortfolioContext";
 import { XIcon } from 'lucide-react';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -33,9 +34,10 @@ interface InvestmentWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (deposit: TimeDeposit) => void;
+  onRollOver?: (oldId: string, newDeposit: TimeDeposit) => void;
   existingBankNames: string[];
-  /** Reserved for edit mode — not implemented yet */
   initialDeposit?: TimeDeposit;
+  rolloverConfig?: RolloverConfig;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -44,8 +46,10 @@ export function InvestmentWizard({
   open,
   onOpenChange,
   onSave,
+  onRollOver,
   existingBankNames,
   initialDeposit,
+  rolloverConfig,
 }: InvestmentWizardProps) {
   const {
     formState,
@@ -59,11 +63,13 @@ export function InvestmentWizard({
     canSubmit,
     reset,
     loadDeposit,
+    loadRollover,
     deriveYieldInput,
     buildDeposit,
   } = useWizardState();
 
   const isEditing = !!initialDeposit;
+  const isRollingOver = !!rolloverConfig;
 
   const [timeZone, setTimeZone] = useState<string | undefined>(undefined)
 
@@ -73,7 +79,9 @@ export function InvestmentWizard({
 
   useEffect(() => {
     if (open) {
-      if (initialDeposit) {
+      if (rolloverConfig) {
+        loadRollover(rolloverConfig.deposit, rolloverConfig.proceedsPrincipal, rolloverConfig.startDate);
+      } else if (initialDeposit) {
         loadDeposit(initialDeposit);
       } else {
         reset();
@@ -107,8 +115,13 @@ export function InvestmentWizard({
 
   const handleSubmit = () => {
     const deposit = buildDeposit(initialDeposit?.id ?? crypto.randomUUID());
-    onSave(deposit);
-    toast.success(isEditing ? `${deposit.name} updated` : `${deposit.name} added`);
+    if (isRollingOver && onRollOver && rolloverConfig) {
+      onRollOver(rolloverConfig.sourceId, deposit);
+      toast.success(`${deposit.name} added`);
+    } else {
+      onSave(deposit);
+      toast.success(isEditing ? `${deposit.name} updated` : `${deposit.name} added`);
+    }
     onOpenChange(false);
   };
 
@@ -120,7 +133,7 @@ export function InvestmentWizard({
       <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{isEditing ? "Discard changes?" : "Discard this investment?"}</AlertDialogTitle>
+            <AlertDialogTitle>{isRollingOver ? "Discard roll over?" : isEditing ? "Discard changes?" : "Discard this investment?"}</AlertDialogTitle>
             <AlertDialogDescription>Your inputs will be lost.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -147,7 +160,7 @@ export function InvestmentWizard({
         >
           {/* Header */}
           <DialogHeader className="flex flex-row items-center justify-between border-b pl-6 pr-4 py-4 shrink-0">
-            <DialogTitle className="text-base font-semibold">{isEditing ? "Edit investment" : "Add investment"}</DialogTitle>
+            <DialogTitle className="text-base font-semibold">{isRollingOver ? "Roll over" : isEditing ? "Edit investment" : "Add investment"}</DialogTitle>
             <Button
               type="button"
               variant="ghost"

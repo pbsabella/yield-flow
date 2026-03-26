@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
@@ -18,9 +19,10 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (id: string) => void;
+  onRollOver: (summary: EnrichedSummary) => void;
 };
 
-export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: Props) {
+export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, onRollOver }: Props) {
   const { fmtCurrency } = useFormatterContext();
   if (!summary) return null;
 
@@ -54,6 +56,9 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm }: 
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button variant="outline" onClick={() => onRollOver(summary)}>
+            Roll Over
+          </Button>
           <AlertDialogAction onClick={() => onConfirm(deposit.id)}>
             Settle {fmtCurrency(netTotal)}
           </AlertDialogAction>

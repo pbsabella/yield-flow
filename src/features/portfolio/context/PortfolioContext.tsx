@@ -9,6 +9,19 @@ import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/dem
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit, Bank } from "@/types";
+
+// ─── Rollover config ───────────────────────────────────────────────────────────
+
+export type RolloverConfig = {
+  /** ID of the deposit being rolled over (will be settled on wizard submit). */
+  sourceId: string;
+  /** Source deposit — used to pre-fill the wizard. */
+  deposit: TimeDeposit;
+  /** Pre-filled principal: full proceeds for TD maturity, original principal for TD monthly. */
+  proceedsPrincipal: number;
+  /** Pre-filled start date: the source deposit's maturity date. */
+  startDate: string;
+};
 import type { Preferences } from "@/lib/hooks/usePreferences";
 
 // ─── Formatter context (stable — only invalidates on currency pref change) ─────
@@ -49,6 +62,7 @@ interface PortfolioContextValue {
   // Wizard state
   wizardOpen: boolean;
   editTarget: TimeDeposit | null;
+  rolloverConfig: RolloverConfig | null;
   highlightedId: string | null;
 
   // Export-for-AI dialog state (distinct from the JSON data export in Settings)
@@ -62,9 +76,12 @@ interface PortfolioContextValue {
 
   // Investment handlers
   openWizard: (target?: TimeDeposit) => void;
+  openRollover: (config: RolloverConfig) => void;
   closeWizard: () => void;
   handleSave: (deposit: TimeDeposit) => void;
   handleSettle: (id: string) => void;
+  handleUnsettle: (id: string) => void;
+  handleRollOver: (oldId: string, newDeposit: TimeDeposit) => void;
   handleDelete: (id: string) => void;
   handleEdit: (deposit: TimeDeposit) => void;
 
@@ -109,6 +126,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const [liveDemoDeposits, setLiveDemoDeposits] = useState<TimeDeposit[]>([]);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
+  const [rolloverConfig, setRolloverConfig] = useState<RolloverConfig | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [exportAiOpen, setExportAiOpen] = useState(false);
 
@@ -164,12 +182,20 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   const openWizard = useCallback((target?: TimeDeposit) => {
     setEditTarget(target ?? null);
+    setRolloverConfig(null);
+    setWizardOpen(true);
+  }, []);
+
+  const openRollover = useCallback((config: RolloverConfig) => {
+    setRolloverConfig(config);
+    setEditTarget(null);
     setWizardOpen(true);
   }, []);
 
   const closeWizard = useCallback(() => {
     setWizardOpen(false);
     setEditTarget(null);
+    setRolloverConfig(null);
   }, []);
 
   // ─── Deposit mutations ─────────────────────────────────────────────────────
@@ -203,6 +229,36 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         );
       } else {
         setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
+      }
+    },
+    [isDemoMode, storedDeposits, setDeposits],
+  );
+
+  const handleUnsettle = useCallback(
+    (id: string) => {
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
+        );
+      } else {
+        setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)));
+      }
+    },
+    [isDemoMode, storedDeposits, setDeposits],
+  );
+
+  const handleRollOver = useCallback(
+    (oldId: string, newDeposit: TimeDeposit) => {
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) => [
+          ...prev.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
+          newDeposit,
+        ]);
+      } else {
+        setDeposits([
+          ...storedDeposits.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
+          newDeposit,
+        ]);
       }
     },
     [isDemoMode, storedDeposits, setDeposits],
@@ -263,6 +319,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       setPreference,
       wizardOpen,
       editTarget,
+      rolloverConfig,
       highlightedId,
       exportAiOpen,
       openExportAi,
@@ -270,9 +327,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       enterDemo,
       exitDemo,
       openWizard,
+      openRollover,
       closeWizard,
       handleSave,
       handleSettle,
+      handleUnsettle,
+      handleRollOver,
       handleDelete,
       handleEdit,
       importDeposits,
@@ -291,6 +351,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       setPreference,
       wizardOpen,
       editTarget,
+      rolloverConfig,
       highlightedId,
       exportAiOpen,
       openExportAi,
@@ -298,9 +359,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       enterDemo,
       exitDemo,
       openWizard,
+      openRollover,
       closeWizard,
       handleSave,
       handleSettle,
+      handleUnsettle,
+      handleRollOver,
       handleDelete,
       handleEdit,
       importDeposits,

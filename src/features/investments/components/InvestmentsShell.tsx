@@ -8,8 +8,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { BrainCircuit } from "lucide-react";
 
 export function InvestmentsShell() {
-  const { portfolio, highlightedId, handleSettle, handleDelete, handleEdit, openWizard, openExportAi } =
-    usePortfolioContext();
+  const {
+    portfolio,
+    highlightedId,
+    handleSettle,
+    handleUnsettle,
+    handleDelete,
+    handleEdit,
+    openWizard,
+    openRollover,
+    openExportAi,
+  } = usePortfolioContext();
 
   return (
     <RouteGuard>
@@ -33,8 +42,10 @@ export function InvestmentsShell() {
           <InvestmentsView
             summaries={portfolio.summaries}
             onSettle={handleSettle}
+            onUnsettle={handleUnsettle}
             onDelete={handleDelete}
             onEdit={handleEdit}
+            onRollOver={openRollover}
             highlightedId={highlightedId}
           />
         </Container>

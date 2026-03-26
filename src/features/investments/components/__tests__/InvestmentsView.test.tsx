@@ -21,6 +21,9 @@ vi.mock("../DepositCard", () => ({
     summary: EnrichedSummary;
     onSettleClick: (s: EnrichedSummary) => void;
     onDeleteClick: (id: string) => void;
+    onUnsettleClick: (id: string) => void;
+    onEditClick: (deposit: TimeDeposit) => void;
+    isNew?: boolean;
   }) => (
     <div>
       <button
@@ -75,8 +78,10 @@ function renderView(overrides?: Partial<Parameters<typeof InvestmentsView>[0]>) 
   const defaults = {
     summaries: [summary],
     onSettle: vi.fn(),
+    onUnsettle: vi.fn(),
     onDelete: vi.fn(),
     onEdit: vi.fn(),
+    onRollOver: vi.fn(),
     highlightedId: null,
   };
   return render(

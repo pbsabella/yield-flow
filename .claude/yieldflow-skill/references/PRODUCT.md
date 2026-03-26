@@ -61,7 +61,24 @@ Controls: bank filter select, Show settled toggle (off by default), List / Ladde
 **Days to Maturity pill:** neutral → "7 days" → "Due today" / amber → "Overdue X days" / open-ended → "—"
 **Matured/overdue row:** amber highlight; Settle CTA visible.
 **Show settled toggle:** settled deposits hidden by default; shown dimmed when toggled on.
-**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog).
+**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Undo Settle (··· menu, settled rows only), Roll Over (inside Settle dialog, matured rows only).
+
+#### Undo Settle
+
+Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when Show Settled is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
+
+#### Roll Over
+
+Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll Over ] [ Settle ₱X ]` — amount only on Settle since Roll Over opens an editable wizard.
+
+On Roll Over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
+
+| Field | Value |
+| --- | --- |
+| Principal | TD maturity → principal + net interest (full proceeds). TD Monthly → original principal (interest already distributed monthly). |
+| Start date | Original deposit's maturity date (not today). Editable. |
+
+On wizard submit: original deposit is settled atomically and new deposit is created as active. On wizard discard: no changes; original remains matured.
 
 ### Ladder view
 
