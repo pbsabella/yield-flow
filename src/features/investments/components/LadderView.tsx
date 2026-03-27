@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";
+import { CircleArrowRight, CircleCheck, TriangleAlert } from "lucide-react";
 import {
   parseLocalDate,
   differenceInCalendarDays,
@@ -32,8 +33,7 @@ function shortDate(dateStr: string): string {
 function barClasses(s: EnrichedSummary): string {
   const rounded = s.deposit.isOpenEnded ? "rounded-l-bar rounded-r-none" : "rounded-bar";
   if (s.effectiveStatus === "settled") return cn(rounded, "bg-progress-success-fill");
-  if (s.effectiveStatus === "matured")
-    return cn(rounded, "bg-progress-warning-fill");
+  if (s.effectiveStatus === "matured") return cn(rounded, "bg-progress-warning-fill");
   if (s.deposit.isOpenEnded) return cn(rounded, "bg-primary/40");
   return cn(rounded, "bg-primary");
 }
@@ -256,8 +256,18 @@ function DesktopLadder({
                 >
                   <div
                     style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
-                    className={cn("absolute top-4 h-8", barClasses(s))}
-                  />
+                    className={cn("absolute top-4 h-8 overflow-hidden", barClasses(s))}
+                  >
+                    {s.effectiveStatus === "settled" && widthPct > 2 && (
+                      <CircleCheck size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-white pointer-events-none" />
+                    )}
+                    {s.effectiveStatus === "matured" && widthPct > 2 && (
+                      <TriangleAlert size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
+                    )}
+                    {!s.maturityDate && widthPct > 2 && (
+                      <CircleArrowRight size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground pointer-events-none" />
+                    )}
+                  </div>
                 </div>
               );
             })}
