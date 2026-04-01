@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
 
 // A portfolio with variety: maturity payout, monthly payout, open-ended
@@ -45,10 +45,11 @@ const seedDeposits: TimeDeposit[] = [
 test("dashboard page — empty state Percy snapshot", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
-  await percySnapshot(page, "Dashboard Page - empty");
+  await snap(page, "Dashboard Page - empty");
 });
 
 test("dashboard page — with portfolio data", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
@@ -63,5 +64,5 @@ test("dashboard page — with portfolio data", async ({ page }) => {
   await expect(page.getByText("Meridian Savings Bank", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Horizon Digital Bank", { exact: true }).first()).toBeVisible();
 
-  await percySnapshot(page, "Dashboard Page - filed");
+  await snap(page, "Dashboard Page - filled");
 });

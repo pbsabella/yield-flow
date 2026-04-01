@@ -1,10 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 // Mix of statuses and payout types to exercise all table/ladder states.
-// Today: 2026-03-06 (used to reason about matured/active boundaries).
+// Frozen "today": 2026-03-06 (set via page.clock.setFixedTime in seedAndGo).
+// Maturity boundaries are deliberately far from this date so status never flips.
 
 const seedDeposits: TimeDeposit[] = [
   // Active, fixed-term, matures Dec 2026
@@ -64,13 +65,32 @@ const seedDeposits: TimeDeposit[] = [
     isOpenEnded: true,
     status: "active",
   },
-  // Matured: started Jan 2024, 3-month term → matured Apr 2024
+  // Active, long-term, matures Jan 2028 (clearly future)
+  {
+    id: "inv-active-long",
+    bankId: "Citadel Cooperative Bank",
+    name: "Citadel 24M TD",
+    principal: 350000,
+    startDate: "2026-01-15",
+    termMonths: 24,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.065,
+    tiers: [{ upTo: null, rate: 0.065 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "active",
+  },
+  // Matured
   {
     id: "inv-matured",
     bankId: "Meridian Savings Bank",
     name: "Meridian 3M (matured)",
     principal: 100000,
-    startDate: "2024-01-01",
+    startDate: "2025-03-01",
     termMonths: 3,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -83,13 +103,32 @@ const seedDeposits: TimeDeposit[] = [
     isOpenEnded: false,
     status: "active",
   },
+  // Matured
+  {
+    id: "inv-matured-2",
+    bankId: "Apex Rural Bank",
+    name: "Apex 6M (matured)",
+    principal: 80000,
+    startDate: "2025-08-01",
+    termMonths: 6,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.052,
+    tiers: [{ upTo: null, rate: 0.052 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "active",
+  },
   // Settled
   {
     id: "inv-settled",
     bankId: "Horizon Digital Bank",
     name: "Horizon 6M (settled)",
     principal: 250000,
-    startDate: "2024-01-01",
+    startDate: "2025-05-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -102,11 +141,31 @@ const seedDeposits: TimeDeposit[] = [
     isOpenEnded: false,
     status: "settled",
   },
+  // Settled (second, different bank)
+  {
+    id: "inv-settled-2",
+    bankId: "Citadel Cooperative Bank",
+    name: "Citadel 3M (settled)",
+    principal: 120000,
+    startDate: "2025-06-01",
+    termMonths: 3,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.048,
+    tiers: [{ upTo: null, rate: 0.048 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "settled",
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function seedAndGo(page: Page) {
+  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
@@ -129,24 +188,56 @@ test("investments table — renders column headers with data", async ({ page }) 
 test("investments table — shows active and matured deposits, hides settled by default", async ({ page }) => {
   await seedAndGo(page);
 
-  // Active and matured deposits visible
+  // Active deposits visible
   await expect(page.getByText("Meridian 12M TD")).toBeVisible();
   await expect(page.getByText("Horizon 12M monthly")).toBeVisible();
   await expect(page.getByText("Apex savings account")).toBeVisible();
+  await expect(page.getByText("Citadel 24M TD")).toBeVisible();
+
+  // Matured deposits visible
   await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
+  await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
 
-  // Settled deposit hidden by default
+  // Both settled deposits hidden by default
   await expect(page.getByText("Horizon 6M (settled)")).not.toBeVisible();
-
-  await percySnapshot(page, "Investments - table view filled");
+  await expect(page.getByText("Citadel 3M (settled)")).not.toBeVisible();
 });
 
-test("investments table — show settled toggle reveals settled deposit", async ({ page }) => {
+test("investments table — matured deposits visible with Matured status", async ({ page }) => {
+  await seedAndGo(page);
+
+  await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
+  await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
+
+  // At least one "Matured" status badge should be rendered
+  await expect(page.getByText("Matured").first()).toBeVisible();
+});
+
+test("investments table — show settled toggle reveals all settled deposits", async ({ page }) => {
   await seedAndGo(page);
 
   await expect(page.getByText("Horizon 6M (settled)")).not.toBeVisible();
-  await page.locator("#show-settled").click();
+  await expect(page.getByText("Citadel 3M (settled)")).not.toBeVisible();
+
+  await page.getByRole('switch', { name: 'Show settled' }).click();
+
   await expect(page.getByText("Horizon 6M (settled)")).toBeVisible();
+  await expect(page.getByText("Citadel 3M (settled)")).toBeVisible();
+
+  await snap(page, "Investments - table view filled");
+});
+
+test("investments table — show settled toggle does not hide matured deposits", async ({ page }) => {
+  await seedAndGo(page);
+
+  // Matured visible before toggle
+  await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
+  await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
+
+  // Toggle settled (off → on → off cycle to confirm matured is unaffected)
+  await page.getByRole('switch', { name: 'Show settled' }).click();
+  await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
+  await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
 });
 
 test("investments table — bank filter narrows rows", async ({ page }) => {
@@ -158,6 +249,18 @@ test("investments table — bank filter narrows rows", async ({ page }) => {
   await expect(page.getByText("Apex savings account")).toBeVisible();
   await expect(page.getByText("Meridian 12M TD")).not.toBeVisible();
   await expect(page.getByText("Horizon 12M monthly")).not.toBeVisible();
+});
+
+test("investments table — bank filter for Citadel Cooperative Bank", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByLabel("Filter bank").click();
+  await page.getByRole("option", { name: "Citadel Cooperative Bank" }).click();
+
+  await expect(page.getByText("Citadel 24M TD")).toBeVisible();
+  await expect(page.getByText("Meridian 12M TD")).not.toBeVisible();
+  await expect(page.getByText("Horizon 12M monthly")).not.toBeVisible();
+  await expect(page.getByText("Apex savings account")).not.toBeVisible();
 });
 
 test("investments table — active summary collapsible opens", async ({ page }) => {
@@ -187,8 +290,14 @@ test("investments ladder — timeline region renders with deposits", async ({ pa
   await expect(ladderRegion.getByText("Meridian 12M TD")).toBeVisible();
   await expect(ladderRegion.getByText("Horizon 12M monthly")).toBeVisible();
   await expect(ladderRegion.getByText("Apex savings account")).toBeVisible();
+  await expect(ladderRegion.getByText("Horizon 6M (settled)")).not.toBeVisible;
+  await expect(ladderRegion.getByText("Citadel 3M (settled)")).not.toBeVisible();
 
-  await percySnapshot(page, "Investments - ladder view filled");
+  await page.getByRole('switch', { name: 'Show settled' }).click();
+
+  await expect(ladderRegion.getByText("Horizon 6M (settled)")).toBeVisible();
+  await expect(ladderRegion.getByText("Citadel 3M (settled)")).toBeVisible();
+  await snap(page, "Investments - ladder view filled");
 });
 
 test("investments ladder — today marker visible when range spans today", async ({ page }) => {

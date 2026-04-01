@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
 
 // Multi-deposit portfolio with various payout frequencies for a rich cashflow chart
@@ -71,6 +71,7 @@ test("cash flow page — empty state redirects home", async ({ page }) => {
 });
 
 test("cash flow page — with portfolio data", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
@@ -83,5 +84,5 @@ test("cash flow page — with portfolio data", async ({ page }) => {
   // The time-window filter should show its options
   await expect(page.getByText("12M", { exact: true })).toBeVisible();
 
-  await percySnapshot(page, "Cash Flow Page - filled");
+  await snap(page, "Cash Flow Page - filled");
 });

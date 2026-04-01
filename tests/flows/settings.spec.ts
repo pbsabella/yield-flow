@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
 
 const seedDeposit: TimeDeposit = {
@@ -28,7 +28,7 @@ test("settings page renders correctly", async ({ page }) => {
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("Data management")).toBeVisible();
-  await percySnapshot(page, "Settings Page");
+  await snap(page, "Settings Page");
 });
 
 test("settings — in demo mode, export and import disabled, Exit Demo shown", async ({ page }) => {
@@ -62,7 +62,7 @@ test("settings — clear all data removes deposits and redirects home", async ({
   // Destructive confirmation dialog
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await expect(page.getByRole("heading", { name: /Clear all data?/ })).toBeVisible();
-  await percySnapshot(page, "Clear Data Confirm Dialog");
+  await snap(page, "Clear Data Confirm Dialog");
 
   await page.getByRole("button", { name: "Clear all data" }).click();
 
@@ -86,8 +86,11 @@ test("settings — cancelling clear all leaves data intact", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Clear all" })).toBeEnabled();
 });
 
-// TODO: Fix flakey test
-test.skip("settings — caveats section expands on click", async ({ page }) => {
+test("settings — caveats section expands on click", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
   await page.goto("/settings");
   const trigger = page.getByRole("button", { name: /What you should know/i });
   await expect(trigger).toBeVisible();

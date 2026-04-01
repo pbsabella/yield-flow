@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
 
 const seedDeposit: TimeDeposit = {
@@ -22,6 +22,8 @@ const seedDeposit: TimeDeposit = {
 };
 
 test("edit an investment — values persist after save", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+
   // Seed localStorage before navigation
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
@@ -47,7 +49,7 @@ test("edit an investment — values persist after save", async ({ page }) => {
 
   // Wait for the live calc preview to load - this will change over time in Percy screenshot
   await expect(page.getByText("Estimate only")).toBeVisible()
-  await percySnapshot(page, "Edit Investment Dialog");
+  await snap(page, "Edit Investment Dialog");
 
   // Change the bank name
   await page.getByRole("combobox", { name: "Bank" }).clear();
