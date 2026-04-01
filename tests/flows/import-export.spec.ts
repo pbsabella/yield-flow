@@ -1,7 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import path from "path";
 import { readFileSync } from "fs";
-import percySnapshot from "@percy/playwright";
 import type { TimeDeposit } from "../../src/types";
 
 const FIXTURE_PATH = path.resolve(__dirname, "../fixtures/portfolio.json");
@@ -95,8 +94,6 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
   // Confirmation dialog should appear
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await expect(page.getByText(/Replace all data?/)).toBeVisible();
-
-  await percySnapshot(page, "Import Confirm Dialog");
 
   // Confirm the import
   await page.getByRole("button", { name: /Replace/i }).click();

@@ -64,5 +64,5 @@ test("dashboard page — with portfolio data", async ({ page }) => {
   await expect(page.getByText("Meridian Savings Bank", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Horizon Digital Bank", { exact: true }).first()).toBeVisible();
 
-  await snap(page, "Dashboard Page - filed");
+  await snap(page, "Dashboard Page - filled");
 });
