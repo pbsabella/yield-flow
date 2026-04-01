@@ -17,6 +17,7 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   use: {
     baseURL,
+    reducedMotion: "reduce",
   },
   webServer: useWebServer
     ? {

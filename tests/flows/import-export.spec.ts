@@ -82,8 +82,11 @@ async function simulateFileImport(page: Page, filePath: string, fileName: string
   );
 }
 
-// TODO: Fix flakey test
-test.skip("import JSON backup — deposits load and page redirects to dashboard", async ({ page }) => {
+test("import JSON backup — deposits load and page redirects to dashboard", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+      localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+    }, seedDeposit);
+
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 
@@ -101,7 +104,7 @@ test.skip("import JSON backup — deposits load and page redirects to dashboard"
   // Should redirect to dashboard with the imported deposits
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("heading", { name: "Portfolio" })).toBeVisible();
-  await expect(page.getByText("Meridian Savings Bank", { exact: true })).toBeVisible();
+  await expect(page.getByText("Meridian 6-month TD", { exact: true })).toBeVisible();
 });
 
 test("export JSON — triggers a file download", async ({ page }) => {
@@ -121,9 +124,13 @@ test("export JSON — triggers a file download", async ({ page }) => {
   expect(download.suggestedFilename()).toMatch(/^yieldflow-export-\d{4}-\d{2}-\d{2}\.json$/);
 });
 
-// TODO: Fix me
-test.skip("import validation — shows error for malformed file", async ({ page }) => {
+test("import validation — shows error for malformed file", async ({ page }) => {
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, seedDeposit);
+
   await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 
   await simulateFileImport(page, BAD_FIXTURE_PATH, "bad.json");
 

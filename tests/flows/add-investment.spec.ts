@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
-import percySnapshot from "@percy/playwright";
+import { snap } from "../helpers/percy";
 
 test("add an investment via wizard — empty state → portfolio visible", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+
   // Empty users land on the EmptyLanding hero at "/"
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Know exactly when your money comes back" })).toBeVisible();
@@ -11,7 +13,7 @@ test("add an investment via wizard — empty state → portfolio visible", async
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Add investment" })).toBeVisible();
 
-  await percySnapshot(page, "Add Investment Dialog - empty");
+  await snap(page, "Add Investment Dialog - empty");
 
   // Fill required fields
   await page.getByLabel("Bank").fill("Meridian Savings Bank");
@@ -21,11 +23,11 @@ test("add an investment via wizard — empty state → portfolio visible", async
   // Select product type: Time Deposit (fixed term, maturity payout)
   await page.getByRole("radio", { name: /Time Deposit/ }).click();
   // Enter a 6-month term in the term input (presets were replaced with a number field)
-  await page.locator("#inv-term").fill("6");
+  await page.getByRole('spinbutton', { name: 'Term' }).fill("6");
 
   // Wait for the live calc preview to load - this will change over time in Percy screenshot
   await expect(page.getByText("Net interest", { exact: true })).toBeVisible()
-  await percySnapshot(page, "Add Investment Dialog - filled");
+  await snap(page, "Add Investment Dialog - filled");
 
   // Submit
   await page.getByRole("button", { name: "Add investment" }).last().click();
