@@ -44,7 +44,9 @@ function deriveEffectiveStatus(
   maturityDate: string | null,
   today: Date,
 ): TimeDeposit["status"] {
+  // Terminal states that require no auto-transition.
   if (deposit.status === "settled") return "settled";
+  if (deposit.status === "closed") return "closed";
   if (deposit.status === "active" && maturityDate !== null) {
     // parseLocalDate parses as local midnight (not UTC midnight) so the
     // comparison fires at midnight on the due date, not 8 hours later (UTC+8).
@@ -90,7 +92,7 @@ export function usePortfolioData(
 
   const totalPrincipal = useMemo(() => {
     return summaries
-      .filter((s) => s.effectiveStatus !== "settled")
+      .filter((s) => s.effectiveStatus !== "settled" && s.effectiveStatus !== "closed")
       .reduce((sum, s) => sum + s.deposit.principal, 0);
   }, [summaries]);
 
@@ -140,8 +142,10 @@ export function usePortfolioData(
   }, [summaries, today]);
 
   const monthlyAllowance = useMemo(() => {
-    // Projection excludes settled — their cash has already been received.
-    const projectionSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
+    // Projection excludes settled and closed — their cash has already been received.
+    const projectionSummaries = summaries.filter(
+      (s) => s.effectiveStatus !== "settled" && s.effectiveStatus !== "closed",
+    );
     return buildMonthlyAllowance(projectionSummaries);
   }, [summaries]);
 

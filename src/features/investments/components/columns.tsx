@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef, type Column, type RowData } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash, Undo2 } from "lucide-react";
+import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash, Undo2, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
@@ -23,6 +23,8 @@ declare module "@tanstack/react-table" {
     onDelete: (id: string) => void;
     onEdit: (deposit: TimeDeposit) => void;
     onUnsettle: (id: string) => void;
+    onCloseClick: (summary: EnrichedSummary) => void;
+    onReopen: (id: string) => void;
   }
 }
 
@@ -160,7 +162,7 @@ export function createColumns(
     {
       id: "daysToMaturity",
       accessorFn: (row) => {
-        if (!row.maturityDate || row.deposit.isOpenEnded || row.effectiveStatus === "settled")
+        if (!row.maturityDate || row.deposit.isOpenEnded || row.effectiveStatus === "settled" || row.effectiveStatus === "closed")
           return null;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -173,7 +175,7 @@ export function createColumns(
         today.setHours(0, 0, 0, 0);
 
         const getVal = (s: EnrichedSummary): number => {
-          if (!s.maturityDate || s.deposit.isOpenEnded || s.effectiveStatus === "settled")
+          if (!s.maturityDate || s.deposit.isOpenEnded || s.effectiveStatus === "settled" || s.effectiveStatus === "closed")
             return Infinity;
           return differenceInCalendarDays(parseLocalDate(s.maturityDate), today);
         };
@@ -182,7 +184,7 @@ export function createColumns(
       },
       cell: ({ row }) => {
         const { maturityDate, deposit, effectiveStatus } = row.original;
-        if (deposit.isOpenEnded || effectiveStatus === "settled")
+        if (deposit.isOpenEnded || effectiveStatus === "settled" || effectiveStatus === "closed")
           return <span className="text-muted-foreground">—</span>;
         return <DaysCell maturityDate={maturityDate} />;
       },
@@ -254,7 +256,7 @@ export function createColumns(
       cell: ({ row, table }) => {
         const summary = row.original;
         const { effectiveStatus, deposit } = summary;
-        const { onSettleClick, onDelete, onEdit, onUnsettle } = table.options.meta!;
+        const { onSettleClick, onDelete, onEdit, onUnsettle, onCloseClick, onReopen } = table.options.meta!;
 
         return (
           <div className="flex items-center justify-end">
@@ -291,10 +293,25 @@ export function createColumns(
                     Undo Settle
                   </DropdownMenuItem>
                 )}
+                {effectiveStatus === "closed" && (
+                  <DropdownMenuItem onClick={() => onReopen(deposit.id)}>
+                    <RefreshCw />
+                    Reopen
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => onEdit(deposit)}>
                   <Pencil />
                   Edit
                 </DropdownMenuItem>
+                {effectiveStatus === "active" && (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onCloseClick(summary)}
+                  >
+                    <X />
+                    {deposit.isOpenEnded ? "Close Account" : "Close Early"}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   variant="destructive"
                   onClick={() => onDelete(deposit.id)}

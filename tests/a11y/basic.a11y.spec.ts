@@ -111,6 +111,77 @@ test("cash flow page with data has no critical a11y issues", async ({ page }) =>
   expect(critical).toEqual([]);
 });
 
+test("close early dialog has no critical a11y issues", async ({ page }) => {
+  const activeDeposit: TimeDeposit = {
+    id: "a11y-close-td",
+    bankId: "Beacon Bank",
+    name: "Beacon 6M TD",
+    principal: 200000,
+    startDate: "2026-03-01",
+    termMonths: 6,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.06,
+    tiers: [{ upTo: null, rate: 0.06 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "active",
+  };
+
+  await page.clock.setFixedTime(new Date(2026, 2, 6));
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, activeDeposit);
+
+  await page.goto("/investments");
+  await expect(page.getByText("Beacon 6M TD")).toBeVisible();
+
+  await page.getByRole("button", { name: /more options for beacon 6m td/i }).click();
+  await page.getByRole("menuitem", { name: /close early/i }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
+test("investments page with closed deposit has no critical a11y issues", async ({ page }) => {
+  const closedDeposit: TimeDeposit = {
+    id: "a11y-closed-dep",
+    bankId: "Beacon Bank",
+    name: "Beacon 3M (closed)",
+    principal: 150000,
+    startDate: "2025-09-01",
+    termMonths: 6,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.055,
+    tiers: [{ upTo: null, rate: 0.055 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "closed",
+    closeDate: "2026-01-15",
+  };
+
+  await page.addInitScript((deposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, closedDeposit);
+
+  await page.goto("/investments");
+  await page.getByRole("switch", { name: "Show closed / settled" }).click();
+  await expect(page.getByText("Beacon 3M (closed)")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  expect(critical).toEqual([]);
+});
+
 test("settings page has no critical a11y issues", async ({ page }) => {
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));

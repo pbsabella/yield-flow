@@ -191,6 +191,8 @@
   --color-banner-fg: oklch(0.38 0.17 277);
   --color-banner-border: oklch(0.88 0.06 277);
 
+  --dropdown-content-min-w: 14ch;
+
   /* Frozen (sticky) table column — faint indigo wash, distinct from white rows */
   --color-table-frozen-bg: oklch(0.975 0.012 277);
 

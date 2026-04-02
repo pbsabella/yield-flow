@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";
-import { CircleArrowRight, CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleAlert, CircleArrowRight, CircleCheck, TriangleAlert } from "lucide-react";
 import {
   parseLocalDate,
   differenceInCalendarDays,
@@ -34,7 +34,13 @@ function barClasses(s: EnrichedSummary): string {
   const rounded = s.deposit.isOpenEnded ? "rounded-l-bar rounded-r-none" : "rounded-bar";
   if (s.effectiveStatus === "settled") return cn(rounded, "bg-progress-success-fill");
   if (s.effectiveStatus === "matured") return cn(rounded, "bg-progress-warning-fill");
-  if (s.deposit.isOpenEnded) return cn(rounded, "bg-primary/40");
+  if (s.deposit.isOpenEnded) {
+    if (s.effectiveStatus === "closed") {
+      return cn(rounded, "bg-progress-alert-fill/50");
+    }
+    return cn(rounded, "bg-primary/40");
+  }
+  if (s.effectiveStatus === "closed") return cn(rounded, "bg-progress-alert-fill");
   return cn(rounded, "bg-primary");
 }
 
@@ -42,7 +48,13 @@ function barClasses(s: EnrichedSummary): string {
 function mobileElapsedClass(s: EnrichedSummary): string {
   if (s.effectiveStatus === "settled") return "bg-progress-success-fill";
   if (s.effectiveStatus === "matured") return "bg-progress-warning-fill";
-  if (s.deposit.isOpenEnded) return "bg-primary/50";
+  if (s.deposit.isOpenEnded) {
+    if (s.effectiveStatus === "closed") {
+      return "bg-progress-alert-fill/50";
+    }
+    return "bg-primary/50";
+  }
+  if (s.effectiveStatus === "closed") return "bg-progress-alert-fill";
   return "bg-primary";
 }
 
@@ -263,6 +275,9 @@ function DesktopLadder({
                     )}
                     {s.effectiveStatus === "matured" && widthPct > 2 && (
                       <TriangleAlert size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
+                    )}
+                    {s.effectiveStatus === "closed" && widthPct > 2 && (
+                      <CircleAlert size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
                     )}
                     {!s.maturityDate && widthPct > 2 && (
                       <CircleArrowRight size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground pointer-events-none" />

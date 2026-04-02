@@ -223,13 +223,18 @@ function EntryGroup({
               </span>
               <span className="flex items-center gap-1.5 shrink-0">
                 {isCurrent && entry.status === "matured" && (
-                  <Badge variant="alert" className="text-xs h-4 font-normal">
+                  <Badge variant="warning" className="text-xs h-4 font-normal">
                     Due now
                   </Badge>
                 )}
                 {isCurrent && isSettled && (
                   <Badge variant="success" className="text-xs h-4 font-normal">
                     Settled
+                  </Badge>
+                )}
+                {entry.status === "closed" && (
+                  <Badge variant="alert" className="text-xs h-4 font-normal">
+                    Closed
                   </Badge>
                 )}
                 <span

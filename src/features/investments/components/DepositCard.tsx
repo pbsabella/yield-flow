@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { MoreHorizontal, Pencil, Trash, Undo2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash, Undo2, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -23,6 +23,8 @@ type Props = {
   onDeleteClick: (id: string) => void;
   onEditClick: (deposit: TimeDeposit) => void;
   onUnsettleClick: (id: string) => void;
+  onCloseClick: (summary: EnrichedSummary) => void;
+  onReopenClick: (id: string) => void;
   isNew?: boolean;
 };
 
@@ -37,7 +39,7 @@ function MaturityLabel({
 }) {
   if (isOpenEnded)
     return <span className="text-xs text-muted-foreground">Open-ended</span>;
-  if (effectiveStatus === "settled")
+  if (effectiveStatus === "settled" || effectiveStatus === "closed")
     return <span className="text-xs text-muted-foreground">—</span>;
   if (!maturityDate)
     return <span className="text-xs text-muted-foreground">—</span>;
@@ -71,7 +73,7 @@ function MaturityLabel({
   );
 }
 
-export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, onUnsettleClick, isNew }: Props) {
+export const DepositCard = memo(function DepositCard({ summary, onSettleClick, onDeleteClick, onEditClick, onUnsettleClick, onCloseClick, onReopenClick, isNew }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
@@ -133,6 +135,21 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
                       <DropdownMenuItem onClick={() => onUnsettleClick(deposit.id)}>
                         <Undo2 />
                         Undo Settle
+                      </DropdownMenuItem>
+                    )}
+                    {effectiveStatus === "closed" && (
+                      <DropdownMenuItem onClick={() => onReopenClick(deposit.id)}>
+                        <RefreshCw />
+                        Reopen
+                      </DropdownMenuItem>
+                    )}
+                    {effectiveStatus === "active" && (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => onCloseClick(summary)}
+                      >
+                        <X />
+                        {deposit.isOpenEnded ? "Close Account" : "Close Early"}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => onEditClick(deposit)}>

@@ -160,6 +160,26 @@ const seedDeposits: TimeDeposit[] = [
     isOpenEnded: false,
     status: "settled",
   },
+  // Closed
+  {
+    id: "close-td-closed",
+    bankId: "Horizon Digital Bank",
+    name: "Horizon 3M (closed)",
+    principal: 150000,
+    startDate: "2025-10-01",
+    termMonths: 12,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.055,
+    tiers: [{ upTo: null, rate: 0.055 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "closed",
+    closeDate: "2026-01-15",
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -185,7 +205,7 @@ test("investments table — renders column headers with data", async ({ page }) 
   }
 });
 
-test("investments table — shows active and matured deposits, hides settled by default", async ({ page }) => {
+test("investments table — shows active and matured deposits, hides closed/settled by default", async ({ page }) => {
   await seedAndGo(page);
 
   // Active deposits visible
@@ -213,13 +233,13 @@ test("investments table — matured deposits visible with Matured status", async
   await expect(page.getByText("Matured").first()).toBeVisible();
 });
 
-test("investments table — show settled toggle reveals all settled deposits", async ({ page }) => {
+test("investments table — show settled toggle reveals all closed/settled deposits", async ({ page }) => {
   await seedAndGo(page);
 
   await expect(page.getByText("Horizon 6M (settled)")).not.toBeVisible();
   await expect(page.getByText("Citadel 3M (settled)")).not.toBeVisible();
 
-  await page.getByRole('switch', { name: 'Show settled' }).click();
+  await page.getByRole('switch', { name: 'Show closed / settled' }).click();
 
   await expect(page.getByText("Horizon 6M (settled)")).toBeVisible();
   await expect(page.getByText("Citadel 3M (settled)")).toBeVisible();
@@ -227,15 +247,15 @@ test("investments table — show settled toggle reveals all settled deposits", a
   await snap(page, "Investments - table view filled");
 });
 
-test("investments table — show settled toggle does not hide matured deposits", async ({ page }) => {
+test("investments table — show closed/settled toggle does not hide matured deposits", async ({ page }) => {
   await seedAndGo(page);
 
   // Matured visible before toggle
   await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
   await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
 
-  // Toggle settled (off → on → off cycle to confirm matured is unaffected)
-  await page.getByRole('switch', { name: 'Show settled' }).click();
+  // Toggle closed/settled (off → on → off cycle to confirm matured is unaffected)
+  await page.getByRole('switch', { name: 'Show closed / settled' }).click();
   await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
   await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
 });
@@ -293,7 +313,7 @@ test("investments ladder — timeline region renders with deposits", async ({ pa
   await expect(ladderRegion.getByText("Horizon 6M (settled)")).not.toBeVisible;
   await expect(ladderRegion.getByText("Citadel 3M (settled)")).not.toBeVisible();
 
-  await page.getByRole('switch', { name: 'Show settled' }).click();
+  await page.getByRole('switch', { name: 'Show closed / settled' }).click();
 
   await expect(ladderRegion.getByText("Horizon 6M (settled)")).toBeVisible();
   await expect(ladderRegion.getByText("Citadel 3M (settled)")).toBeVisible();

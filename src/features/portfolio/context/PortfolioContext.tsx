@@ -81,6 +81,8 @@ interface PortfolioContextValue {
   handleSave: (deposit: TimeDeposit) => void;
   handleSettle: (id: string) => void;
   handleUnsettle: (id: string) => void;
+  handleClose: (id: string, closeDate: string) => void;
+  handleReopen: (id: string) => void;
   handleRollOver: (oldId: string, newDeposit: TimeDeposit) => void;
   handleDelete: (id: string) => void;
   handleEdit: (deposit: TimeDeposit) => void;
@@ -253,6 +255,48 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     [isDemoMode, setDeposits],
   );
 
+  const handleClose = useCallback(
+    (id: string, closeDate: string) => {
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status: "closed" as const, closeDate } : d)),
+        );
+      } else {
+        setDeposits((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status: "closed" as const, closeDate } : d)),
+        );
+      }
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 2500);
+    },
+    [isDemoMode, setDeposits],
+  );
+
+  const handleReopen = useCallback(
+    (id: string) => {
+      if (isDemoMode) {
+        setLiveDemoDeposits((prev) =>
+          prev.map((d) => {
+            if (d.id !== id) return d;
+            const { closeDate: _, ...rest } = d;
+            return { ...rest, status: "active" as const };
+          }),
+        );
+      } else {
+        setDeposits((prev) =>
+          prev.map((d) => {
+            if (d.id !== id) return d;
+            const { closeDate: _, ...rest } = d;
+            return { ...rest, status: "active" as const };
+          }),
+        );
+      }
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 2500);
+    },
+    [isDemoMode, setDeposits],
+  );
+
   const handleRollOver = useCallback(
     (oldId: string, newDeposit: TimeDeposit) => {
       if (isDemoMode) {
@@ -340,6 +384,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleSave,
       handleSettle,
       handleUnsettle,
+      handleClose,
+      handleReopen,
       handleRollOver,
       handleDelete,
       handleEdit,
@@ -372,6 +418,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleSave,
       handleSettle,
       handleUnsettle,
+      handleClose,
+      handleReopen,
       handleRollOver,
       handleDelete,
       handleEdit,

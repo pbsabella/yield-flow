@@ -192,6 +192,30 @@ export const deposits: TimeDeposit[] = [
   },
 
   // ─────────────────────────────────────────────
+  // CLOSED SAVINGS ACCOUNT
+  // Logic: Open-ended savings account closed ~2 months ago.
+  // Tests: "Closed" badge, historical cash flow entry, excluded from projections.
+  // ─────────────────────────────────────────────
+  {
+    id: "td-closed-apex-001",
+    bankId: "apex",
+    name: "Apex Savings Account",
+    principal: 200000,
+    startDate: monthsAgo(8),
+    termMonths: 12,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.04,
+    tiers: [{ upTo: null, rate: 0.04 }],
+    payoutFrequency: "monthly",
+    isOpenEnded: true,
+    status: "closed",
+    closeDate: monthsAgo(2),
+  },
+
+  // ─────────────────────────────────────────────
   // SHORT-TERM REINVESTMENT
   // ─────────────────────────────────────────────
   {

@@ -19,6 +19,30 @@ export function buildMonthlyAllowance(summaries: SummaryInput[]) {
   for (const summary of summaries) {
     const { deposit, netInterest } = summary;
 
+    // Closed deposits: emit a single historical entry for the closeDate month.
+    // netInterest here is already pro-rated (buildDepositSummary handles it).
+    // Skip all regular payout-date generation.
+    if ((summary.effectiveStatus ?? deposit.status) === "closed") {
+      const closeDate = deposit.closeDate;
+      if (!closeDate) continue;
+      const payoutDate = parseLocalDate(closeDate);
+      const key = monthKey(payoutDate);
+      const label = formatMonthLabel(payoutDate);
+      const current = map.get(key) ?? { monthKey: key, label, net: 0, entries: [] };
+      current.net += netInterest;
+      current.entries.push({
+        depositId: deposit.id,
+        name: deposit.name,
+        bankName: summary.bank.name,
+        payoutFrequency: "maturity",
+        amountNet: netInterest,
+        principalReturned: deposit.principal,
+        status: "closed",
+      });
+      map.set(key, current);
+      continue;
+    }
+
     // parseLocalDate ensures payout dates fall on the correct local calendar day.
     // new Date(deposit.startDate) would parse as UTC midnight, which shifts the
     // day by 1 in UTC+ timezones (e.g. March 15 at midnight UTC = March 15 at

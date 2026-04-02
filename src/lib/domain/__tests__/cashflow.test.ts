@@ -154,6 +154,121 @@ describe("buildMonthlyAllowance — effectiveStatus override", () => {
   });
 });
 
+// ─── Closed deposits ──────────────────────────────────────────────────────────
+//
+// A closed deposit should emit a single historical entry in the closeDate month
+// (showing accrued net interest + full principal returned) and nothing else.
+
+describe("buildMonthlyAllowance — closed deposit", () => {
+  it("emits exactly one entry in the closeDate month", () => {
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      termMonths: 12,
+      status: "closed",
+      closeDate: "2026-03-15",
+      payoutFrequency: "maturity",
+    });
+    const summary = {
+      ...makeSummary(deposit, "2026-03-15", 500),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result).toHaveLength(1);
+    expect(result[0].monthKey).toBe("2026-03");
+  });
+
+  it("uses accrued netInterest (not full-term) for the entry amount", () => {
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      termMonths: 12,
+      status: "closed",
+      closeDate: "2026-03-15",
+      payoutFrequency: "maturity",
+    });
+    // Caller passes the already-pro-rated netInterest from buildDepositSummary
+    const summary = {
+      ...makeSummary(deposit, "2026-03-15", 400),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result[0].net).toBeCloseTo(400, 6);
+    expect(result[0].entries[0].amountNet).toBeCloseTo(400, 6);
+  });
+
+  it("includes principalReturned equal to full principal", () => {
+    const deposit = makeDeposit({
+      id: "dep-closed",
+      principal: 120_000,
+      startDate: "2026-01-01",
+      termMonths: 12,
+      status: "closed",
+      closeDate: "2026-03-15",
+      payoutFrequency: "maturity",
+    });
+    const summary = {
+      ...makeSummary(deposit, "2026-03-15", 400),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result[0].entries[0].principalReturned).toBe(120_000);
+  });
+
+  it("marks the entry status as 'closed'", () => {
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      termMonths: 12,
+      status: "closed",
+      closeDate: "2026-03-15",
+      payoutFrequency: "maturity",
+    });
+    const summary = {
+      ...makeSummary(deposit, "2026-03-15", 400),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result[0].entries[0].status).toBe("closed");
+  });
+
+  it("emits no entries when closeDate is absent", () => {
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      termMonths: 12,
+      status: "closed",
+      // no closeDate
+    });
+    const summary = {
+      ...makeSummary(deposit, null, 400),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result).toHaveLength(0);
+  });
+
+  it("does not generate future payout rows for a closed open-ended deposit", () => {
+    const deposit = makeDeposit({
+      startDate: "2025-06-01",
+      isOpenEnded: true,
+      payoutFrequency: "monthly",
+      status: "closed",
+      closeDate: "2026-02-10",
+    });
+    const summary = {
+      ...makeSummary(deposit, "2026-02-10", 300),
+      effectiveStatus: "closed" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    // Only 1 month (Feb 2026), not 12 future monthly rows
+    expect(result).toHaveLength(1);
+    expect(result[0].monthKey).toBe("2026-02");
+  });
+});
+
 // ─── Open-ended (savings) projection ─────────────────────────────────────────
 //
 // Open-ended deposits project 12 monthly payouts anchored to startDate.

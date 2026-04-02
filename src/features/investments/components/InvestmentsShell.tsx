@@ -13,6 +13,8 @@ export function InvestmentsShell() {
     highlightedId,
     handleSettle,
     handleUnsettle,
+    handleClose,
+    handleReopen,
     handleDelete,
     handleEdit,
     openWizard,
@@ -43,6 +45,8 @@ export function InvestmentsShell() {
             summaries={portfolio.summaries}
             onSettle={handleSettle}
             onUnsettle={handleUnsettle}
+            onClose={handleClose}
+            onReopen={handleReopen}
             onDelete={handleDelete}
             onEdit={handleEdit}
             onRollOver={openRollover}
