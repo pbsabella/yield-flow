@@ -16,17 +16,15 @@ import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/doma
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
 type Props = {
-  summary: EnrichedSummary | null;
+  summary: EnrichedSummary;
   closeDate: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (id: string) => void;
+  onConfirm: (id: string, closeDate: string) => void;
 };
 
 export function CloseConfirmDialog({ summary, closeDate, open, onOpenChange, onConfirm }: Props) {
   const { fmtCurrency } = useFormatterContext();
-  if (!summary) return null;
-
   const { deposit, bank, maturityDate } = summary;
 
   const accrued = calculateAccruedToDate(deposit, bank, closeDate);
@@ -47,7 +45,7 @@ export function CloseConfirmDialog({ summary, closeDate, open, onOpenChange, onC
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm w-full">
               {isEarlyClose && daysRemaining !== null && daysRemaining > 0 && (
                 <p className="text-status-warning-fg font-medium">
                   Closing before maturity — {formatDate(parseLocalDate(maturityDate!))}
@@ -78,10 +76,10 @@ export function CloseConfirmDialog({ summary, closeDate, open, onOpenChange, onC
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => onConfirm(deposit.id)}
+            onClick={() => onConfirm(deposit.id, closeDate)}
             variant="destructive"
           >
-            Close Account
+            Close account
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

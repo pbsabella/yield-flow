@@ -1,15 +1,9 @@
 "use client";
 
 import { type ColumnDef, type Column, type RowData } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUp, ArrowDown, ChevronsUpDown, Pencil, Trash, Undo2, X, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DepositActions } from "./DepositActions";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit } from "@/types";
@@ -20,7 +14,7 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableMeta<TData extends RowData> {
     onSettleClick: (summary: EnrichedSummary) => void;
-    onDelete: (id: string) => void;
+    onDelete: (summary: EnrichedSummary) => void;
     onEdit: (deposit: TimeDeposit) => void;
     onUnsettle: (id: string) => void;
     onCloseClick: (summary: EnrichedSummary) => void;
@@ -28,7 +22,13 @@ declare module "@tanstack/react-table" {
   }
 }
 
-// ─── Sortable header component ────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function localToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 function SortableHeader({ column, label }: { column: Column<EnrichedSummary>; label: string }) {
   const sorted = column.getIsSorted();
@@ -46,23 +46,11 @@ function SortableHeader({ column, label }: { column: Column<EnrichedSummary>; la
   );
 }
 
-// ─── Days-to-maturity helper ──────────────────────────────────────────────────
-
-function DaysCell({ maturityDate }: { maturityDate: string | null }) {
-  if (!maturityDate) return <span className="text-muted-foreground">—</span>;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const days = differenceInCalendarDays(parseLocalDate(maturityDate), today);
-
+function DaysCell({ days }: { days: number }) {
   if (days > 30) return <span>{days}d</span>;
-  if (days > 0)
-    return <span className="font-medium text-status-warning-fg">{days}d</span>;
-  if (days === 0)
-    return <span className="font-medium text-status-warning-fg">Today</span>;
-  return (
-    <span className="font-medium text-status-warning-fg">{Math.abs(days)}d ago</span>
-  );
+  if (days > 0) return <span className="font-medium text-status-warning-fg">{days}d</span>;
+  if (days === 0) return <span className="font-medium text-status-warning-fg">Today</span>;
+  return <span className="font-medium text-status-warning-fg">{Math.abs(days)}d ago</span>;
 }
 
 // ─── Column definitions ────────────────────────────────────────────────────────
@@ -146,7 +134,7 @@ export function createColumns(
     // 4. Maturity date
     {
       id: "maturityDate",
-      accessorFn: (row) => row.maturityDate ?? "",
+      accessorFn: (row) => row.maturityDate ?? null,
       header: ({ column }) => <SortableHeader column={column} label="Matures" />,
       enableSorting: true,
       sortingFn: "alphanumeric",
@@ -164,29 +152,25 @@ export function createColumns(
       accessorFn: (row) => {
         if (!row.maturityDate || row.deposit.isOpenEnded || row.effectiveStatus === "settled" || row.effectiveStatus === "closed")
           return null;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return differenceInCalendarDays(parseLocalDate(row.maturityDate), today);
+        return differenceInCalendarDays(parseLocalDate(row.maturityDate), localToday());
       },
       header: ({ column }) => <SortableHeader column={column} label="Days left" />,
       enableSorting: true,
       sortingFn: (a, b) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         const getVal = (s: EnrichedSummary): number => {
           if (!s.maturityDate || s.deposit.isOpenEnded || s.effectiveStatus === "settled" || s.effectiveStatus === "closed")
             return Infinity;
-          return differenceInCalendarDays(parseLocalDate(s.maturityDate), today);
+          return differenceInCalendarDays(parseLocalDate(s.maturityDate), localToday());
         };
-
         return getVal(a.original) - getVal(b.original);
       },
       cell: ({ row }) => {
-        const { maturityDate, deposit, effectiveStatus } = row.original;
+        const { deposit, effectiveStatus } = row.original;
         if (deposit.isOpenEnded || effectiveStatus === "settled" || effectiveStatus === "closed")
           return <span className="text-muted-foreground">—</span>;
-        return <DaysCell maturityDate={maturityDate} />;
+        const days = row.getValue<number | null>("daysToMaturity");
+        if (days === null) return <span className="text-muted-foreground">—</span>;
+        return <DaysCell days={days} />;
       },
     },
 
@@ -198,7 +182,7 @@ export function createColumns(
       enableSorting: true,
       sortingFn: "basic",
       cell: ({ row }) => {
-        return <span className="text-accent-fg font-semibold">{fmtCurrency(row.original.netInterest)}</span>
+        return <span className="text-accent-fg font-semibold">{fmtCurrency(row.original.netInterest)}</span>;
       },
       footer: ({ table }) => {
         const total = table
@@ -239,9 +223,11 @@ export function createColumns(
       enableSorting: true,
       sortingFn: (a, b) => {
         const weight = (s: EnrichedSummary) => {
-          if (s.effectiveStatus === "matured") return 0;
-          if (s.effectiveStatus === "active") return 1;
-          return 2;
+          if (s.effectiveStatus === "matured")  return 0;
+          if (s.effectiveStatus === "active")   return 1;
+          if (s.effectiveStatus === "settled")  return 2;
+          if (s.effectiveStatus === "closed")   return 3;
+          return 4;
         };
         return weight(a.original) - weight(b.original);
       },
@@ -255,73 +241,19 @@ export function createColumns(
       enableSorting: false,
       cell: ({ row, table }) => {
         const summary = row.original;
-        const { effectiveStatus, deposit } = summary;
-        const { onSettleClick, onDelete, onEdit, onUnsettle, onCloseClick, onReopen } = table.options.meta!;
+        const { onSettleClick, onDelete, onEdit, onUnsettle, onCloseClick, onReopen } =
+          table.options.meta!;
 
         return (
-          <div className="flex items-center justify-end">
-            {effectiveStatus === "matured" && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="rounded-r-none"
-                onClick={() => onSettleClick(summary)}
-                aria-label={`Settle ${deposit.name}`}
-              >
-                Settle
-              </Button>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className={
-                    effectiveStatus === "matured"
-                      ? "rounded-l-none border-l-0 px-2"
-                      : "px-2"
-                  }
-                  aria-label={`More options for ${deposit.name}`}
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {effectiveStatus === "settled" && (
-                  <DropdownMenuItem onClick={() => onUnsettle(deposit.id)}>
-                    <Undo2 />
-                    Undo Settle
-                  </DropdownMenuItem>
-                )}
-                {effectiveStatus === "closed" && (
-                  <DropdownMenuItem onClick={() => onReopen(deposit.id)}>
-                    <RefreshCw />
-                    Reopen
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => onEdit(deposit)}>
-                  <Pencil />
-                  Edit
-                </DropdownMenuItem>
-                {effectiveStatus === "active" && (
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => onCloseClick(summary)}
-                  >
-                    <X />
-                    {deposit.isOpenEnded ? "Close Account" : "Close Early"}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(deposit.id)}
-                >
-                  <Trash />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DepositActions
+            summary={summary}
+            onSettle={onSettleClick}
+            onUnsettle={onUnsettle}
+            onClose={onCloseClick}
+            onReopen={onReopen}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         );
       },
     },

@@ -1,16 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import { MoreHorizontal, Pencil, Trash, Undo2, X, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DepositActions } from "./DepositActions";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { formatDate, differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
 import { cn } from "@/lib/utils";
@@ -20,7 +13,7 @@ import type { TimeDeposit } from "@/types";
 type Props = {
   summary: EnrichedSummary;
   onSettleClick: (summary: EnrichedSummary) => void;
-  onDeleteClick: (id: string) => void;
+  onDeleteClick: (summary: EnrichedSummary) => void;
   onEditClick: (deposit: TimeDeposit) => void;
   onUnsettleClick: (id: string) => void;
   onCloseClick: (summary: EnrichedSummary) => void;
@@ -37,10 +30,10 @@ function MaturityLabel({
   isOpenEnded?: boolean;
   effectiveStatus: string;
 }) {
-  if (isOpenEnded)
-    return <span className="text-xs text-muted-foreground">Open-ended</span>;
   if (effectiveStatus === "settled" || effectiveStatus === "closed")
     return <span className="text-xs text-muted-foreground">—</span>;
+  if (isOpenEnded)
+    return <span className="text-xs text-muted-foreground">Open-ended</span>;
   if (!maturityDate)
     return <span className="text-xs text-muted-foreground">—</span>;
 
@@ -77,8 +70,6 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
   const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate, netInterest, effectiveStatus } = summary;
 
-  const statusBadge = <StatusBadge status={effectiveStatus} />;
-
   return (
     <li>
       <article aria-labelledby={`deposit-${deposit.id}-name`}>
@@ -86,7 +77,7 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
           cardClassName={cn("transition duration-1000", isNew && "ring-2 ring-primary/40 bg-primary/5")}
           trigger={
             <div className="flex items-center gap-stack-xs">
-              {statusBadge}
+              <StatusBadge status={effectiveStatus} />
               <h2
                 id={`deposit-${deposit.id}-name`}
                 className="text-sm font-medium"
@@ -103,69 +94,15 @@ export const DepositCard = memo(function DepositCard({ summary, onSettleClick, o
                 isOpenEnded={deposit.isOpenEnded}
                 effectiveStatus={effectiveStatus}
               />
-              <div className="flex items-center justify-end">
-                {effectiveStatus === "matured" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-r-none"
-                    onClick={() => onSettleClick(summary)}
-                    aria-label={`Settle ${deposit.name}`}
-                  >
-                    Settle
-                  </Button>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className={
-                        effectiveStatus === "matured"
-                          ? "rounded-l-none border-l-0 px-2"
-                          : "px-2"
-                      }
-                      aria-label={`More options for ${deposit.name}`}
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {effectiveStatus === "settled" && (
-                      <DropdownMenuItem onClick={() => onUnsettleClick(deposit.id)}>
-                        <Undo2 />
-                        Undo Settle
-                      </DropdownMenuItem>
-                    )}
-                    {effectiveStatus === "closed" && (
-                      <DropdownMenuItem onClick={() => onReopenClick(deposit.id)}>
-                        <RefreshCw />
-                        Reopen
-                      </DropdownMenuItem>
-                    )}
-                    {effectiveStatus === "active" && (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => onCloseClick(summary)}
-                      >
-                        <X />
-                        {deposit.isOpenEnded ? "Close Account" : "Close Early"}
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => onEditClick(deposit)}>
-                      <Pencil />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => onDeleteClick(deposit.id)}
-                    >
-                      <Trash />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              <DepositActions
+                summary={summary}
+                onSettle={onSettleClick}
+                onUnsettle={onUnsettleClick}
+                onClose={onCloseClick}
+                onReopen={onReopenClick}
+                onEdit={onEditClick}
+                onDelete={onDeleteClick}
+              />
             </>
           }
           footerClassName="justify-between"

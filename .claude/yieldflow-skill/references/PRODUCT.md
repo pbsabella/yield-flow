@@ -60,28 +60,28 @@ Controls: bank filter select, Show settled toggle (off by default), List / Ladde
 
 **Days to Maturity pill:** neutral → "7 days" → "Due today" / amber → "Overdue X days" / open-ended → "—"
 **Matured/overdue row:** amber highlight; Settle CTA visible.
-**Show closed / settled toggle:** closed and settled deposits hidden by default; shown when toggled on.
-**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Close Early / Close Account (··· menu, active rows only), Undo Settle (··· menu, settled rows only), Reopen (··· menu, closed rows only), Roll Over (inside Settle dialog, matured rows only).
+**Show inactive toggle:** closed and settled deposits hidden by default; shown when toggled on.
+**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Close early / Withdraw & close (··· menu, active rows only), Undo settle (··· menu, settled rows only), Reopen (··· menu, closed rows only), Roll over (inside Settle dialog, matured rows only).
 
-#### Close Account / Close Early
+#### Withdraw & close / Close early
 
-Available in the `···` menu for any **active** deposit. TDs show "Close Early" with a warning banner (maturity date + days remaining). Open-ended savings show "Close Account" with no warning.
+Available in the `···` menu for any **active** deposit. TDs show "Close early" with a warning banner (maturity date + days remaining). Open-ended savings show "Withdraw & close" with no warning.
 
 Dialog shows: Principal | Accrued net interest | Net proceeds. After confirm: toast with inline Undo.
 
 #### Reopen
 
-Reverts a `closed` deposit back to `active`. In the `···` menu on closed rows (requires "Show closed / settled" toggled on). No confirmation dialog.
+Reverts a `closed` deposit back to `active`. In the `···` menu on closed rows (requires "Show inactive" toggled on). No confirmation dialog.
 
-#### Undo Settle
+#### Undo settle
 
-Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when "Show closed / settled" is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
+Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when "Show inactive" is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
 
-#### Roll Over
+#### Roll over
 
-Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll Over ] [ Settle ₱X ]` — amount only on Settle since Roll Over opens an editable wizard.
+Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll over ] [ Settle ₱X ]` — amount only on Settle since Roll over opens an editable wizard.
 
-On Roll Over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
+On Roll over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
 
 | Field | Value |
 | --- | --- |

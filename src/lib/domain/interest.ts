@@ -1,34 +1,14 @@
 import type { Bank, DepositSummary, TimeDeposit } from "@/types";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
-import { differenceInCalendarDays, parseLocalDate } from "@/lib/domain/date";
+import { calculateAccruedToDate } from "@/lib/domain/accrued-interest";
 
 // Projection window for open-ended deposits (rolling 12 months).
 const OPEN_ENDED_PROJECTION_MONTHS = 12;
 
 export function buildDepositSummary(deposit: TimeDeposit, bank: Bank): DepositSummary {
-  // Closed deposits: compute interest accrued up to closeDate (pro-rated).
-  // This covers both time deposits closed early and open-ended accounts closed.
+  // Closed deposits: pro-rate interest up to closeDate.
   if (deposit.status === "closed" && deposit.closeDate) {
-    const daysHeld = Math.max(
-      0,
-      differenceInCalendarDays(
-        parseLocalDate(deposit.closeDate),
-        parseLocalDate(deposit.startDate),
-      ),
-    );
-    const result = calculateNetYield({
-      principal: deposit.principal,
-      startDate: deposit.startDate,
-      termMonths: 0,
-      termDays: daysHeld,
-      flatRate: deposit.flatRate,
-      tiers: deposit.tiers,
-      interestMode: deposit.interestMode,
-      interestTreatment: deposit.interestTreatment,
-      compounding: deposit.compounding,
-      taxRate: deposit.taxRateOverride ?? bank.taxRate,
-      dayCountConvention: deposit.dayCountConvention ?? 365,
-    });
+    const result = calculateAccruedToDate(deposit, bank, deposit.closeDate);
     return {
       deposit,
       bank,

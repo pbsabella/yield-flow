@@ -79,7 +79,7 @@ describe("CloseConfirmDialog — time deposit (early close)", () => {
     expect(screen.getByText(/31d remaining/i)).toBeInTheDocument();
   });
 
-  it("shows 'Close Account' button", () => {
+  it("shows 'Close account' button", () => {
     renderDialog();
     expect(screen.getByRole("button", { name: /close account/i })).toBeInTheDocument();
   });
@@ -100,11 +100,22 @@ describe("CloseConfirmDialog — time deposit (early close)", () => {
     expect(screen.getByText(/net proceeds/i)).toBeInTheDocument();
   });
 
-  it("calls onConfirm with the deposit id when confirmed", () => {
+  it("calls onConfirm with the deposit id and closeDate when confirmed", () => {
     const onConfirm = vi.fn();
-    renderDialog({ onConfirm });
+    renderDialog({ onConfirm, closeDate: "2025-12-01" });
     fireEvent.click(screen.getByRole("button", { name: /close account/i }));
-    expect(onConfirm).toHaveBeenCalledWith("dep-1");
+    expect(onConfirm).toHaveBeenCalledWith("dep-1", "2025-12-01");
+  });
+
+  it("shows correct net proceeds for a 61-day close", () => {
+    // startDate 2025-10-01, closeDate 2025-12-01 = 61 days
+    // gross = 100000 * 0.06 * (61/365) ≈ 1002.74, net ≈ 802.19, netProceeds ≈ 100802
+    renderDialog({
+      summary: makeSummary(makeDeposit({ startDate: "2025-10-01" }), "2026-01-01"),
+      closeDate: "2025-12-01",
+    });
+    const row = screen.getByText(/net proceeds/i).closest("div");
+    expect(row).toHaveTextContent(/100[,. ]?80[23]/);
   });
 
   it("calls onOpenChange(false) when cancel is clicked", () => {
@@ -133,22 +144,5 @@ describe("CloseConfirmDialog — open-ended savings (close account)", () => {
       closeDate: "2025-12-01",
     });
     expect(screen.getByText(/close savings account\?/i)).toBeInTheDocument();
-  });
-});
-
-describe("CloseConfirmDialog — null summary", () => {
-  it("renders nothing when summary is null", () => {
-    const { container } = render(
-      <PortfolioProvider>
-        <CloseConfirmDialog
-          summary={null}
-          closeDate="2025-12-01"
-          open={true}
-          onOpenChange={vi.fn()}
-          onConfirm={vi.fn()}
-        />
-      </PortfolioProvider>,
-    );
-    expect(container).toBeEmptyDOMElement();
   });
 });

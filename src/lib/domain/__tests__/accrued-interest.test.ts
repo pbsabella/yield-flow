@@ -26,13 +26,22 @@ function makeDeposit(overrides: Partial<TimeDeposit> = {}): TimeDeposit {
 }
 
 describe("calculateAccruedToDate", () => {
-  it("returns zero (or near-zero) interest when closed on startDate", () => {
+  it("returns 1-day minimum interest when closed on startDate", () => {
     const deposit = makeDeposit({ startDate: "2026-01-01" });
     const result = calculateAccruedToDate(deposit, bank, "2026-01-01");
-    // 0 days → engine clamps to 1 day minimum, but the amount is negligible
-    expect(result.netInterest).toBeGreaterThanOrEqual(0);
-    // At most 1 day of interest on ₱100k at 6% (≈ ₱13.15 net)
-    expect(result.netInterest).toBeLessThan(20);
+    // daysHeld = Math.max(0, 0) = 0 → yield engine clamps to 1-day minimum
+    // 1 day: 100000 * 0.06 * (1/365) * 0.8 ≈ 13.15
+    const expectedNet = 100_000 * 0.06 * (1 / 365) * 0.8;
+    expect(result.netInterest).toBeCloseTo(expectedNet, 2);
+    expect(result.grossInterest).toBeCloseTo(expectedNet / 0.8, 2);
+  });
+
+  it("uses 1-day minimum when closeDate is before startDate", () => {
+    const deposit = makeDeposit({ startDate: "2026-03-01" });
+    const result = calculateAccruedToDate(deposit, bank, "2026-02-01");
+    // Math.max(0, negative) → 0 → yield engine clamps to 1-day minimum
+    const expectedNet = 100_000 * 0.06 * (1 / 365) * 0.8;
+    expect(result.netInterest).toBeCloseTo(expectedNet, 2);
   });
 
   it("pro-rates interest for 30 days out of a 90-day deposit", () => {
@@ -63,6 +72,18 @@ describe("calculateAccruedToDate", () => {
     const result = calculateAccruedToDate(deposit, bank, "2026-03-02"); // 60 days
     const gross = 100_000 * 0.06 * (60 / 365);
     expect(result.netInterest).toBeCloseTo(gross * 0.8, 0);
+  });
+
+  it("computes interest for a tiered-rate deposit using the applicable tier", () => {
+    // Single tier covering all balances at 5% — same math as flat but exercising the tiered path
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      interestMode: "tiered",
+      tiers: [{ upTo: null, rate: 0.05 }],
+    });
+    const result = calculateAccruedToDate(deposit, bank, "2026-01-31"); // 30 days
+    const expected = 100_000 * 0.05 * (30 / 365) * 0.8;
+    expect(result.netInterest).toBeCloseTo(expected, 0);
   });
 
   it("handles open-ended savings closed after N days", () => {

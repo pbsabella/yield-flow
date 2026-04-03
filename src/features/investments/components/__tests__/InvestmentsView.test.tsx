@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { InvestmentsView } from "../InvestmentsView";
 import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
@@ -22,7 +22,7 @@ vi.mock("../DepositCard", () => ({
   }: {
     summary: EnrichedSummary;
     onSettleClick: (s: EnrichedSummary) => void;
-    onDeleteClick: (id: string) => void;
+    onDeleteClick: (s: EnrichedSummary) => void;
     onUnsettleClick: (id: string) => void;
     onCloseClick: (s: EnrichedSummary) => void;
     onReopenClick: (id: string) => void;
@@ -38,7 +38,7 @@ vi.mock("../DepositCard", () => ({
       </button>
       <button
         aria-label={`Delete ${summary.deposit.name}`}
-        onClick={() => onDeleteClick(summary.deposit.id)}
+        onClick={() => onDeleteClick(summary)}
       >
         Delete
       </button>
@@ -123,9 +123,9 @@ describe("InvestmentsView — settle toast", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /settle my bank td/i }));
 
-    // The dialog confirm button text includes the formatted total — find it via the dialog
-    const allSettle = screen.getAllByRole("button", { name: /settle/i });
-    fireEvent.click(allSettle[allSettle.length - 1]);
+    // Scope to the alertdialog so the query is resilient to other "settle" buttons
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: /settle/i }));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
@@ -182,8 +182,8 @@ describe("InvestmentsView — reopen", () => {
     };
     renderView({ summaries: [closedSummary], onReopen });
 
-    // Closed deposits are hidden by default — toggle "Show closed / settled" first
-    fireEvent.click(screen.getByRole("switch"));
+    // Closed deposits are hidden by default — toggle "Show inactive" first
+    fireEvent.click(screen.getByRole("switch", { name: /show closed \/ settled/i }));
 
     fireEvent.click(screen.getByRole("button", { name: /reopen my bank td/i }));
     expect(onReopen).toHaveBeenCalledWith("dep-1");
@@ -214,5 +214,58 @@ describe("InvestmentsView — delete toast", () => {
       expect(toast.success).toHaveBeenCalledWith("My Bank TD deleted");
     });
     expect(onDelete).toHaveBeenCalledWith("dep-1");
+  });
+});
+
+// ─── aria-live announcements ──────────────────────────────────────────────────
+
+describe("InvestmentsView — aria-live region", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("announces settle confirmation to screen readers", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /settle my bank td/i }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: /settle/i }));
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/marked as settled/i);
+    });
+  });
+
+  it("announces close confirmation to screen readers", async () => {
+    const activeSummary: EnrichedSummary = { ...summary, effectiveStatus: "active" };
+    renderView({ summaries: [activeSummary] });
+    fireEvent.click(screen.getByRole("button", { name: /close my bank td/i }));
+    const confirmBtn = await screen.findByRole("button", { name: /close account/i });
+    fireEvent.click(confirmBtn);
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/closed/i);
+    });
+  });
+
+  it("announces delete confirmation to screen readers", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /delete my bank td/i }));
+    const confirmBtn = await screen.findByRole("button", { name: /delete my bank td/i });
+    fireEvent.click(confirmBtn);
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/deleted/i);
+    });
+  });
+});
+
+// ─── Empty states ─────────────────────────────────────────────────────────────
+
+describe("InvestmentsView — empty states", () => {
+  it("shows empty state when no summaries are provided", () => {
+    renderView({ summaries: [] });
+    expect(screen.getByText(/no investments tracked yet/i)).toBeInTheDocument();
+  });
+
+  it("renders no dialog when no deposit is targeted for close", () => {
+    renderView();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 });

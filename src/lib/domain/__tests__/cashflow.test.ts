@@ -26,14 +26,22 @@ function makeDeposit(overrides: Partial<TimeDeposit> = {}): TimeDeposit {
 }
 
 // maturityDate is string | null: null for open-ended deposits.
-function makeSummary(deposit: TimeDeposit, maturityDate: string | null, netInterest: number): DepositSummary {
+// grossInterest must be passed explicitly — do not derive it with an implicit tax rate,
+// since buildMonthlyAllowance never reads grossInterest and the formula would silently
+// produce wrong values if a test uses a different tax rate.
+function makeSummary(
+  deposit: TimeDeposit,
+  maturityDate: string | null,
+  netInterest: number,
+  grossInterest = netInterest / 0.8,
+): DepositSummary {
   return {
     deposit,
     bank,
     maturityDate,
-    grossInterest: netInterest / 0.8,
+    grossInterest,
     netInterest,
-    grossTotal: deposit.principal + netInterest / 0.8,
+    grossTotal: deposit.principal + grossInterest,
     netTotal: deposit.principal + netInterest,
   };
 }
@@ -124,13 +132,40 @@ describe("buildMonthlyAllowance — empty input", () => {
   });
 });
 
+// ─── Settled deposit passthrough ─────────────────────────────────────────────
+//
+// usePortfolioData passes all statuses (including "settled") to buildMonthlyAllowance
+// for the currentMonthFull ledger. Settled deposits fall through to the normal
+// payout-date logic and must appear in the result with status "settled".
+
+describe("buildMonthlyAllowance — settled deposit", () => {
+  it("emits an entry in the maturity month with status 'settled'", () => {
+    const deposit = makeDeposit({
+      startDate: "2026-01-01",
+      termMonths: 3,
+      payoutFrequency: "maturity",
+      status: "settled",
+    });
+    const summary = {
+      ...makeSummary(deposit, "2026-04-01", 1800),
+      effectiveStatus: "settled" as const,
+    };
+
+    const result = buildMonthlyAllowance([summary]);
+    expect(result).toHaveLength(1);
+    expect(result[0].monthKey).toBe("2026-04");
+    expect(result[0].entries[0].status).toBe("settled");
+    expect(result[0].net).toBeCloseTo(1800, 6);
+  });
+});
+
 // ─── effectiveStatus override ─────────────────────────────────────────────────
 //
 // A deposit that matures today still has deposit.status === "active" in storage
 // (status is only written on explicit user action). usePortfolioData computes
 // effectiveStatus === "matured" at runtime and passes EnrichedSummary objects
 // to buildMonthlyAllowance. The function must prefer effectiveStatus so the KPI
-// "pending" pill and the Cash Flow "Due now" badge fire correctly on the due date.
+// "pending" pill and the Cash Flow "Matured" badge fire correctly on the due date.
 
 describe("buildMonthlyAllowance — effectiveStatus override", () => {
   it("uses effectiveStatus over deposit.status when provided", () => {

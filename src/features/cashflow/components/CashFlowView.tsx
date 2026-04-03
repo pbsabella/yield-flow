@@ -224,7 +224,7 @@ function EntryGroup({
               <span className="flex items-center gap-1.5 shrink-0">
                 {isCurrent && entry.status === "matured" && (
                   <Badge variant="warning" className="text-xs h-4 font-normal">
-                    Due now
+                    Matured
                   </Badge>
                 )}
                 {isCurrent && isSettled && (

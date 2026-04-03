@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";
-import { CircleAlert, CircleArrowRight, CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleArrowRight, CircleCheck, CircleX, TriangleAlert } from "lucide-react";
 import {
   parseLocalDate,
   differenceInCalendarDays,
@@ -277,7 +277,7 @@ function DesktopLadder({
                       <TriangleAlert size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
                     )}
                     {s.effectiveStatus === "closed" && widthPct > 2 && (
-                      <CircleAlert size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
+                      <CircleX size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
                     )}
                     {!s.maturityDate && widthPct > 2 && (
                       <CircleArrowRight size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground pointer-events-none" />

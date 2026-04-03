@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import type { TimeDeposit } from "@/types";
+import type { EffectiveStatus } from "@/features/portfolio/hooks/usePortfolioData";
 
 interface StatusBadgeProps {
-  status: TimeDeposit["status"];
+  status: EffectiveStatus;
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {

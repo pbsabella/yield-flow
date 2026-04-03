@@ -148,42 +148,30 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
   // For card view: sorted filtered list
   const sortedForCards = useMemo(() => sortSummaries(filtered), [filtered]);
 
-  // Card view groups
-  const groups = useMemo(
-    () =>
+  // Card view groups — single pass instead of five filters
+  const groups = useMemo(() => {
+    const b: Record<string, EnrichedSummary[]> = {
+      matured: [], active: [], "open-ended": [], settled: [], closed: [],
+    };
+    for (const s of sortedForCards) {
+      if (s.effectiveStatus === "matured") b.matured.push(s);
+      else if (s.effectiveStatus === "active" && !s.deposit.isOpenEnded) b.active.push(s);
+      else if (s.effectiveStatus === "active") b["open-ended"].push(s);
+      else if (s.effectiveStatus === "settled") b.settled.push(s);
+      else b.closed.push(s);
+    }
+    return (
       [
-        {
-          key: "matured",
-          label: "Matured",
-          items: sortedForCards.filter((s) => s.effectiveStatus === "matured"),
-        },
-        {
-          key: "active",
-          label: "Active",
-          items: sortedForCards.filter(
-            (s) => s.effectiveStatus === "active" && !s.deposit.isOpenEnded,
-          ),
-        },
-        {
-          key: "open-ended",
-          label: "Open-ended",
-          items: sortedForCards.filter(
-            (s) => s.effectiveStatus === "active" && s.deposit.isOpenEnded,
-          ),
-        },
-        {
-          key: "settled",
-          label: "Settled",
-          items: sortedForCards.filter((s) => s.effectiveStatus === "settled"),
-        },
-        {
-          key: "closed",
-          label: "Closed",
-          items: sortedForCards.filter((s) => s.effectiveStatus === "closed"),
-        },
-      ].filter((g) => g.items.length > 0),
-    [sortedForCards],
-  );
+        { key: "matured", label: "Matured" },
+        { key: "active", label: "Active" },
+        { key: "open-ended", label: "Open-ended" },
+        { key: "settled", label: "Settled" },
+        { key: "closed", label: "Closed" },
+      ] as const
+    )
+      .map(({ key, label }) => ({ key, label, items: b[key] }))
+      .filter((g) => g.items.length > 0);
+  }, [sortedForCards]);
 
   const handleSettleClick = useCallback((summary: EnrichedSummary) => {
     setSettleTarget(summary);
@@ -194,10 +182,9 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
   }, []);
 
   const handleCloseConfirm = useCallback(
-    (id: string) => {
+    (id: string, closeDate: string) => {
       const name = closeTarget?.deposit.name ?? "";
-      const today = toISODate(new Date());
-      onClose(id, today);
+      onClose(id, closeDate);
       setCloseTarget(null);
       setAnnouncement(`${name} closed.`);
       toast.success(`${name} closed`, {
@@ -242,19 +229,16 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
     [onSettle, onUnsettle, settleTarget],
   );
 
-  const handleDeleteRequest = useCallback(
-    (id: string) => {
-      const target = summaries.find((s) => s.deposit.id === id) ?? null;
-      setDeleteTarget(target);
-    },
-    [summaries],
-  );
+  const handleDeleteRequest = useCallback((summary: EnrichedSummary) => {
+    setDeleteTarget(summary);
+  }, []);
 
   const handleDeleteConfirm = useCallback(
     (id: string) => {
       const name = deleteTarget?.deposit.name ?? "";
       onDelete(id);
       setDeleteTarget(null);
+      setAnnouncement(`${name} deleted.`);
       toast.success(`${name} deleted`);
     },
     [onDelete, deleteTarget],
@@ -310,7 +294,7 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
             size="default"
           />
           <Label htmlFor="show-settled" className="text-sm cursor-pointer select-none">
-            Show closed / settled
+            Show inactive
           </Label>
         </div>
 
@@ -498,16 +482,18 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
         onRollOver={handleRollOverRequest}
       />
 
-      {/* Close account dialog */}
-      <CloseConfirmDialog
-        summary={closeTarget}
-        closeDate={toISODate(new Date())}
-        open={closeTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setCloseTarget(null);
-        }}
-        onConfirm={handleCloseConfirm}
-      />
+      {/* Close account dialog — only mounts when a target is selected */}
+      {closeTarget !== null && (
+        <CloseConfirmDialog
+          summary={closeTarget}
+          closeDate={toISODate(new Date())}
+          open
+          onOpenChange={(open) => {
+            if (!open) setCloseTarget(null);
+          }}
+          onConfirm={handleCloseConfirm}
+        />
+      )}
 
       {/* Delete dialog */}
       <DeleteConfirmDialog
