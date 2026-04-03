@@ -247,14 +247,14 @@ test("investments table — show settled toggle reveals all closed/settled depos
   await snap(page, "Investments - table view filled");
 });
 
-test("investments table — show closed/settled toggle does not hide matured deposits", async ({ page }) => {
+test("investments table — show inactive toggle does not hide matured deposits", async ({ page }) => {
   await seedAndGo(page);
 
   // Matured visible before toggle
   await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
   await expect(page.getByText("Apex 6M (matured)")).toBeVisible();
 
-  // Toggle closed/settled (off → on → off cycle to confirm matured is unaffected)
+  // Toggle inactive (off → on → off cycle to confirm matured is unaffected)
   await page.getByRole('switch', { name: 'Show inactive' }).click();
   await expect(page.getByText("Meridian 3M (matured)")).toBeVisible();
   await expect(page.getByText("Apex 6M (matured)")).toBeVisible();

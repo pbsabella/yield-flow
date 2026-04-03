@@ -183,7 +183,7 @@ describe("InvestmentsView — reopen", () => {
     renderView({ summaries: [closedSummary], onReopen });
 
     // Closed deposits are hidden by default — toggle "Show inactive" first
-    fireEvent.click(screen.getByRole("switch", { name: /show closed \/ settled/i }));
+    fireEvent.click(screen.getByRole("switch", { name: /show inactive/i }));
 
     fireEvent.click(screen.getByRole("button", { name: /reopen my bank td/i }));
     expect(onReopen).toHaveBeenCalledWith("dep-1");
