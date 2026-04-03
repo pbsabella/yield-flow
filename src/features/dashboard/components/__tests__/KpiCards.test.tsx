@@ -4,7 +4,7 @@ import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
 import type { CurrentMonthBreakdown, NextMaturity } from "@/features/portfolio/hooks/usePortfolioData";
 
-const emptyBreakdown: CurrentMonthBreakdown = { net: 0, pendingNet: 0, settledNet: 0 };
+const emptyBreakdown: CurrentMonthBreakdown = { net: 0, pendingNet: 0, settledNet: 0, closedNet: 0 };
 
 function renderKpiCards(props: Parameters<typeof KpiCards>[0]) {
   return render(
@@ -36,7 +36,7 @@ describe("KpiCards — Total Principal", () => {
 
 describe("KpiCards — Income This Month", () => {
   it("renders net income for the current month", () => {
-    const breakdown: CurrentMonthBreakdown = { net: 12500, pendingNet: 0, settledNet: 0 };
+    const breakdown: CurrentMonthBreakdown = { net: 12500, pendingNet: 0, settledNet: 0, closedNet: 0 };
     renderKpiCards({
       totalPrincipal: 0,
       currentMonthBreakdown: breakdown,
@@ -46,7 +46,7 @@ describe("KpiCards — Income This Month", () => {
   });
 
   it("shows pending and settled pills when both are non-zero", () => {
-    const breakdown: CurrentMonthBreakdown = { net: 3000, pendingNet: 2000, settledNet: 1000 };
+    const breakdown: CurrentMonthBreakdown = { net: 3000, pendingNet: 2000, settledNet: 1000, closedNet: 0 };
     renderKpiCards({
       totalPrincipal: 0,
       currentMonthBreakdown: breakdown,
@@ -60,7 +60,7 @@ describe("KpiCards — Income This Month", () => {
   });
 
   it("shows pending pill but hides settled pill when settledNet is zero", () => {
-    const breakdown: CurrentMonthBreakdown = { net: 2000, pendingNet: 2000, settledNet: 0 };
+    const breakdown: CurrentMonthBreakdown = { net: 2000, pendingNet: 2000, settledNet: 0, closedNet: 0 };
     renderKpiCards({
       totalPrincipal: 0,
       currentMonthBreakdown: breakdown,

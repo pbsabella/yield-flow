@@ -303,8 +303,9 @@ Within each expanded month, entries are grouped under "At maturity payouts" and 
 
 Within the **current month** entry list only:
 
-- `matured` entries → "Due now" alert badge (action needed)
-- `settled` entries → "Settled" success badge (muted signal)
+- `matured` entries → "Matured" warning badge (action needed)
+- `settled` entries → "Settled" success badge
+- `closed` entries → "Closed" alert badge
 - `active` entries → no badge (self-evidently pending)
 
 **Decision:** "Pending" label was removed from active entries. An active deposit in the current month's list is self-evidently pending — the label stated the obvious.

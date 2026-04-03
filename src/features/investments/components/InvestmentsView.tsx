@@ -46,6 +46,7 @@ import { useFormatterContext } from "@/features/portfolio/context/PortfolioConte
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { SettleConfirmDialog } from "./SettleConfirmDialog";
+import { CloseConfirmDialog } from "./CloseConfirmDialog";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import { LadderView } from "./LadderView";
 import { BankActiveSummary } from "./BankActiveSummary";
@@ -60,6 +61,8 @@ type Props = {
   summaries: EnrichedSummary[];
   onSettle: (id: string) => void;
   onUnsettle: (id: string) => void;
+  onClose: (id: string, closeDate: string) => void;
+  onReopen: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (deposit: TimeDeposit) => void;
   onRollOver: (config: RolloverConfig) => void;
@@ -72,7 +75,8 @@ function statusSortWeight(s: EnrichedSummary): number {
   if (s.effectiveStatus === "matured") return 0;
   if (s.effectiveStatus === "active" && !s.deposit.isOpenEnded) return 1;
   if (s.effectiveStatus === "active" && s.deposit.isOpenEnded) return 2;
-  return 3; // settled
+  if (s.effectiveStatus === "settled") return 3;
+  return 4; // closed
 }
 
 function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
@@ -97,13 +101,14 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onEdit, onRollOver, highlightedId }: Props) {
+export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onReopen, onDelete, onEdit, onRollOver, highlightedId }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
+  const [closeTarget, setCloseTarget] = useState<EnrichedSummary | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EnrichedSummary | null>(null);
   const [sorting, setSorting] = useState<SortingState>([{ id: "daysToMaturity", desc: false }]);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -120,7 +125,7 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
   // Filtered summaries
   const filtered = useMemo(() => {
     let list = summaries;
-    if (!showSettled) list = list.filter((s) => s.effectiveStatus !== "settled");
+    if (!showSettled) list = list.filter((s) => s.effectiveStatus !== "settled" && s.effectiveStatus !== "closed");
     if (bankFilter !== "all") list = list.filter((s) => s.bank.id === bankFilter);
     return list;
   }, [summaries, showSettled, bankFilter]);
@@ -143,41 +148,54 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
   // For card view: sorted filtered list
   const sortedForCards = useMemo(() => sortSummaries(filtered), [filtered]);
 
-  // Card view groups
-  const groups = useMemo(
-    () =>
+  // Card view groups — single pass instead of five filters
+  const groups = useMemo(() => {
+    const b: Record<string, EnrichedSummary[]> = {
+      matured: [], active: [], "open-ended": [], settled: [], closed: [],
+    };
+    for (const s of sortedForCards) {
+      if (s.effectiveStatus === "matured") b.matured.push(s);
+      else if (s.effectiveStatus === "active" && !s.deposit.isOpenEnded) b.active.push(s);
+      else if (s.effectiveStatus === "active") b["open-ended"].push(s);
+      else if (s.effectiveStatus === "settled") b.settled.push(s);
+      else b.closed.push(s);
+    }
+    return (
       [
-        {
-          key: "matured",
-          label: "Matured",
-          items: sortedForCards.filter((s) => s.effectiveStatus === "matured"),
-        },
-        {
-          key: "active",
-          label: "Active",
-          items: sortedForCards.filter(
-            (s) => s.effectiveStatus === "active" && !s.deposit.isOpenEnded,
-          ),
-        },
-        {
-          key: "open-ended",
-          label: "Open-ended",
-          items: sortedForCards.filter(
-            (s) => s.effectiveStatus === "active" && s.deposit.isOpenEnded,
-          ),
-        },
-        {
-          key: "settled",
-          label: "Settled",
-          items: sortedForCards.filter((s) => s.effectiveStatus === "settled"),
-        },
-      ].filter((g) => g.items.length > 0),
-    [sortedForCards],
-  );
+        { key: "matured", label: "Matured" },
+        { key: "active", label: "Active" },
+        { key: "open-ended", label: "Open-ended" },
+        { key: "settled", label: "Settled" },
+        { key: "closed", label: "Closed" },
+      ] as const
+    )
+      .map(({ key, label }) => ({ key, label, items: b[key] }))
+      .filter((g) => g.items.length > 0);
+  }, [sortedForCards]);
 
   const handleSettleClick = useCallback((summary: EnrichedSummary) => {
     setSettleTarget(summary);
   }, []);
+
+  const handleCloseClick = useCallback((summary: EnrichedSummary) => {
+    setCloseTarget(summary);
+  }, []);
+
+  const handleCloseConfirm = useCallback(
+    (id: string, closeDate: string) => {
+      const name = closeTarget?.deposit.name ?? "";
+      onClose(id, closeDate);
+      setCloseTarget(null);
+      setAnnouncement(`${name} closed.`);
+      toast.success(`${name} closed`, {
+        action: {
+          label: "Undo",
+          onClick: () => onReopen(id),
+        },
+      });
+    },
+    [onClose, onReopen, closeTarget],
+  );
 
   const handleRollOverRequest = useCallback(
     (summary: EnrichedSummary) => {
@@ -211,19 +229,16 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
     [onSettle, onUnsettle, settleTarget],
   );
 
-  const handleDeleteRequest = useCallback(
-    (id: string) => {
-      const target = summaries.find((s) => s.deposit.id === id) ?? null;
-      setDeleteTarget(target);
-    },
-    [summaries],
-  );
+  const handleDeleteRequest = useCallback((summary: EnrichedSummary) => {
+    setDeleteTarget(summary);
+  }, []);
 
   const handleDeleteConfirm = useCallback(
     (id: string) => {
       const name = deleteTarget?.deposit.name ?? "";
       onDelete(id);
       setDeleteTarget(null);
+      setAnnouncement(`${name} deleted.`);
       toast.success(`${name} deleted`);
     },
     [onDelete, deleteTarget],
@@ -243,6 +258,8 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
       onDelete: handleDeleteRequest,
       onEdit,
       onUnsettle,
+      onCloseClick: handleCloseClick,
+      onReopen,
     },
   });
 
@@ -277,7 +294,7 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
             size="default"
           />
           <Label htmlFor="show-settled" className="text-sm cursor-pointer select-none">
-            Show settled
+            Show inactive
           </Label>
         </div>
 
@@ -443,6 +460,8 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
                     onDeleteClick={handleDeleteRequest}
                     onEditClick={onEdit}
                     onUnsettleClick={onUnsettle}
+                    onCloseClick={handleCloseClick}
+                    onReopenClick={onReopen}
                     isNew={s.deposit.id === highlightedId}
                   />
                 ))}
@@ -462,6 +481,19 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onDelete, onE
         onConfirm={handleSettleConfirm}
         onRollOver={handleRollOverRequest}
       />
+
+      {/* Close account dialog — only mounts when a target is selected */}
+      {closeTarget !== null && (
+        <CloseConfirmDialog
+          summary={closeTarget}
+          closeDate={toISODate(new Date())}
+          open
+          onOpenChange={(open) => {
+            if (!open) setCloseTarget(null);
+          }}
+          onConfirm={handleCloseConfirm}
+        />
+      )}
 
       {/* Delete dialog */}
       <DeleteConfirmDialog

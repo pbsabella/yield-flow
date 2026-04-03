@@ -13,6 +13,8 @@ export function InvestmentsShell() {
     highlightedId,
     handleSettle,
     handleUnsettle,
+    handleClose,
+    handleReopen,
     handleDelete,
     handleEdit,
     openWizard,
@@ -26,11 +28,16 @@ export function InvestmentsShell() {
         <Container className="py-6 space-y-stack-lg">
           <PageHeader
             title="Investments"
-            subtitle={
-              portfolio.summaries.length > 0
-                ? `${portfolio.summaries.length} deposit${portfolio.summaries.length !== 1 ? "s" : ""} tracked`
-                : "No investments yet"
-            }
+            subtitle={(() => {
+              const total = portfolio.summaries.length;
+              if (total === 0) return "No investments yet";
+              const active = portfolio.summaries.filter(
+                (s) => s.effectiveStatus === "active" || s.effectiveStatus === "matured",
+              ).length;
+              return active > 0 && active < total
+                ? `${active} active · ${total} total`
+                : `${total} deposit${total !== 1 ? "s" : ""} tracked`;
+            })()}
             action={{ onClick: () => openWizard() }}
             secondaryAction={
               portfolio.summaries.length > 0
@@ -43,6 +50,8 @@ export function InvestmentsShell() {
             summaries={portfolio.summaries}
             onSettle={handleSettle}
             onUnsettle={handleUnsettle}
+            onClose={handleClose}
+            onReopen={handleReopen}
             onDelete={handleDelete}
             onEdit={handleEdit}
             onRollOver={openRollover}

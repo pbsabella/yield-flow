@@ -1,10 +1,25 @@
 import type { Bank, DepositSummary, TimeDeposit } from "@/types";
 import { calculateNetYield } from "@/lib/domain/yield-engine";
+import { calculateAccruedToDate } from "@/lib/domain/accrued-interest";
 
 // Projection window for open-ended deposits (rolling 12 months).
 const OPEN_ENDED_PROJECTION_MONTHS = 12;
 
 export function buildDepositSummary(deposit: TimeDeposit, bank: Bank): DepositSummary {
+  // Closed deposits: pro-rate interest up to closeDate.
+  if (deposit.status === "closed" && deposit.closeDate) {
+    const result = calculateAccruedToDate(deposit, bank, deposit.closeDate);
+    return {
+      deposit,
+      bank,
+      maturityDate: deposit.closeDate,
+      grossInterest: result.grossInterest,
+      netInterest: result.netInterest,
+      grossTotal: deposit.principal + result.grossInterest,
+      netTotal: deposit.principal + result.netInterest,
+    };
+  }
+
   if (deposit.isOpenEnded) {
     // Open-ended deposits have no fixed maturity. Project interest over a
     // rolling 12-month window for display purposes only.

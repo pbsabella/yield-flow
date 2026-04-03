@@ -34,7 +34,7 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, on
         <AlertDialogHeader>
           <AlertDialogTitle>Settle {deposit.name}?</AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-1 text-sm">
+            <div className="space-y-1 text-sm w-full">
               <div className="flex justify-between">
                 <span>Principal</span>
                 <span className="font-medium text-foreground">
@@ -57,7 +57,7 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, on
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <Button variant="outline" onClick={() => onRollOver(summary)}>
-            Roll Over
+            Roll over
           </Button>
           <AlertDialogAction onClick={() => onConfirm(deposit.id)}>
             Settle {fmtCurrency(netTotal)}

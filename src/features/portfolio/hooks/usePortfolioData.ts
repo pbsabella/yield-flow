@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildDepositSummary } from "@/lib/domain/interest";
-import { buildMonthlyAllowance } from "@/lib/domain/cashflow";
+import { buildCashFlowProjection, buildCashFlowLedger } from "@/lib/domain/cashflow";
 import { monthKey, parseLocalDate } from "@/lib/domain/date";
-import type { Bank, DepositSummary, TimeDeposit } from "@/types";
+import type { Bank, DepositSummary, MonthlyAllowance, TimeDeposit } from "@/types";
+
+/** Runtime-derived display status. Never persisted to storage. */
+export type EffectiveStatus = TimeDeposit["status"];
 
 export type EnrichedSummary = DepositSummary & {
   // Derived-only status for UI display. Never written back to storage.
-  // active → matured when today >= maturityDate; settled is always settled.
-  effectiveStatus: TimeDeposit["status"];
+  // active → matured when today >= maturityDate; settled/closed are terminal.
+  effectiveStatus: EffectiveStatus;
 };
 
 export type NextMaturity = {
@@ -26,6 +29,8 @@ export type CurrentMonthBreakdown = {
   pendingNet: number;
   // Net amount from settled deposits with a payout this month.
   settledNet: number;
+  // Net amount from deposits closed early this month (principal + accrued returned).
+  closedNet: number;
 };
 
 export type PortfolioData = {
@@ -33,18 +38,20 @@ export type PortfolioData = {
   totalPrincipal: number;
   currentMonthBreakdown: CurrentMonthBreakdown;
   nextMaturity: NextMaturity | null;
-  // Projection: excludes settled deposits. Used for 12-month cash flow view.
-  monthlyAllowance: ReturnType<typeof buildMonthlyAllowance>;
-  // Full current-month picture: includes active + matured + settled entries.
-  currentMonthFull: ReturnType<typeof buildMonthlyAllowance>[number] | null;
+  // Forward projection: excludes settled/closed deposits. Used for 12-month cash flow view.
+  monthlyAllowance: MonthlyAllowance[];
+  // Full current-month ledger: includes active + matured + settled + closed entries.
+  currentMonthFull: MonthlyAllowance | null;
 };
 
 function deriveEffectiveStatus(
   deposit: TimeDeposit,
   maturityDate: string | null,
   today: Date,
-): TimeDeposit["status"] {
+): EffectiveStatus {
+  // Terminal states that require no auto-transition.
   if (deposit.status === "settled") return "settled";
+  if (deposit.status === "closed") return "closed";
   if (deposit.status === "active" && maturityDate !== null) {
     // parseLocalDate parses as local midnight (not UTC midnight) so the
     // comparison fires at midnight on the due date, not 8 hours later (UTC+8).
@@ -58,12 +65,21 @@ export function usePortfolioData(
   deposits: TimeDeposit[],
   banks: Bank[],
 ): PortfolioData {
+  // Re-tick once per minute so maturity transitions fire correctly when the
+  // app is left open overnight. Without this, today is stale until remount.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Single "today" snapshot shared across all memos for a consistent render cycle.
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
 
   const bankMap = useMemo(() => {
     const m = new Map<string, Bank>();
@@ -90,17 +106,16 @@ export function usePortfolioData(
 
   const totalPrincipal = useMemo(() => {
     return summaries
-      .filter((s) => s.effectiveStatus !== "settled")
+      .filter((s) => s.effectiveStatus !== "settled" && s.effectiveStatus !== "closed")
       .reduce((sum, s) => sum + s.deposit.principal, 0);
   }, [summaries]);
 
-  // Current month: use ALL summaries (including settled) so the Income This Month
-  // card reflects the full picture — settled payouts are confirmed income.
-  // Also derives currentMonthFull here to avoid a second buildMonthlyAllowance(summaries) call.
+  // Ledger: use ALL summaries so the Income This Month card reflects the full
+  // picture — settled payouts are confirmed income, closed entries show early exits.
   const { currentMonthBreakdown, currentMonthFull } = useMemo(() => {
     const todayKey = monthKey(today);
-    const allAllowance = buildMonthlyAllowance(summaries);
-    const thisMonth = allAllowance.find((m) => m.monthKey === todayKey) ?? null;
+    const ledger = buildCashFlowLedger(summaries, today);
+    const thisMonth = ledger.find((m) => m.monthKey === todayKey) ?? null;
 
     const breakdown: CurrentMonthBreakdown = thisMonth
       ? {
@@ -111,8 +126,11 @@ export function usePortfolioData(
           settledNet: thisMonth.entries
             .filter((e) => e.status === "settled")
             .reduce((sum, e) => sum + e.amountNet, 0),
+          closedNet: thisMonth.entries
+            .filter((e) => e.status === "closed")
+            .reduce((sum, e) => sum + e.amountNet, 0),
         }
-      : { net: 0, pendingNet: 0, settledNet: 0 };
+      : { net: 0, pendingNet: 0, settledNet: 0, closedNet: 0 };
 
     return { currentMonthBreakdown: breakdown, currentMonthFull: thisMonth };
   }, [summaries, today]);
@@ -140,10 +158,12 @@ export function usePortfolioData(
   }, [summaries, today]);
 
   const monthlyAllowance = useMemo(() => {
-    // Projection excludes settled — their cash has already been received.
-    const projectionSummaries = summaries.filter((s) => s.effectiveStatus !== "settled");
-    return buildMonthlyAllowance(projectionSummaries);
-  }, [summaries]);
+    // Projection excludes settled and closed — their cash has already been received.
+    const projectionSummaries = summaries.filter(
+      (s) => s.effectiveStatus !== "settled" && s.effectiveStatus !== "closed",
+    );
+    return buildCashFlowProjection(projectionSummaries, today);
+  }, [summaries, today]);
 
   return { summaries, totalPrincipal, currentMonthBreakdown, nextMaturity, monthlyAllowance, currentMonthFull };
 }

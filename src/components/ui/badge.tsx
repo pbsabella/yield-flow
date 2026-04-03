@@ -20,9 +20,15 @@ const badgeVariants = cva(
         // @shadcn-override: spread status variants from variants.ts
         ...badgeStatusVariants,
       },
+      size: {
+        default: "",
+        sm: "h-4 px-1 py-0 text-[10px] leading-none",
+        xs: "h-3.5 px-0.5 py-0 text-[9px] leading-none",
+      },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 )
@@ -31,6 +37,7 @@ const badgeVariants = cva(
 function Badge({
   className,
   variant = "default",
+  size = "default",
   asChild = false,
   ...props
 }: React.ComponentProps<"span"> &
@@ -41,7 +48,7 @@ function Badge({
     <Comp
       data-slot="badge"
       data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     />
   )

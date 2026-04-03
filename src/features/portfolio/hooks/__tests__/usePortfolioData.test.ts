@@ -46,7 +46,7 @@ describe("usePortfolioData — empty deposits", () => {
     expect(result.current.nextMaturity).toBeNull();
     expect(result.current.monthlyAllowance).toEqual([]);
     expect(result.current.currentMonthFull).toBeNull();
-    expect(result.current.currentMonthBreakdown).toEqual({ net: 0, pendingNet: 0, settledNet: 0 });
+    expect(result.current.currentMonthBreakdown).toEqual({ net: 0, pendingNet: 0, settledNet: 0, closedNet: 0 });
   });
 });
 

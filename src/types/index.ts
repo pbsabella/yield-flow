@@ -29,7 +29,9 @@ export type TimeDeposit = {
   payoutFrequency: PayoutFrequency;
   dayCountConvention?: 360 | 365;
   isOpenEnded?: boolean;
-  status: "active" | "matured" | "settled";
+  status: "active" | "matured" | "settled" | "closed";
+  /** ISO date (YYYY-MM-DD) of early closure. Set when status transitions to "closed". */
+  closeDate?: string;
 };
 
 export type Bank = {
@@ -60,6 +62,6 @@ export type MonthlyAllowance = {
     payoutFrequency: PayoutFrequency;
     amountNet: number;
     principalReturned?: number;
-    status: "active" | "matured" | "settled";
+    status: "active" | "matured" | "settled" | "closed";
   }>;
 };

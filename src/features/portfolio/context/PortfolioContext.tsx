@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import { usePreferences } from "@/lib/hooks/usePreferences";
@@ -81,6 +81,8 @@ interface PortfolioContextValue {
   handleSave: (deposit: TimeDeposit) => void;
   handleSettle: (id: string) => void;
   handleUnsettle: (id: string) => void;
+  handleClose: (id: string, closeDate: string) => void;
+  handleReopen: (id: string) => void;
   handleRollOver: (oldId: string, newDeposit: TimeDeposit) => void;
   handleDelete: (id: string) => void;
   handleEdit: (deposit: TimeDeposit) => void;
@@ -129,6 +131,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const [rolloverConfig, setRolloverConfig] = useState<RolloverConfig | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [exportAiOpen, setExportAiOpen] = useState(false);
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // When demo mode is restored from persisted storage, re-populate demo deposits.
   // setState inside an effect is intentional here: we're syncing React state from
@@ -198,89 +201,99 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setRolloverConfig(null);
   }, []);
 
-  // ─── Deposit mutations ─────────────────────────────────────────────────────
+  // ─── Shared mutation helpers ───────────────────────────────────────────────
 
-  const handleSave = useCallback(
-    (deposit: TimeDeposit) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) =>
-          editTarget
-            ? prev.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
-            : [...prev, deposit],
-        );
-      } else {
-        setDeposits(
-          editTarget
-            ? storedDeposits.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
-            : [...storedDeposits, deposit],
-        );
-      }
-      setHighlightedId(deposit.id);
-      setTimeout(() => setHighlightedId(null), 2500);
-    },
-    [isDemoMode, storedDeposits, setDeposits, editTarget],
-  );
-
-  const handleSettle = useCallback(
-    (id: string) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)),
-        );
-      } else {
-        setDeposits(storedDeposits.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)));
-      }
-      setHighlightedId(id);
-      setTimeout(() => setHighlightedId(null), 2500);
-    },
-    [isDemoMode, storedDeposits, setDeposits],
-  );
-
-  const handleUnsettle = useCallback(
-    (id: string) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
-        );
-      } else {
-        setDeposits((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
-        );
-      }
-      setHighlightedId(id);
-      setTimeout(() => setHighlightedId(null), 2500);
+  // Always uses the functional updater form to avoid stale-closure captures.
+  const updateDeposits = useCallback(
+    (fn: (prev: TimeDeposit[]) => TimeDeposit[]) => {
+      if (isDemoMode) setLiveDemoDeposits(fn);
+      else setDeposits(fn);
     },
     [isDemoMode, setDeposits],
   );
 
+  // Clears any pending highlight timer before setting a new one, preventing
+  // rapid-successive mutations from racing and wiping each other's highlight.
+  const highlight = useCallback((id: string) => {
+    setHighlightedId(id);
+    if (highlightTimer.current) clearTimeout(highlightTimer.current);
+    highlightTimer.current = setTimeout(() => setHighlightedId(null), 2500);
+  }, []);
+
+  // ─── Deposit mutations ─────────────────────────────────────────────────────
+
+  const handleSave = useCallback(
+    (deposit: TimeDeposit) => {
+      updateDeposits((prev) =>
+        editTarget
+          ? prev.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
+          : [...prev, deposit],
+      );
+      highlight(deposit.id);
+    },
+    [updateDeposits, editTarget, highlight],
+  );
+
+  const handleSettle = useCallback(
+    (id: string) => {
+      updateDeposits((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)),
+      );
+      highlight(id);
+    },
+    [updateDeposits, highlight],
+  );
+
+  const handleUnsettle = useCallback(
+    (id: string) => {
+      updateDeposits((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
+      );
+      highlight(id);
+    },
+    [updateDeposits, highlight],
+  );
+
+  const handleClose = useCallback(
+    (id: string, closeDate: string) => {
+      updateDeposits((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status: "closed" as const, closeDate } : d)),
+      );
+      highlight(id);
+    },
+    [updateDeposits, highlight],
+  );
+
+  const handleReopen = useCallback(
+    (id: string) => {
+      updateDeposits((prev) =>
+        prev.map((d) => {
+          if (d.id !== id) return d;
+          const { closeDate: _, ...rest } = d;
+          return { ...rest, status: "active" as const };
+        }),
+      );
+      highlight(id);
+    },
+    [updateDeposits, highlight],
+  );
+
   const handleRollOver = useCallback(
     (oldId: string, newDeposit: TimeDeposit) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) => [
-          ...prev.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
-          newDeposit,
-        ]);
-      } else {
-        setDeposits([
-          ...storedDeposits.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
-          newDeposit,
-        ]);
-      }
-      setHighlightedId(newDeposit.id);
-      setTimeout(() => setHighlightedId(null), 2500);
+      updateDeposits((prev) => [
+        ...prev.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
+        newDeposit,
+      ]);
+      highlight(newDeposit.id);
     },
-    [isDemoMode, storedDeposits, setDeposits],
+    [updateDeposits, highlight],
   );
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (isDemoMode) {
-        setLiveDemoDeposits((prev) => prev.filter((d) => d.id !== id));
-      } else {
-        setDeposits(storedDeposits.filter((d) => d.id !== id));
-      }
+      updateDeposits((prev) => prev.filter((d) => d.id !== id));
     },
-    [isDemoMode, storedDeposits, setDeposits],
+    [updateDeposits],
   );
 
   const handleEdit = useCallback(
@@ -340,6 +353,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleSave,
       handleSettle,
       handleUnsettle,
+      handleClose,
+      handleReopen,
       handleRollOver,
       handleDelete,
       handleEdit,
@@ -372,6 +387,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleSave,
       handleSettle,
       handleUnsettle,
+      handleClose,
+      handleReopen,
       handleRollOver,
       handleDelete,
       handleEdit,

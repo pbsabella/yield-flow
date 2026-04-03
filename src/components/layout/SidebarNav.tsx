@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LayoutList, Settings, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,11 +19,13 @@ function NavItem({
   label,
   icon: Icon,
   active,
+  badge,
 }: {
   href: string;
   label: string;
   icon: React.ElementType;
   active: boolean;
+  badge?: React.ReactNode;
 }) {
   return (
     <Link
@@ -36,13 +39,19 @@ function NavItem({
       aria-current={active ? "page" : undefined}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge}
     </Link>
   );
 }
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { portfolio, hasSidebar } = usePortfolioContext();
+
+  const maturedCount = hasSidebar
+    ? portfolio.summaries.filter((s) => s.effectiveStatus === "matured").length
+    : 0;
 
   return (
     <div className="flex h-full flex-col bg-sidebar border-r border-sidebar-border">
@@ -63,6 +72,13 @@ export function SidebarNav() {
             label={label}
             icon={icon}
             active={pathname === href}
+            badge={
+              href === "/investments" && maturedCount > 0 ? (
+                <Badge variant="default" size="sm" className="min-w-4 tabular-nums">
+                  {maturedCount}
+                </Badge>
+              ) : undefined
+            }
           />
         ))}
       </nav>

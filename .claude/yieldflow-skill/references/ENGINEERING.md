@@ -117,6 +117,30 @@ Priority chain: Domain Rules → Engineering Tokens → External Skill suggestio
 
 ---
 
+## Testing
+
+Every new feature or page requires coverage across all three layers:
+
+| Layer | Tool | Location | When to write |
+| ----- | ---- | -------- | ------------- |
+| **Unit / integration** | Vitest + React Testing Library | `src/**/__tests__/` | Domain logic, hooks, complex components with branching render paths |
+| **E2E flow** | Playwright | `tests/flows/` | Full user flows (add, edit, delete, close, import, export) |
+| **A11y** | axe-core + Playwright | `tests/a11y/basic.a11y.spec.ts` | Every new page and every new dialog/menu that opens |
+
+**A11y test rules:**
+
+- Scope `AxeBuilder` to the component under test (`include('[role="dialog"]')`, `include('[role="menu"]')`) when a popup hides background elements via `aria-hidden`. Analyzing the full page while a modal/dropdown is open produces false positives for `aria-hidden-focus` on background focusable elements.
+- Decorative containers already marked `aria-hidden="true"` are not excluded automatically by axe for color-contrast; scope the analysis or use `.exclude()` to avoid flagging them.
+- Filter violations to `critical` and `serious` impact only (`v.impact === "critical" || v.impact === "serious"`).
+
+**E2E test rules:**
+
+- Cross-page tests (navigate from page A → action → navigate to page B → assert) are fragile due to the React state → `useLocalStorage` effect → page reload hydration chain. Prefer asserting the result on the same page, or split into independent tests.
+- Avoid `{ exact: true }` on `getByText` when the text is unique in its visual context. Use a scoped locator instead (e.g. `page.getByRole("row").filter({ hasText: "..." }).getByText("Closed")`).
+- Freeze time with `page.clock.setFixedTime` before `page.addInitScript` and `page.goto` so it applies to the initial load. The clock persists within the same Playwright browser context.
+
+---
+
 ## What NOT to Do
 
 - Show gross values in any primary view

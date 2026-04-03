@@ -17,14 +17,14 @@
 
 ## Domain Logic
 
-| Concept       | Rule                                                                |
-| ------------- | ------------------------------------------------------------------- |
-| Display       | Net of tax only. Principal return is not income.                    |
-| Status        | `active` → `matured` (auto) → `settled` (explicit user action only) |
-| Principal     | `active` + `matured` count. `settled` excluded.                     |
-| Interest Mode | `simple` (flat rate) or `tiered` (brackets by principal balance)    |
-| Term input    | Months (default) **or** `termDays` (takes precedence when set)      |
-| Day-count     | 360 or 365 toggle; default 365                                      |
+| Concept       | Rule                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| Display       | Net of tax only. Principal return is not income.                                                      |
+| Status        | `active` → `matured` (auto) → `settled` (explicit). Or `active` → `closed` (explicit early closure). |
+| Principal     | `active` + `matured` count. `settled` and `closed` excluded.                                          |
+| Interest Mode | `simple` (flat rate) or `tiered` (brackets by principal balance)                                      |
+| Term input    | Months (default) **or** `termDays` (takes precedence when set)                                        |
+| Day-count     | 360 or 365 toggle; default 365                                                                        |
 
 ---
 
@@ -60,18 +60,28 @@ Controls: bank filter select, Show settled toggle (off by default), List / Ladde
 
 **Days to Maturity pill:** neutral → "7 days" → "Due today" / amber → "Overdue X days" / open-ended → "—"
 **Matured/overdue row:** amber highlight; Settle CTA visible.
-**Show settled toggle:** settled deposits hidden by default; shown dimmed when toggled on.
-**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Undo Settle (··· menu, settled rows only), Roll Over (inside Settle dialog, matured rows only).
+**Show inactive toggle:** closed and settled deposits hidden by default; shown when toggled on.
+**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Close early / Withdraw & close (··· menu, active rows only), Undo settle (··· menu, settled rows only), Reopen (··· menu, closed rows only), Roll over (inside Settle dialog, matured rows only).
 
-#### Undo Settle
+#### Withdraw & close / Close early
 
-Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when Show Settled is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
+Available in the `···` menu for any **active** deposit. TDs show "Close early" with a warning banner (maturity date + days remaining). Open-ended savings show "Withdraw & close" with no warning.
 
-#### Roll Over
+Dialog shows: Principal | Accrued net interest | Net proceeds. After confirm: toast with inline Undo.
 
-Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll Over ] [ Settle ₱X ]` — amount only on Settle since Roll Over opens an editable wizard.
+#### Reopen
 
-On Roll Over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
+Reverts a `closed` deposit back to `active`. In the `···` menu on closed rows (requires "Show inactive" toggled on). No confirmation dialog.
+
+#### Undo settle
+
+Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when "Show inactive" is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
+
+#### Roll over
+
+Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll over ] [ Settle ₱X ]` — amount only on Settle since Roll over opens an editable wizard.
+
+On Roll over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
 
 | Field | Value |
 | --- | --- |
@@ -101,6 +111,8 @@ Rolling window with filter: **3M / 6M / 12M / All**. Default 12M. Months with no
 
 **Open-ended deposits:** Projected as 12 monthly payouts anchored to the deposit's `startDate`.
 The first projected month is the earliest payout month ≥ the current calendar month.
+
+**Closed deposits:** Excluded from future projections. A single historical entry appears in the `closeDate` month showing accrued net interest + principal returned, with a "Closed" pill.
 
 ---
 

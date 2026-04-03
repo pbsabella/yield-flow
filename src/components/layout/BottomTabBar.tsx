@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LayoutList, Plus, Settings, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 
@@ -21,11 +22,13 @@ function NavTab({
   label,
   icon: Icon,
   active,
+  badge,
 }: {
   href: string;
   label: string;
   icon: React.ElementType;
   active: boolean;
+  badge?: React.ReactNode;
 }) {
   return (
     <Link
@@ -38,7 +41,10 @@ function NavTab({
       )}
       aria-current={active ? "page" : undefined}
     >
-      <Icon className={cn("size-5", active && "text-sidebar-primary")} aria-hidden="true" />
+      <span className="relative">
+        <Icon className={cn("size-5", active && "text-sidebar-primary")} aria-hidden="true" />
+        {badge}
+      </span>
       {label}
     </Link>
   );
@@ -46,7 +52,9 @@ function NavTab({
 
 export function BottomTabBar() {
   const pathname = usePathname();
-  const { openWizard, hasSidebar } = usePortfolioContext();
+  const { openWizard, hasSidebar, portfolio } = usePortfolioContext();
+
+  const maturedCount = portfolio.summaries.filter((s) => s.effectiveStatus === "matured").length;
 
   if (!hasSidebar) return null;
 
@@ -57,7 +65,24 @@ export function BottomTabBar() {
     >
       {/* Left tabs */}
       {LEFT_TABS.map(({ href, label, icon }) => (
-        <NavTab key={href} href={href} label={label} icon={icon} active={pathname === href} />
+        <NavTab
+          key={href}
+          href={href}
+          label={label}
+          icon={icon}
+          active={pathname === href}
+          badge={
+            href === "/investments" && maturedCount > 0 ? (
+              <Badge
+                variant="default"
+                size="xs"
+                className="absolute -top-1 -right-2.5 min-w-3.5 tabular-nums"
+              >
+                {maturedCount}
+              </Badge>
+            ) : undefined
+          }
+        />
       ))}
 
       {/* Center Add button */}
