@@ -8,7 +8,7 @@ These files diverge from upstream. After overwriting, run the grep command below
 
 | File           | What was changed                                                                                                                                          |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `badge.tsx`    | Status variants (`info/warning/success/alert`) imported from `variants.ts` and spread into cva; `asChild` prop via `Slot.Root`                            |
+| `badge.tsx`    | Full `badgeVariants` (status + size variants) defined in `variants.ts` and imported here; `asChild` prop via `Slot.Root`                                  |
 | `button.tsx`   | `buttonVariants` defined in `variants.ts` and imported here (not inline)                                                                                  |
 | `card.tsx`     | `size` prop (`"default"\|"sm"`) on `Card`; `CardAction` component added                                                                                   |
 | `alert.tsx`    | `AlertAction` component added (absolute top-right slot)                                                                                                   |
@@ -67,11 +67,11 @@ grep -rn "@shadcn-override" src/components/ui/
 
 `src/components/ui/variants.ts` is the single source of truth for all CVA definitions:
 
-| Export                | Used by                      |
-| --------------------- | ---------------------------- |
-| `badgeStatusVariants` | `badge.tsx`                  |
-| `buttonVariants`      | `button.tsx`, `calendar.tsx` |
-| `fieldVariants`       | `field.tsx`                  |
-| `toggleVariants`      | `toggle.tsx`                 |
+| Export           | Used by                      |
+| ---------------- | ---------------------------- |
+| `badgeVariants`  | `badge.tsx`                  |
+| `buttonVariants` | `button.tsx`, `calendar.tsx` |
+| `fieldVariants`  | `field.tsx`                  |
+| `toggleVariants` | `toggle.tsx`                 |
 
 When shadcn upgrades a component that previously defined variants inline (e.g. `buttonVariants` used to live in `button.tsx`), do **not** copy the upstream cva back into the component file. Instead, keep the import from `variants.ts` and merge any new upstream variant additions into `variants.ts`.

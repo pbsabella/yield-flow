@@ -1,37 +1,10 @@
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-// @shadcn-override: status variants (info/warning/success/alert) — re-add import + spread after upgrade
-import { badgeStatusVariants } from "@/components/ui/variants"
-
-const badgeVariants = cva(
-  "h-5 gap-1 rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! inline-flex items-center justify-center w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden group/badge",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-        destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
-        outline: "border-border text-foreground [a]:hover:bg-accent-hover-bg [a]:hover:text-muted-foreground",
-        ghost: "hover:bg-accent-hover-bg hover:text-muted-foreground dark:hover:bg-accent-hover-bg/50",
-        link: "text-accent-fg underline-offset-4 hover:underline",
-        // @shadcn-override: spread status variants from variants.ts
-        ...badgeStatusVariants,
-      },
-      size: {
-        default: "",
-        sm: "h-4 px-1 py-0 text-[10px] leading-none",
-        xs: "h-3.5 px-0.5 py-0 text-[9px] leading-none",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-)
+// @shadcn-override: badgeVariants (status + size) defined in variants.ts — re-add import after upgrade
+import { badgeVariants } from "@/components/ui/variants"
 
 // @shadcn-override: asChild support via Slot.Root (renders badge as child element)
 function Badge({
