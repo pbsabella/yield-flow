@@ -11,27 +11,22 @@ import { DemoBanner } from "@/components/layout/DemoBanner";
 import { InvestmentWizard } from "@/features/portfolio/components/wizard/InvestmentWizard";
 import { ExportAiDialog } from "@/features/investments/components/ExportAiDialog";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 import { Toaster } from "@/components/ui/sonner";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const {
-    status,
-    hasSidebar,
-    isDemoMode,
-    exitDemo,
-    wizardOpen,
-    editTarget,
-    rolloverConfig,
-    closeWizard,
-    handleSave,
-    handleRollOver,
-    existingBankNames,
-    exportAiOpen,
-    closeExportAi,
-    portfolio,
-    preferences,
-  } = usePortfolioContext();
+  const { status, hasSidebar, isDemoMode, exitDemo, handleSave, handleRollOver, existingBankNames, portfolio, preferences } = usePortfolioContext();
+
+  // Wizard and export dialog state live in the Zustand store.
+  // Each selector subscribes to only one slice, so AppShell only re-renders
+  // when that specific value changes — not when deposits or portfolio update.
+  const wizardOpen     = useWizardStore((s) => s.wizardOpen);
+  const editTarget     = useWizardStore((s) => s.editTarget);
+  const rolloverConfig = useWizardStore((s) => s.rolloverConfig);
+  const closeWizard    = useWizardStore((s) => s.closeWizard);
+  const exportAiOpen   = useWizardStore((s) => s.exportAiOpen);
+  const closeExportAi  = useWizardStore((s) => s.closeExportAi);
 
   const isMobile = useMediaQuery("(max-width: 767px)");
 

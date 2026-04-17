@@ -10,6 +10,7 @@ import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { BankExposureCard } from "@/features/dashboard/components/BankExposureCard";
 import { EmptyLanding } from "@/features/dashboard/components/EmptyLanding";
 import { usePortfolioContext, useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -77,7 +78,9 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { portfolio, status, openWizard, openExportAi, enterDemo, importDeposits } = usePortfolioContext();
+  const { portfolio, status, enterDemo, importDeposits } = usePortfolioContext();
+  const openWizard   = useWizardStore((s) => s.openWizard);
+  const openExportAi = useWizardStore((s) => s.openExportAi);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 

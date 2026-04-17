@@ -3,24 +3,19 @@
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { InvestmentsView } from "./InvestmentsView";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BrainCircuit } from "lucide-react";
 
 export function InvestmentsShell() {
-  const {
-    portfolio,
-    highlightedId,
-    handleSettle,
-    handleUnsettle,
-    handleClose,
-    handleReopen,
-    handleDelete,
-    handleEdit,
-    openWizard,
-    openRollover,
-    openExportAi,
-  } = usePortfolioContext();
+  const { portfolio, handleSettle, handleUnsettle, handleClose, handleReopen, handleDelete, handleEdit } = usePortfolioContext();
+
+  // UI state from the store — only re-renders when these specific slices change.
+  const highlightedId = useWizardStore((s) => s.highlightedId);
+  const openWizard    = useWizardStore((s) => s.openWizard);
+  const openRollover  = useWizardStore((s) => s.openRollover);
+  const openExportAi  = useWizardStore((s) => s.openExportAi);
 
   return (
     <RouteGuard>

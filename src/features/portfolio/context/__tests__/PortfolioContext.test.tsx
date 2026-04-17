@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { PortfolioProvider, usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 import type { TimeDeposit } from "@/types";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -31,6 +32,14 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   localStorage.clear();
+  // Reset wizard store so context tests don't bleed into each other.
+  useWizardStore.setState({
+    wizardOpen: false,
+    editTarget: null,
+    rolloverConfig: null,
+    highlightedId: null,
+    exportAiOpen: false,
+  });
 });
 
 // ─── Guard ───────────────────────────────────────────────────────────────────
@@ -115,50 +124,19 @@ describe("PortfolioContext — demo mode", () => {
 });
 
 // ─── Wizard state ─────────────────────────────────────────────────────────────
+// Full wizard state tests live in src/store/__tests__/wizardStore.test.ts.
+// We only verify the one integration point: handleEdit() opens the store's wizard.
 
-describe("PortfolioContext — wizard state", () => {
-  it("openWizard() sets wizardOpen=true with no editTarget", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    act(() => result.current.openWizard());
-
-    expect(result.current.wizardOpen).toBe(true);
-    expect(result.current.editTarget).toBeNull();
-  });
-
-  it("openWizard(deposit) sets wizardOpen=true and editTarget to the deposit", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    const deposit = makeDeposit();
-    act(() => result.current.openWizard(deposit));
-
-    expect(result.current.wizardOpen).toBe(true);
-    expect(result.current.editTarget?.id).toBe(deposit.id);
-  });
-
-  it("closeWizard() resets wizardOpen=false and editTarget=null", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    act(() => result.current.openWizard(makeDeposit()));
-    expect(result.current.wizardOpen).toBe(true);
-
-    act(() => result.current.closeWizard());
-    expect(result.current.wizardOpen).toBe(false);
-    expect(result.current.editTarget).toBeNull();
-  });
-
-  it("handleEdit(deposit) opens wizard with the deposit as editTarget", async () => {
+describe("PortfolioContext — wizard integration", () => {
+  it("handleEdit(deposit) opens the wizard with the deposit as editTarget", async () => {
     const { result } = renderHook(() => usePortfolioContext(), { wrapper });
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
     const deposit = makeDeposit({ id: "edit-me" });
     act(() => result.current.handleEdit(deposit));
 
-    expect(result.current.wizardOpen).toBe(true);
-    expect(result.current.editTarget?.id).toBe("edit-me");
+    expect(useWizardStore.getState().wizardOpen).toBe(true);
+    expect(useWizardStore.getState().editTarget?.id).toBe("edit-me");
   });
 });
 
@@ -189,8 +167,8 @@ describe("PortfolioContext — CRUD in demo mode", () => {
     const target = result.current.deposits[0];
     const countBefore = result.current.deposits.length;
 
-    act(() => result.current.openWizard(target));
-    await waitFor(() => expect(result.current.editTarget?.id).toBe(target.id));
+    // openWizard now lives in the store — call it directly (synchronous, no waitFor needed).
+    act(() => useWizardStore.getState().openWizard(target));
 
     act(() => result.current.handleSave({ ...target, name: "Renamed Deposit" }));
 
@@ -276,8 +254,8 @@ describe("PortfolioContext — CRUD in persisted mode", () => {
 
 // ─── highlightedId lifecycle ──────────────────────────────────────────────────
 
-describe("PortfolioContext — highlightedId", () => {
-  it("is set to deposit.id immediately after handleSave", async () => {
+describe("PortfolioContext — highlight integration", () => {
+  it("handleSave sets highlightedId in the store", async () => {
     const { result } = renderHook(() => usePortfolioContext(), { wrapper });
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
@@ -287,28 +265,7 @@ describe("PortfolioContext — highlightedId", () => {
     const dep = result.current.deposits[0];
     act(() => result.current.handleSave(dep));
 
-    expect(result.current.highlightedId).toBe(dep.id);
-  });
-
-  it("clears highlightedId to null after 2500ms", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    act(() => result.current.enterDemo());
-    await waitFor(() => expect(result.current.deposits.length).toBeGreaterThan(0));
-
-    const dep = result.current.deposits[0];
-
-    // Switch to fake timers after async setup is complete
-    vi.useFakeTimers();
-
-    act(() => result.current.handleSave(dep));
-    expect(result.current.highlightedId).toBe(dep.id);
-
-    act(() => vi.advanceTimersByTime(2500));
-    expect(result.current.highlightedId).toBeNull();
-
-    vi.useRealTimers();
+    expect(useWizardStore.getState().highlightedId).toBe(dep.id);
   });
 });
 
@@ -342,36 +299,6 @@ describe("PortfolioContext — clearDeposits", () => {
     // "[]" via useLocalStorage's effect, so the key exists but holds an empty array.
     await waitFor(() => expect(result.current.deposits).toEqual([]));
     expect(result.current.status).toBe("empty");
-  });
-});
-
-// ─── Export AI state ─────────────────────────────────────────────────────────────
-
-describe("PortfolioContext — export ai state", () => {
-  it("exportAiOpen is false by default", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-    expect(result.current.exportAiOpen).toBe(false);
-  });
-
-  it("openExportAi() sets exportAiOpen=true", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    act(() => result.current.openExportAi());
-
-    expect(result.current.exportAiOpen).toBe(true);
-  });
-
-  it("closeExportAi() sets exportAiOpen=false", async () => {
-    const { result } = renderHook(() => usePortfolioContext(), { wrapper });
-    await waitFor(() => expect(result.current.isReady).toBe(true));
-
-    act(() => result.current.openExportAi());
-    expect(result.current.exportAiOpen).toBe(true);
-
-    act(() => result.current.closeExportAi());
-    expect(result.current.exportAiOpen).toBe(false);
   });
 });
 
