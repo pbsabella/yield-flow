@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildDepositSummary } from "@/lib/domain/interest";
 import { buildCashFlowProjection, buildCashFlowLedger } from "@/lib/domain/cashflow";
-import { monthKey, parseLocalDate } from "@/lib/domain/date";
+import { monthKey, parseLocalDate, toISODate } from "@/lib/domain/date";
 import type { Bank, DepositSummary, MonthlyAllowance, TimeDeposit } from "@/types";
 
 /** Runtime-derived display status. Never persisted to storage. */
@@ -65,21 +65,22 @@ export function usePortfolioData(
   deposits: TimeDeposit[],
   banks: Bank[],
 ): PortfolioData {
-  // Re-tick once per minute so maturity transitions fire correctly when the
-  // app is left open overnight. Without this, today is stale until remount.
-  const [tick, setTick] = useState(0);
+  // Re-check once per minute so maturity transitions fire correctly when the
+  // app is left open overnight. Only triggers a re-render when the calendar
+  // date actually changes — not every 60 seconds regardless.
+  const [todayStr, setTodayStr] = useState(() => toISODate(new Date()));
   useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 60_000);
+    const id = setInterval(() => {
+      const next = toISODate(new Date());
+      // Same string → React bails out with no re-render and no downstream work.
+      setTodayStr((prev) => (prev === next ? prev : next));
+    }, 60_000);
     return () => clearInterval(id);
   }, []);
 
   // Single "today" snapshot shared across all memos for a consistent render cycle.
-  const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick]);
+  // Stable for 23h 59m/day; only changes at midnight when the date rolls over.
+  const today = useMemo(() => parseLocalDate(todayStr), [todayStr]);
 
   const bankMap = useMemo(() => {
     const m = new Map<string, Bank>();

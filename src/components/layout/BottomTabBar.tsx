@@ -6,6 +6,7 @@ import { LayoutDashboard, LayoutList, Plus, Settings, TrendingUp } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 
 const LEFT_TABS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -52,7 +53,8 @@ function NavTab({
 
 export function BottomTabBar() {
   const pathname = usePathname();
-  const { openWizard, hasSidebar, portfolio } = usePortfolioContext();
+  const { hasSidebar, portfolio } = usePortfolioContext();
+  const openWizard = useWizardStore((s) => s.openWizard);
 
   const maturedCount = portfolio.summaries.filter((s) => s.effectiveStatus === "matured").length;
 

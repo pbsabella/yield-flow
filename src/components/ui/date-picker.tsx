@@ -39,8 +39,11 @@ export function DatePicker({ id, selected, timeZone, onSelect }: DatePickerProps
   const [month, setMonth] = React.useState<Date | undefined>(selected)
   const [value, setValue] = React.useState(formatDate(selected))
 
-  // Sync internal string value when the external date object changes
+  // Sync internal string value when the external date object changes.
+  // setState inside an effect is intentional: syncing derived display state
+  // from a controlled `selected` prop — not a loop risk.
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(formatDate(selected))
     if (selected) setMonth(selected)
   }, [selected])

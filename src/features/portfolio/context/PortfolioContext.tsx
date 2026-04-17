@@ -1,12 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePersistedDeposits } from "@/lib/hooks/usePersistedDeposits";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import { usePreferences } from "@/lib/hooks/usePreferences";
 import { formatCurrency, getCurrencySymbol } from "@/lib/domain/format";
 import { deposits as demoDepositsData, banks as demoBanks } from "@/lib/data/demo";
 import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
+import { useWizardStore } from "@/store/wizardStore";
 import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit, Bank } from "@/types";
 
@@ -59,25 +60,11 @@ interface PortfolioContextValue {
   preferences: Preferences;
   setPreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
 
-  // Wizard state
-  wizardOpen: boolean;
-  editTarget: TimeDeposit | null;
-  rolloverConfig: RolloverConfig | null;
-  highlightedId: string | null;
-
-  // Export-for-AI dialog state (distinct from the JSON data export in Settings)
-  exportAiOpen: boolean;
-  openExportAi: () => void;
-  closeExportAi: () => void;
-
   // Demo handlers
   enterDemo: () => void;
   exitDemo: () => void;
 
   // Investment handlers
-  openWizard: (target?: TimeDeposit) => void;
-  openRollover: (config: RolloverConfig) => void;
-  closeWizard: () => void;
   handleSave: (deposit: TimeDeposit) => void;
   handleSettle: (id: string) => void;
   handleUnsettle: (id: string) => void;
@@ -126,12 +113,6 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const isReady = depositsReady && demoReady;
 
   const [liveDemoDeposits, setLiveDemoDeposits] = useState<TimeDeposit[]>([]);
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<TimeDeposit | null>(null);
-  const [rolloverConfig, setRolloverConfig] = useState<RolloverConfig | null>(null);
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [exportAiOpen, setExportAiOpen] = useState(false);
-  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // When demo mode is restored from persisted storage, re-populate demo deposits.
   // setState inside an effect is intentional here: we're syncing React state from
@@ -176,31 +157,6 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setLiveDemoDeposits([]);
   }, [setIsDemoMode]);
 
-  // ─── Export ────────────────────────────────────────────────────────────────
-
-  const openExportAi = useCallback(() => setExportAiOpen(true), []);
-  const closeExportAi = useCallback(() => setExportAiOpen(false), []);
-
-  // ─── Wizard ────────────────────────────────────────────────────────────────
-
-  const openWizard = useCallback((target?: TimeDeposit) => {
-    setEditTarget(target ?? null);
-    setRolloverConfig(null);
-    setWizardOpen(true);
-  }, []);
-
-  const openRollover = useCallback((config: RolloverConfig) => {
-    setRolloverConfig(config);
-    setEditTarget(null);
-    setWizardOpen(true);
-  }, []);
-
-  const closeWizard = useCallback(() => {
-    setWizardOpen(false);
-    setEditTarget(null);
-    setRolloverConfig(null);
-  }, []);
-
   // ─── Shared mutation helpers ───────────────────────────────────────────────
 
   // Always uses the functional updater form to avoid stale-closure captures.
@@ -212,18 +168,15 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     [isDemoMode, setDeposits],
   );
 
-  // Clears any pending highlight timer before setting a new one, preventing
-  // rapid-successive mutations from racing and wiping each other's highlight.
-  const highlight = useCallback((id: string) => {
-    setHighlightedId(id);
-    if (highlightTimer.current) clearTimeout(highlightTimer.current);
-    highlightTimer.current = setTimeout(() => setHighlightedId(null), 2500);
-  }, []);
-
   // ─── Deposit mutations ─────────────────────────────────────────────────────
+  //
+  // Wizard and highlight state now live in wizardStore (a Zustand store).
+  // We read them imperatively via getState() — this is safe inside callbacks
+  // because it reads the current value at call time, not from a closure.
 
   const handleSave = useCallback(
     (deposit: TimeDeposit) => {
+      const { editTarget, highlight } = useWizardStore.getState();
       updateDeposits((prev) =>
         editTarget
           ? prev.map((d) => (d.id === deposit.id ? { ...deposit, status: editTarget.status } : d))
@@ -231,7 +184,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       );
       highlight(deposit.id);
     },
-    [updateDeposits, editTarget, highlight],
+    [updateDeposits],
   );
 
   const handleSettle = useCallback(
@@ -239,9 +192,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       updateDeposits((prev) =>
         prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)),
       );
-      highlight(id);
+      useWizardStore.getState().highlight(id);
     },
-    [updateDeposits, highlight],
+    [updateDeposits],
   );
 
   const handleUnsettle = useCallback(
@@ -249,9 +202,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       updateDeposits((prev) =>
         prev.map((d) => (d.id === id ? { ...d, status: "matured" as const } : d)),
       );
-      highlight(id);
+      useWizardStore.getState().highlight(id);
     },
-    [updateDeposits, highlight],
+    [updateDeposits],
   );
 
   const handleClose = useCallback(
@@ -259,9 +212,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       updateDeposits((prev) =>
         prev.map((d) => (d.id === id ? { ...d, status: "closed" as const, closeDate } : d)),
       );
-      highlight(id);
+      useWizardStore.getState().highlight(id);
     },
-    [updateDeposits, highlight],
+    [updateDeposits],
   );
 
   const handleReopen = useCallback(
@@ -269,13 +222,14 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       updateDeposits((prev) =>
         prev.map((d) => {
           if (d.id !== id) return d;
-          const { closeDate: _, ...rest } = d;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { closeDate: _closeDate, ...rest } = d;
           return { ...rest, status: "active" as const };
         }),
       );
-      highlight(id);
+      useWizardStore.getState().highlight(id);
     },
-    [updateDeposits, highlight],
+    [updateDeposits],
   );
 
   const handleRollOver = useCallback(
@@ -284,9 +238,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         ...prev.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
         newDeposit,
       ]);
-      highlight(newDeposit.id);
+      useWizardStore.getState().highlight(newDeposit.id);
     },
-    [updateDeposits, highlight],
+    [updateDeposits],
   );
 
   const handleDelete = useCallback(
@@ -298,9 +252,9 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   const handleEdit = useCallback(
     (deposit: TimeDeposit) => {
-      openWizard(deposit);
+      useWizardStore.getState().openWizard(deposit);
     },
-    [openWizard],
+    [],
   );
 
   // ─── Data management ───────────────────────────────────────────────────────
@@ -318,7 +272,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   }, [remove, setDeposits]);
 
   // Formatter context: isolated so currency-formatting consumers don't re-render
-  // on wizard/highlight state changes. Only invalidates when currency pref changes.
+  // on deposit mutations. Only invalidates when currency pref changes.
   const formatterValue = useMemo<PortfolioFormatterContextValue>(
     () => ({ fmtCurrency, currencySymbol }),
     [fmtCurrency, currencySymbol],
@@ -338,18 +292,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
-      wizardOpen,
-      editTarget,
-      rolloverConfig,
-      highlightedId,
-      exportAiOpen,
-      openExportAi,
-      closeExportAi,
       enterDemo,
       exitDemo,
-      openWizard,
-      openRollover,
-      closeWizard,
       handleSave,
       handleSettle,
       handleUnsettle,
@@ -372,18 +316,8 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
-      wizardOpen,
-      editTarget,
-      rolloverConfig,
-      highlightedId,
-      exportAiOpen,
-      openExportAi,
-      closeExportAi,
       enterDemo,
       exitDemo,
-      openWizard,
-      openRollover,
-      closeWizard,
       handleSave,
       handleSettle,
       handleUnsettle,

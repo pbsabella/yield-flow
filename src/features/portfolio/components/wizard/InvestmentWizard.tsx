@@ -74,6 +74,7 @@ export function InvestmentWizard({
   const [timeZone, setTimeZone] = useState<string | undefined>(undefined)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone)
   }, [])
 

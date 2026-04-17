@@ -4,11 +4,13 @@ import { BrainCircuit } from "lucide-react";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { CashFlowView } from "./CashFlowView";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
+import { useWizardStore } from "@/store/wizardStore";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export function CashFlowShell() {
-  const { portfolio, openExportAi } = usePortfolioContext();
+  const { portfolio } = usePortfolioContext();
+  const openExportAi = useWizardStore((s) => s.openExportAi);
 
   return (
     <RouteGuard>
