@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 const seedDeposit: TimeDeposit = {
   id: "settings-test-dep",
   bankId: "Clearance Bank",
   name: "Clearance 3M TD",
   principal: 50000,
-  startDate: "2025-12-01",
+  startDate: "2027-02-01",
   termMonths: 3,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -22,6 +23,7 @@ const seedDeposit: TimeDeposit = {
 };
 
 test("settings page renders correctly", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -32,6 +34,7 @@ test("settings page renders correctly", async ({ page }) => {
 });
 
 test("settings — in demo mode, export and import disabled, Exit Demo shown", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript(() => {
     localStorage.setItem("yf:demo-mode", "true");
   });
@@ -42,6 +45,7 @@ test("settings — in demo mode, export and import disabled, Exit Demo shown", a
 });
 
 test("settings — export and clear buttons enabled with deposits", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -52,6 +56,7 @@ test("settings — export and clear buttons enabled with deposits", async ({ pag
 });
 
 test("settings — clear all data removes deposits and redirects home", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -72,6 +77,7 @@ test("settings — clear all data removes deposits and redirects home", async ({
 });
 
 test("settings — cancelling clear all leaves data intact", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -87,6 +93,7 @@ test("settings — cancelling clear all leaves data intact", async ({ page }) =>
 });
 
 test("settings — caveats section expands on click", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);

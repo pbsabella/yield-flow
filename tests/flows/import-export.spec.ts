@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import path from "path";
 import { readFileSync } from "fs";
 import type { TimeDeposit } from "../../src/types";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 const FIXTURE_PATH = path.resolve(__dirname, "../fixtures/portfolio.json");
 const BAD_FIXTURE_PATH = path.resolve(__dirname, "../fixtures/bad-version.json");
@@ -11,7 +12,7 @@ const seedDeposit: TimeDeposit = {
   bankId: "Export Bank",
   name: "Export Bank 12M TD",
   principal: 200000,
-  startDate: "2025-06-01",
+  startDate: "2027-01-01",
   termMonths: 12,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -82,6 +83,7 @@ async function simulateFileImport(page: Page, filePath: string, fileName: string
 }
 
 test("import JSON backup — deposits load and page redirects to dashboard", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
       localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
     }, seedDeposit);
@@ -105,6 +107,7 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
 });
 
 test("export JSON — triggers a file download", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -118,10 +121,13 @@ test("export JSON — triggers a file download", async ({ page }) => {
     page.getByRole("button", { name: "Export JSON" }).click(),
   ]);
 
-  expect(download.suggestedFilename()).toMatch(/^yieldflow-export-\d{4}-\d{2}-\d{2}\.json$/);
+  // Exact check — with a frozen clock, the date in the filename must match FROZEN_TEST_DATE.
+  // Update this string whenever FROZEN_TEST_DATE changes in constants.ts.
+  expect(download.suggestedFilename()).toBe("yieldflow-export-2027-03-06.json");
 });
 
 test("import validation — shows error for malformed file", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);

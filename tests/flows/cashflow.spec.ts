@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { snap } from "../helpers/percy";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 import type { TimeDeposit } from "../../src/types";
 
 // Multi-deposit portfolio with various payout frequencies for a rich cashflow chart
@@ -9,7 +10,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Meridian Savings Bank",
     name: "Meridian 6M TD",
     principal: 300000,
-    startDate: "2025-10-01",
+    startDate: "2026-10-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -27,7 +28,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Horizon Digital Bank",
     name: "Horizon 12M monthly",
     principal: 500000,
-    startDate: "2025-07-15",
+    startDate: "2026-07-15",
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -45,7 +46,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Apex Rural Bank",
     name: "Apex tiered savings",
     principal: 75000,
-    startDate: "2025-11-01",
+    startDate: "2026-11-01",
     termMonths: 12,
     interestMode: "tiered",
     interestTreatment: "reinvest",
@@ -64,6 +65,7 @@ const seedDeposits: TimeDeposit[] = [
 ];
 
 test("cash flow page — empty state redirects home", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   // RouteGuard redirects empty users away from sub-pages to the empty landing
   await page.goto("/cashflow");
   await page.waitForURL("/");
@@ -71,7 +73,7 @@ test("cash flow page — empty state redirects home", async ({ page }) => {
 });
 
 test("cash flow page — with portfolio data", async ({ page }) => {
-  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
