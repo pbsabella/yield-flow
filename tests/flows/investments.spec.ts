@@ -1,10 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 import { snap } from "../helpers/percy";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 import type { TimeDeposit } from "../../src/types";
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 // Mix of statuses and payout types to exercise all table/ladder states.
-// Frozen "today": 2026-03-06 (set via page.clock.setFixedTime in seedAndGo).
+// Frozen "today": 2027-03-06 (set via page.clock.setFixedTime in seedAndGo).
 // Maturity boundaries are deliberately far from this date so status never flips.
 
 const seedDeposits: TimeDeposit[] = [
@@ -14,7 +15,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Meridian Savings Bank",
     name: "Meridian 12M TD",
     principal: 200000,
-    startDate: "2025-12-01",
+    startDate: "2026-12-01",
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -33,7 +34,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Horizon Digital Bank",
     name: "Horizon 12M monthly",
     principal: 500000,
-    startDate: "2025-09-01",
+    startDate: "2026-09-01",
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -52,7 +53,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Apex Rural Bank",
     name: "Apex savings account",
     principal: 75000,
-    startDate: "2025-06-01",
+    startDate: "2026-06-01",
     termMonths: 3,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -71,7 +72,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Citadel Cooperative Bank",
     name: "Citadel 24M TD",
     principal: 350000,
-    startDate: "2026-01-15",
+    startDate: "2027-01-15",
     termMonths: 24,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -90,7 +91,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Meridian Savings Bank",
     name: "Meridian 3M (matured)",
     principal: 100000,
-    startDate: "2025-03-01",
+    startDate: "2026-03-01",
     termMonths: 3,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -109,7 +110,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Apex Rural Bank",
     name: "Apex 6M (matured)",
     principal: 80000,
-    startDate: "2025-08-01",
+    startDate: "2026-08-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -128,7 +129,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Horizon Digital Bank",
     name: "Horizon 6M (settled)",
     principal: 250000,
-    startDate: "2025-05-01",
+    startDate: "2026-05-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -147,7 +148,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Citadel Cooperative Bank",
     name: "Citadel 3M (settled)",
     principal: 120000,
-    startDate: "2025-06-01",
+    startDate: "2026-06-01",
     termMonths: 3,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -166,7 +167,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Horizon Digital Bank",
     name: "Horizon 3M (closed)",
     principal: 150000,
-    startDate: "2025-10-01",
+    startDate: "2026-10-01",
     termMonths: 12,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -178,14 +179,14 @@ const seedDeposits: TimeDeposit[] = [
     dayCountConvention: 365,
     isOpenEnded: false,
     status: "closed",
-    closeDate: "2026-01-15",
+    closeDate: "2027-01-15",
   },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function seedAndGo(page: Page) {
-  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);

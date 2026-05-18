@@ -1,18 +1,19 @@
 import { test, expect, type Page } from "@playwright/test";
 import type { TimeDeposit } from "../../src/types";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
-// Frozen "today": 2026-03-06.
-// td-active: matures 2026-09-01 (6 months away — clearly before maturity).
+// Frozen "today": 2027-03-06.
+// td-active: matures 2027-09-01 (6 months away — clearly before maturity).
 // savings-active: open-ended, no maturity date.
-// td-closed: already closed, closeDate in the past.
+// td-closed: already closed early, closeDate 2027-01-15 (before maturity 2027-10-01, before frozen today).
 
 const tdActive: TimeDeposit = {
   id: "close-td-active",
   bankId: "Meridian Savings Bank",
   name: "Meridian 6M TD",
   principal: 200000,
-  startDate: "2026-03-01",
+  startDate: "2027-03-01",
   termMonths: 6,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -31,7 +32,7 @@ const savingsActive: TimeDeposit = {
   bankId: "Apex Rural Bank",
   name: "Apex Savings Account",
   principal: 100000,
-  startDate: "2025-09-01",
+  startDate: "2026-09-01",
   termMonths: 12,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -50,7 +51,7 @@ const tdClosed: TimeDeposit = {
   bankId: "Horizon Digital Bank",
   name: "Horizon 3M (closed)",
   principal: 150000,
-  startDate: "2025-10-01",
+  startDate: "2026-10-01",
   termMonths: 12,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -62,13 +63,13 @@ const tdClosed: TimeDeposit = {
   dayCountConvention: 365,
   isOpenEnded: false,
   status: "closed",
-  closeDate: "2026-01-15",
+  closeDate: "2027-01-15",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function seedAndGo(page: Page, deposits: TimeDeposit[]) {
-  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deps) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deps));
   }, deposits);

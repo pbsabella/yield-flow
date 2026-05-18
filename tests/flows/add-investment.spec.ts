@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { snap } from "../helpers/percy";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 test("add an investment via wizard — empty state → portfolio visible", async ({ page }) => {
-  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
 
   // Empty users land on the EmptyLanding hero at "/"
   await page.goto("/");

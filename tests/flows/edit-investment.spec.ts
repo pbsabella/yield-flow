@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { snap } from "../helpers/percy";
 import type { TimeDeposit } from "../../src/types";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 const seedDeposit: TimeDeposit = {
   id: "edit-test-dep-1",
   bankId: "Original Bank",
   name: "Original 6M TD",
   principal: 100000,
-  startDate: "2025-09-01",
+  startDate: "2027-01-01",
   termMonths: 6,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -22,7 +23,7 @@ const seedDeposit: TimeDeposit = {
 };
 
 test("edit an investment — values persist after save", async ({ page }) => {
-  await page.clock.setFixedTime(new Date(2026, 2, 6)); // Mar 6 2026 — stable "today"
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
 
   // Seed localStorage before navigation
   await page.addInitScript((deposit) => {
@@ -64,6 +65,7 @@ test("edit an investment — values persist after save", async ({ page }) => {
 });
 
 test("closing an unmodified edit dialog does not prompt for discard", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);

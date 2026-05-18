@@ -2,13 +2,14 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { TimeDeposit } from "../../src/types";
 import { makeActiveTimeDeposit, makeClosedTimeDeposit } from "../fixtures/deposits";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 const seedDeposit: TimeDeposit = {
   id: "a11y-test-dep",
   bankId: "Beacon Bank",
   name: "Beacon 6M TD",
   principal: 200000,
-  startDate: "2025-09-01",
+  startDate: "2027-01-01",
   termMonths: 6,
   interestMode: "simple",
   interestTreatment: "payout",
@@ -32,6 +33,7 @@ test("dashboard page has no critical a11y issues", async ({ page }) => {
 });
 
 test("dashboard page with data has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -47,6 +49,7 @@ test("dashboard page with data has no critical a11y issues", async ({ page }) =>
 });
 
 test("add investment dialog has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.goto("/");
   await page.getByRole("button", { name: "Add my first investment" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -61,6 +64,7 @@ test("add investment dialog has no critical a11y issues", async ({ page }) => {
 });
 
 test("investment page has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -77,6 +81,7 @@ test("investment page has no critical a11y issues", async ({ page }) => {
 });
 
 test("edit investment dialog has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -98,6 +103,7 @@ test("edit investment dialog has no critical a11y issues", async ({ page }) => {
 });
 
 test("cash flow page has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -114,6 +120,7 @@ test("cash flow page has no critical a11y issues", async ({ page }) => {
 });
 
 test("cash flow page with data has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);
@@ -131,7 +138,7 @@ test("cash flow page with data has no critical a11y issues", async ({ page }) =>
 test("close early dialog has no critical/serious a11y issues", async ({ page }) => {
   const activeDeposit = makeActiveTimeDeposit({ id: "a11y-close-td" });
 
-  await page.clock.setFixedTime(new Date(2026, 2, 6));
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit: TimeDeposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, activeDeposit);
@@ -151,6 +158,7 @@ test("close early dialog has no critical/serious a11y issues", async ({ page }) 
 });
 
 test("investments page with closed deposit has no critical/serious a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   const closedDeposit = makeClosedTimeDeposit({ id: "a11y-closed-dep" });
 
   await page.addInitScript((deposit: TimeDeposit) => {
@@ -169,6 +177,7 @@ test("investments page with closed deposit has no critical/serious a11y issues",
 });
 
 test("reopen menu item on closed deposit has no critical/serious a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   const closedDeposit = makeClosedTimeDeposit({ id: "a11y-reopen-dep" });
 
   await page.addInitScript((deposit: TimeDeposit) => {
@@ -193,6 +202,7 @@ test("reopen menu item on closed deposit has no critical/serious a11y issues", a
 });
 
 test("settings page has no critical a11y issues", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposit) => {
     localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
   }, seedDeposit);

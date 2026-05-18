@@ -25,6 +25,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
 import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
+import { toISODate } from "@/lib/domain/date";
 import type { TimeDeposit } from "@/types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
@@ -110,7 +111,7 @@ export function SettingsShell() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `yieldflow-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `yieldflow-export-${toISODate(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Backup exported");

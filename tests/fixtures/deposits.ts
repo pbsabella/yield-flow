@@ -1,13 +1,13 @@
 import type { TimeDeposit } from "../../src/types";
 
-/** A 6-month active time deposit starting 2026-03-01. Used across close and a11y tests. */
+/** A 6-month active time deposit starting 2027-03-01. Used across close and a11y tests. */
 export function makeActiveTimeDeposit(overrides: Partial<TimeDeposit> = {}): TimeDeposit {
   return {
     id: "fixture-active-td",
     bankId: "Beacon Bank",
     name: "Beacon 6M TD",
     principal: 200_000,
-    startDate: "2026-03-01",
+    startDate: "2027-03-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -30,7 +30,7 @@ export function makeClosedTimeDeposit(overrides: Partial<TimeDeposit> = {}): Tim
     bankId: "Beacon Bank",
     name: "Beacon 3M (closed)",
     principal: 150_000,
-    startDate: "2025-09-01",
+    startDate: "2026-09-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -42,7 +42,7 @@ export function makeClosedTimeDeposit(overrides: Partial<TimeDeposit> = {}): Tim
     dayCountConvention: 365,
     isOpenEnded: false,
     status: "closed",
-    closeDate: "2026-01-15",
+    closeDate: "2027-01-15",
     ...overrides,
   };
 }

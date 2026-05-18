@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import type { TimeDeposit } from "../../src/types";
+import { FROZEN_TEST_DATE } from "../helpers/constants";
 
 const seedDeposits: TimeDeposit[] = [
   {
@@ -7,7 +8,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Axiom Bank",
     name: "Axiom 3M TD",
     principal: 50000,
-    startDate: "2025-11-01",
+    startDate: "2027-02-01",
     termMonths: 3,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -25,7 +26,7 @@ const seedDeposits: TimeDeposit[] = [
     bankId: "Bastion Bank",
     name: "Bastion 6M TD",
     principal: 75000,
-    startDate: "2025-10-15",
+    startDate: "2027-01-01",
     termMonths: 6,
     interestMode: "simple",
     interestTreatment: "payout",
@@ -41,6 +42,7 @@ const seedDeposits: TimeDeposit[] = [
 ];
 
 test("delete an investment — row is removed from the portfolio", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
@@ -65,6 +67,7 @@ test("delete an investment — row is removed from the portfolio", async ({ page
 });
 
 test("cancelling a delete dialog leaves the deposit intact", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
   await page.addInitScript((deposits) => {
     localStorage.setItem("yf:deposits", JSON.stringify(deposits));
   }, seedDeposits);
