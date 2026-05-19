@@ -1,7 +1,14 @@
 "use client";
 
 import { memo, useState } from "react";
-import { format, parseISO } from "date-fns";
+import {
+  ResponsiveContainer,
+  AreaChart as RechartsAreaChart,
+  Area,
+  XAxis,
+  Tooltip,
+  ReferenceDot,
+} from "recharts";
 import { Info, TrendingUp } from "lucide-react";
 import {
   ToggleGroup,
@@ -18,27 +25,6 @@ import { EmptyState } from "@/features/dashboard/components/EmptyState";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 type Window = "3" | "6" | "12" | "all";
-
-const MONTH_WIDTH = 48;
-const SVG_HEIGHT = 180;
-const PAD_TOP = 28;
-const PAD_BOTTOM = 24;
-const PAD_X = 20;
-
-// ─── Area chart helpers ────────────────────────────────────────────────────────
-
-function smoothCurve(pts: { x: number; y: number }[]): string {
-  if (pts.length === 0) return "";
-  if (pts.length === 1) return `M ${pts[0].x},${pts[0].y}`;
-  let d = `M ${pts[0].x},${pts[0].y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const curr = pts[i];
-    const next = pts[i + 1];
-    const cpX = (curr.x + next.x) / 2;
-    d += ` C ${cpX},${curr.y} ${cpX},${next.y} ${next.x},${next.y}`;
-  }
-  return d;
-}
 
 // ─── Area chart ───────────────────────────────────────────────────────────────
 
@@ -58,100 +44,119 @@ const AreaChart = memo(function AreaChart({
       ? currentMonthFull.net
       : m.net;
 
-  const maxNet = Math.max(...months.map(effectiveNet), 1);
-  const plotHeight = SVG_HEIGHT - PAD_TOP - PAD_BOTTOM;
-  const svgWidth = months.length * MONTH_WIDTH + PAD_X * 2;
-  const baselineY = PAD_TOP + plotHeight;
-
-  const pts = months.map((m, i) => ({
-    x: PAD_X + MONTH_WIDTH * i + MONTH_WIDTH / 2,
-    y: PAD_TOP + plotHeight * (1 - effectiveNet(m) / maxNet),
-    net: effectiveNet(m),
-    isCurrent: m.monthKey === currentMonthKey,
-    label: format(parseISO(m.monthKey + "-01"), "MMM"),
+  const data = months.map((m) => ({
     monthKey: m.monthKey,
+    net: effectiveNet(m),
+    label: new Date(m.monthKey + "T00:00:00").toLocaleString("en", { month: "short" }),
+    isCurrent: m.monthKey === currentMonthKey,
   }));
 
-  const linePath = smoothCurve(pts);
-  const areaPath = `${linePath} L ${pts[pts.length - 1].x},${baselineY} L ${pts[0].x},${baselineY} Z`;
-
-  const maxIdx = pts.reduce((best, pt, i) => (pt.net > pts[best].net ? i : best), 0);
+  const maxIdx = data.reduce((best, d, i) => (d.net > data[best].net ? i : best), 0);
+  const peak = data[maxIdx];
+  const current = data.find((d) => d.isCurrent);
 
   return (
     <div
-      className="overflow-x-auto rounded-lg"
+      className="overflow-x-auto rounded-lg text-primary"
       role="region"
       aria-label="Interest projection trend chart"
       tabIndex={0}
     >
-      <svg
-        width={svgWidth}
-        height={SVG_HEIGHT}
-        className="text-primary"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+      <ResponsiveContainer width="100%" height={180}>
+        <RechartsAreaChart data={data} margin={{ top: 28, right: 20, bottom: 32, left: 20 }}>
+          <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
+            </linearGradient>
+          </defs>
 
-        {/* Filled area */}
-        <path d={areaPath} fill="url(#areaGradient)" />
+          <XAxis
+            dataKey="monthKey"
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            tick={(props: any) => {
+              const { x, y, payload } = props;
+              const d = data.find((d) => d.monthKey === payload.value);
+              const idx = data.findIndex((d) => d.monthKey === payload.value);
+              const currYear = (payload.value as string).slice(0, 4);
+              const prevYear = idx > 0 ? data[idx - 1].monthKey.slice(0, 4) : null;
+              const showYear = idx === 0 || currYear !== prevYear;
+              return (
+                <text
+                  x={x}
+                  y={y + 4}
+                  textAnchor="middle"
+                  fontSize={9}
+                  fontWeight={d?.isCurrent ? 600 : 400}
+                  className={d?.isCurrent ? "fill-foreground" : "fill-muted-foreground"}
+                >
+                  {d?.label}
+                  {showYear && (
+                    <tspan x={x} dy={10} fontSize={8} fontWeight={400} className="fill-muted-foreground">
+                      &apos;{currYear.slice(2)}
+                    </tspan>
+                  )}
+                </text>
+              );
+            }}
+            axisLine={false}
+            tickLine={false}
+          />
 
-        {/* Stroke line */}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+          <Tooltip
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            content={({ active, payload, label }: any) => {
+              if (!active || !payload?.length) return null;
+              const d = data.find((d) => d.monthKey === label);
+              return (
+                <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-sm text-xs">
+                  <p className="text-muted-foreground mb-1">{d?.label ?? label}</p>
+                  <p className="font-medium tabular-nums text-popover-foreground">
+                    {fmtCurrency(payload[0].value as number)}
+                  </p>
+                </div>
+              );
+            }}
+          />
 
-        {/* Current month dot */}
-        {pts.map((pt) =>
-          pt.isCurrent ? (
-            <circle
-              key={pt.monthKey}
-              cx={pt.x}
-              cy={pt.y}
-              r="4"
+          <Area
+            type="monotone"
+            dataKey="net"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="url(#areaGradient)"
+            dot={false}
+            isAnimationActive={false}
+            activeDot={{ r: 4, fill: "currentColor", stroke: "white", strokeWidth: 1.5 }}
+          />
+
+          {current && (
+            <ReferenceDot
+              x={current.monthKey}
+              y={current.net}
+              r={4}
               fill="currentColor"
               stroke="white"
-              strokeWidth="1.5"
+              strokeWidth={1.5}
             />
-          ) : null,
-        )}
+          )}
 
-        {/* Peak value label */}
-        <text
-          x={pts[maxIdx].x}
-          y={pts[maxIdx].y - 8}
-          textAnchor="middle"
-          fontSize="9"
-          fontWeight="500"
-          className="fill-foreground tabular-nums"
-        >
-          {fmtCurrency(pts[maxIdx].net)}
-        </text>
-
-        {/* X-axis labels */}
-        {pts.map((pt) => (
-          <text
-            key={pt.monthKey}
-            x={pt.x}
-            y={SVG_HEIGHT - 6}
-            textAnchor="middle"
-            fontSize="9"
-            fontWeight={pt.isCurrent ? "600" : "400"}
-            className={pt.isCurrent ? "fill-foreground" : "fill-muted-foreground"}
-          >
-            {pt.label}
-          </text>
-        ))}
-      </svg>
+          <ReferenceDot
+            x={peak.monthKey}
+            y={peak.net}
+            r={0}
+            label={{
+              value: fmtCurrency(peak.net),
+              position: "top",
+              fontSize: 9,
+              fontWeight: 500,
+              className: "fill-foreground tabular-nums",
+            }}
+          />
+        </RechartsAreaChart>
+      </ResponsiveContainer>
     </div>
   );
 });
