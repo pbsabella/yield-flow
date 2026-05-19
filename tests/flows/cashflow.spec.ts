@@ -88,3 +88,40 @@ test("cash flow page — with portfolio data", async ({ page }) => {
 
   await snap(page, "Cash Flow Page - filled");
 });
+
+test("cash flow chart — month labels and peak value label render", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
+  await page.addInitScript((deposits) => {
+    localStorage.setItem("yf:deposits", JSON.stringify(deposits));
+  }, seedDeposits);
+
+  await page.goto("/cashflow");
+  const chart = page.getByRole("region", { name: "Interest projection trend chart" });
+  await expect(chart).toBeVisible();
+
+  // At least one abbreviated month label should appear in the chart SVG
+  await expect(
+    chart.locator("text").filter({ hasText: /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/ }).first()
+  ).toBeVisible();
+
+  // Peak value label: a number rendered above the highest point
+  await expect(chart.locator("text").filter({ hasText: /\d/ }).first()).toBeVisible();
+});
+
+test("cash flow chart — tooltip appears on hover", async ({ page }) => {
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
+  await page.addInitScript((deposits) => {
+    localStorage.setItem("yf:deposits", JSON.stringify(deposits));
+  }, seedDeposits);
+
+  await page.goto("/cashflow");
+  const chart = page.getByRole("region", { name: "Interest projection trend chart" });
+  await expect(chart).toBeVisible();
+
+  const box = await chart.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // Recharts tooltip renders the formatter label "Interest"
+    await expect(page.getByText("Interest").first()).toBeVisible();
+  }
+});
