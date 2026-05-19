@@ -86,7 +86,6 @@ export function DatePicker({ id, selected, timeZone, onSelect }: DatePickerProps
                 onSelect(date)
                 setOpen(false)
               }}
-              initialFocus
             />
           </PopoverContent>
         </Popover>
