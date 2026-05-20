@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     default: "YieldFlow Lab",
     template: "%s | YieldFlow Lab",
   },
-  description: "Precision yield ladder tracking and net-of-tax cash flow visualization.",
+  description: "Free fixed-income tracker for time deposits and bonds. See net-of-withholding-tax interest, maturity countdowns, and 12-month cash flow forecasts.",
   icons: {
     icon: '/icon.svg',
   },
@@ -51,19 +51,54 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "YieldFlow Lab",
     title: "YieldFlow Lab",
-    description: "Visualize spendable reality with net-of-tax interest tracking.",
+    description: "Know exactly when your money comes back — track maturity dates and net-of-withholding-tax income from bank deposits.",
     images: [
       {
-        url: "/og-image.png", // Path: public/og-image.png
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "YieldFlow Lab Preview",
       },
     ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "YieldFlow Lab",
+    description: "Free fixed-income tracker for time deposits and bonds. Net-of-withholding-tax interest, maturity countdowns, and 12-month cash flow forecasts.",
+    images: ["/og-image.png"],
+  },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "YieldFlow Lab",
+      "url": baseUrl,
+      "description": "Fixed-income yield ladder tracker with net-of-withholding-tax cash flow forecasting.",
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "YieldFlow Lab",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web Browser",
+      "offers": { "@type": "Offer", "price": "0" },
+      "description": "Track maturity dates, visualize month-by-month net interest income, and forecast 12-month cash flow from bank time deposits and fixed-income instruments.",
+      "featureList": [
+        "Yield ladder with maturity countdown",
+        "Net-of-withholding-tax interest calculation",
+        "12-month cash flow projection chart",
+        "Bank exposure concentration view",
+        "Demo mode with sample portfolio",
+      ],
+      "screenshot": `${baseUrl}/og-image.png`,
+      "url": baseUrl,
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -73,6 +108,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
