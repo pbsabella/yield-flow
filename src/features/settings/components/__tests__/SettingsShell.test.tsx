@@ -12,6 +12,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
+const mockSetTheme = vi.fn();
+vi.mock("next-themes", () => ({
+  useTheme: () => ({ theme: "light", resolvedTheme: "light", setTheme: mockSetTheme }),
+}));
+
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const DEPOSITS_KEY = "yf:deposits";
@@ -145,6 +150,62 @@ describe("SettingsShell — import", () => {
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("1 investment imported");
+    });
+  });
+
+  it("applies preferences and theme from backup on import", async () => {
+    seedStorage();
+    renderShell();
+
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      deposits: [deposit],
+      preferences: { currency: "USD", bankInsuranceLimit: 500_000 },
+      theme: "dark",
+    };
+    const file = new File([JSON.stringify(backup)], "backup.json", {
+      type: "application/json",
+    });
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    const replaceBtn = await screen.findByRole("button", { name: /replace/i });
+    fireEvent.click(replaceBtn);
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("yf:preferences") ?? "{}");
+      expect(stored.currency).toBe("USD");
+      expect(stored.bankInsuranceLimit).toBe(500_000);
+      expect(mockSetTheme).toHaveBeenCalledWith("dark");
+    });
+  });
+
+  it("does not apply preferences when backup has none (backward compat)", async () => {
+    localStorage.setItem("yf:preferences", JSON.stringify({ currency: "PHP" }));
+    seedStorage();
+    renderShell();
+
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      deposits: [deposit],
+    };
+    const file = new File([JSON.stringify(backup)], "backup.json", {
+      type: "application/json",
+    });
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    const replaceBtn = await screen.findByRole("button", { name: /replace/i });
+    fireEvent.click(replaceBtn);
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("yf:preferences") ?? "{}");
+      expect(stored.currency).toBe("PHP");
+      expect(mockSetTheme).not.toHaveBeenCalled();
     });
   });
 });

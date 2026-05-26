@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Download, Trash2, Upload } from "lucide-react";
 import {
@@ -27,6 +28,7 @@ import { usePortfolioContext } from "@/features/portfolio/context/PortfolioConte
 import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import { toISODate } from "@/lib/domain/date";
 import type { TimeDeposit } from "@/types";
+import type { Preferences } from "@/lib/hooks/usePreferences";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
 import { useCurrencyInput } from '@/components/ui/use-currency-input';
@@ -39,6 +41,14 @@ type BackupFile = {
   version: number;
   exportedAt: string;
   deposits: TimeDeposit[];
+  preferences?: Partial<Preferences>;
+  theme?: string;
+};
+
+type ImportPreview = {
+  deposits: TimeDeposit[];
+  preferences?: Partial<Preferences>;
+  theme?: string;
 };
 
 const REQUIRED_DEPOSIT_FIELDS: (keyof TimeDeposit)[] = [
@@ -73,9 +83,10 @@ function validateBackup(raw: unknown): TimeDeposit[] {
 export function SettingsShell() {
   const router = useRouter();
   const { deposits, importDeposits, clearDeposits, preferences, setPreference, isDemoMode, exitDemo } = usePortfolioContext();
+  const { theme, setTheme } = useTheme();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importPreview, setImportPreview] = useState<TimeDeposit[] | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [importConfirmOpen, setImportConfirmOpen] = useState(false);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
@@ -106,6 +117,8 @@ export function SettingsShell() {
         version: 1,
         exportedAt: new Date().toISOString(),
         deposits,
+        preferences,
+        theme: theme ?? undefined,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -118,7 +131,7 @@ export function SettingsShell() {
     } catch {
       toast.error("Export failed — please try again");
     }
-  }, [deposits]);
+  }, [deposits, preferences, theme]);
 
   // ─── Import ────────────────────────────────────────────────────────────────
 
@@ -131,8 +144,15 @@ export function SettingsShell() {
     reader.onload = (event) => {
       try {
         const raw = JSON.parse(event.target?.result as string);
-        const parsed = validateBackup(raw);
-        setImportPreview(parsed);
+        const parsedDeposits = validateBackup(raw);
+        const p = raw as Record<string, unknown>;
+        const importedPreferences =
+          typeof p.preferences === "object" && p.preferences !== null
+            ? (p.preferences as Partial<Preferences>)
+            : undefined;
+        const importedTheme = typeof p.theme === "string" ? p.theme : undefined;
+
+        setImportPreview({ deposits: parsedDeposits, preferences: importedPreferences, theme: importedTheme });
         setImportConfirmOpen(true);
       } catch (err) {
         setImportError(err instanceof Error ? err.message : "Failed to read file.");
@@ -145,12 +165,20 @@ export function SettingsShell() {
 
   const handleImportConfirm = useCallback(() => {
     if (!importPreview) return;
-    importDeposits(importPreview);
-    toast.success(`${importPreview.length} investment${importPreview.length === 1 ? "" : "s"} imported`);
+    importDeposits(importPreview.deposits);
+
+    if (importPreview.preferences?.currency)
+      setPreference("currency", importPreview.preferences.currency);
+    if (importPreview.preferences?.bankInsuranceLimit !== undefined)
+      setPreference("bankInsuranceLimit", importPreview.preferences.bankInsuranceLimit);
+    if (importPreview.theme)
+      setTheme(importPreview.theme);
+
+    toast.success(`${importPreview.deposits.length} investment${importPreview.deposits.length === 1 ? "" : "s"} imported`);
     setImportPreview(null);
     setImportConfirmOpen(false);
     router.push("/");
-  }, [importPreview, importDeposits, router]);
+  }, [importPreview, importDeposits, setPreference, setTheme, router]);
 
   // ─── Clear ─────────────────────────────────────────────────────────────────
 
@@ -440,8 +468,9 @@ export function SettingsShell() {
             <AlertDialogHeader>
               <AlertDialogTitle>Replace all data?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will replace your {deposits.length} current deposit{deposits.length !== 1 ? "s" : ""} with {importPreview?.length ?? 0} imported deposit{(importPreview?.length ?? 0) !== 1 ? "s" : ""}.
-                This cannot be undone. Export a backup first if you want to keep your current data.
+                This will replace your {deposits.length} current deposit{deposits.length !== 1 ? "s" : ""} with {importPreview?.deposits.length ?? 0} imported deposit{(importPreview?.deposits.length ?? 0) !== 1 ? "s" : ""}.
+                {(importPreview?.preferences || importPreview?.theme) && " Your display preferences will also be restored."}
+                {" "}This cannot be undone. Export a backup first if you want to keep your current data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
