@@ -122,6 +122,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          storageKey="yf:theme"
         >
           <TooltipProvider>
             <PortfolioProvider>

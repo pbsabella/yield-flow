@@ -11,14 +11,17 @@ export type Preferences = {
   bankInsuranceLimit?: number;
 };
 
+const PREFERENCES_KEY = "yf:preferences";
+
 function getInitialPreferences(): Preferences {
   return { currency: getLocaleCurrency() };
 }
 
 export function usePreferences() {
   const { value: preferences, setValue: setPreferences } = useLocalStorage<Preferences>(
-    "yf:preferences",
+    PREFERENCES_KEY,
     getInitialPreferences(),
+    { skipInitialWrite: true },
   );
 
   const setPreference = useCallback(
@@ -28,5 +31,32 @@ export function usePreferences() {
     [setPreferences],
   );
 
-  return { preferences, setPreference } as const;
+  // Used during import: writes to localStorage synchronously before updating React
+  // state, so the value survives any component re-initialization triggered by navigation.
+  const importPreferences = useCallback(
+    (partial: Partial<Preferences>) => {
+      let current: Preferences;
+
+      try {
+        const stored = window.localStorage.getItem(PREFERENCES_KEY);
+
+        current = stored ? (JSON.parse(stored) as Preferences) : getInitialPreferences();
+      } catch {
+        current = getInitialPreferences();
+      }
+
+      const merged = { ...current, ...partial };
+
+      try {
+        window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(merged));
+      } catch {
+        /* storage full */
+      }
+
+      setPreferences(merged);
+    },
+    [setPreferences],
+  );
+
+  return { preferences, setPreference, importPreferences } as const;
 }

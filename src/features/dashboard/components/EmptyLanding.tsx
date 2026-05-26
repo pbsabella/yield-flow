@@ -45,7 +45,7 @@ export function EmptyLanding({ onAddData, onTryDemo, onImport }: EmptyLandingPro
         </ul>
 
         {/* CTAs — demo first, reduces friction */}
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row flex-wrap">
           <Button size="lg" onClick={onTryDemo}>
             Explore with demo data
           </Button>
