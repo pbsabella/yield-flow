@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useRef } from "react";
+import { useTheme } from "next-themes";
 import { ArrowRight, BrainCircuit } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { useWizardStore } from "@/store/wizardStore";
 import { formatMonthLabel } from "@/lib/domain/date";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
+import type { Preferences } from "@/lib/hooks/usePreferences";
 
 // ─── Quick cash flow preview for this month ────────────────────────────────────
 
@@ -78,7 +80,8 @@ function ThisMonthPreview({ entries }: { entries: MonthEntry[] }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function DashboardShell() {
-  const { portfolio, status, enterDemo, importDeposits } = usePortfolioContext();
+  const { portfolio, status, enterDemo, importDeposits, importPreferences } = usePortfolioContext();
+  const { setTheme } = useTheme();
   const openWizard   = useWizardStore((s) => s.openWizard);
   const openExportAi = useWizardStore((s) => s.openExportAi);
 
@@ -95,14 +98,25 @@ export default function DashboardShell() {
         if (typeof raw !== "object" || raw === null || raw.version !== 1 || !Array.isArray(raw.deposits)) {
           throw new Error();
         }
+
+        const p = raw as Record<string, unknown>;
+        const importedPreferences =
+          typeof p.preferences === "object" && p.preferences !== null
+            ? (p.preferences as Partial<Preferences>)
+            : undefined;
+        const importedTheme = typeof p.theme === "string" ? p.theme : undefined;
+
         importDeposits(raw.deposits);
+        if (importedPreferences) importPreferences(importedPreferences);
+        if (importedTheme) setTheme(importedTheme);
+
         toast.success(`${raw.deposits.length} investment${raw.deposits.length === 1 ? "" : "s"} imported`);
       } catch {
         toast.error("Import failed", { description: "The file doesn't appear to be a valid YieldFlow backup." });
       }
     };
     reader.readAsText(file);
-  }, [importDeposits]);
+  }, [importDeposits, importPreferences, setTheme]);
 
   const thisMonthEntries = (portfolio.currentMonthFull?.entries ?? []) as MonthEntry[];
 

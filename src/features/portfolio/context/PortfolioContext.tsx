@@ -59,6 +59,7 @@ interface PortfolioContextValue {
   // Preferences
   preferences: Preferences;
   setPreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
+  importPreferences: (partial: Partial<Preferences>) => void;
 
   // Demo handlers
   enterDemo: () => void;
@@ -99,7 +100,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setValue: setIsDemoMode,
     isReady: demoReady,
   } = useLocalStorage<boolean>("yf:demo-mode", false, { skipInitialWrite: true });
-  const { preferences, setPreference } = usePreferences();
+  const { preferences, setPreference, importPreferences } = usePreferences();
 
   const fmtCurrency = useCallback(
     (value: number) => formatCurrency(value, preferences.currency),
@@ -292,6 +293,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
+      importPreferences,
       enterDemo,
       exitDemo,
       handleSave,
@@ -316,6 +318,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       hasSidebar,
       preferences,
       setPreference,
+      importPreferences,
       enterDemo,
       exitDemo,
       handleSave,

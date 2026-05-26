@@ -25,7 +25,7 @@ import {
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { usePortfolioContext } from "@/features/portfolio/context/PortfolioContext";
-import { getCurrencySymbol, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
+import { getCurrencySymbol, getLocaleCurrency, SUPPORTED_CURRENCIES } from "@/lib/domain/format";
 import { toISODate } from "@/lib/domain/date";
 import type { TimeDeposit } from "@/types";
 import type { Preferences } from "@/lib/hooks/usePreferences";
@@ -82,7 +82,7 @@ function validateBackup(raw: unknown): TimeDeposit[] {
 
 export function SettingsShell() {
   const router = useRouter();
-  const { deposits, importDeposits, clearDeposits, preferences, setPreference, isDemoMode, exitDemo } = usePortfolioContext();
+  const { deposits, importDeposits, clearDeposits, preferences, setPreference, importPreferences, isDemoMode, exitDemo } = usePortfolioContext();
   const { theme, setTheme } = useTheme();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,12 +113,17 @@ export function SettingsShell() {
 
   const handleExport = useCallback(() => {
     try {
+      const preferencesToExport = {
+        ...(preferences.currency !== getLocaleCurrency() && { currency: preferences.currency }),
+        ...(preferences.bankInsuranceLimit !== undefined && { bankInsuranceLimit: preferences.bankInsuranceLimit }),
+      };
+
       const payload = {
         version: 1,
         exportedAt: new Date().toISOString(),
         deposits,
-        preferences,
-        theme: theme ?? undefined,
+        preferences: preferencesToExport,
+        ...(theme && theme !== "system" && { theme }),
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -166,19 +171,15 @@ export function SettingsShell() {
   const handleImportConfirm = useCallback(() => {
     if (!importPreview) return;
     importDeposits(importPreview.deposits);
-
-    if (importPreview.preferences?.currency)
-      setPreference("currency", importPreview.preferences.currency);
-    if (importPreview.preferences?.bankInsuranceLimit !== undefined)
-      setPreference("bankInsuranceLimit", importPreview.preferences.bankInsuranceLimit);
+    if (importPreview.preferences)
+      importPreferences(importPreview.preferences);
     if (importPreview.theme)
       setTheme(importPreview.theme);
-
     toast.success(`${importPreview.deposits.length} investment${importPreview.deposits.length === 1 ? "" : "s"} imported`);
     setImportPreview(null);
     setImportConfirmOpen(false);
     router.push("/");
-  }, [importPreview, importDeposits, setPreference, setTheme, router]);
+  }, [importPreview, importDeposits, importPreferences, setTheme, router]);
 
   // ─── Clear ─────────────────────────────────────────────────────────────────
 
