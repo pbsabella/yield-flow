@@ -5,6 +5,21 @@
 
 ---
 
+## Non-negotiables
+
+- **Net-only display.** Never show gross values in any primary view.
+- **Explicit settle.** Never auto-settle investments; matured TDs may still earn via rollover.
+- **Fix the label, not a tooltip.** Add tooltips only as a last resort — make the UI self-explanatory.
+- **Wizard integrity.** No skipped steps, no outside-click close (ESC asks before discarding).
+
+## Definition of Done
+
+- Net interest matches manual calculation within ±1 peso
+- Overdue investments are always amber — never missed
+- Wizard completable in under 2 minutes
+
+---
+
 ## Investment Types
 
 | Type                 | Description                                  |

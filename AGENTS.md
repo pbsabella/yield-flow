@@ -1,34 +1,26 @@
 # YieldFlow — Agent Guidelines
 
-Guidance for AI agents working in this repo. The full engineering spec lives in `.claude/skills/yieldflow-skill/references/ENGINEERING.md`; PRODUCT.md covers product intent. When in doubt, defer to those.
+YieldFlow is a net-only, local-first yield ladder tracker (Next.js App Router, TypeScript, Tailwind CSS v4). It is **not** a backend app: no accounts, no server, no gross-value display. Data lives in browser storage. On any conflict, AGENTS.md wins.
 
-## Stack
+## Docs (load via the `yieldflow` skill)
 
-Next.js App Router · TypeScript · Tailwind CSS v4 · shadcn/ui + Radix UI · Zustand · Vitest/Playwright. Storage: `useLocalStorage` hook only — no direct `localStorage` calls.
+- `.claude/skills/yieldflow/references/ENGINEERING.md` — read before writing code or tokens
+- `.claude/skills/yieldflow/references/PRODUCT.md` — read before UI, features, or product decisions
 
-## Non-negotiables
+## Hard rules
 
-- **Dates:** Stored dates are local YYYY-MM-DD strings. Use `toISODate()` / `parseLocalDate()` from `lib/domain/date`. Never `toISOString().split("T")[0]` or `new Date("YYYY-MM-DD")` for storage (UTC drift / UTC-midnight parsing).
-- **Currency:** `formatPhpCurrency()` from `lib/domain/format.ts` only. No inline `Intl.NumberFormat`.
-- **Yield logic:** All calculations live in `lib/domain/yield-engine.ts`. Do not duplicate.
-- **Tokens:** Use the Tailwind `@theme inline` semantic token system — never hardcode palette classes, raw spacing (`gap-2`), or `bg-[var(--token)]`. Add to `:root` AND `.dark`.
-- **shadcn:** New components via `npx shadcn@latest add`. Don't modify shadcn files for look-and-feel — extract CVA variants to `components/ui/variants.ts`.
-
-## Testing
-
-Every feature/page needs coverage across all three layers:
-
-| Layer | Tool | Location |
-| ----- | ---- | -------- |
-| Unit/integration | Vitest + RTL | `src/**/__tests__/` |
-| E2E flows | Playwright | `tests/flows/` |
-| A11y | axe + Playwright | `tests/a11y/basic.a11y.spec.ts` |
-
-A11y: scope `AxeBuilder` to the component under test (modals/menus hide background via `aria-hidden`); filter to `critical`/`serious` impact. E2E: prefer same-page assertions over cross-page chains; freeze time with `page.clock.setFixedTime` before `page.addInitScript` and `page.goto`.
+- **Dates:** local YYYY-MM-DD strings. Use `toISODate()` / `parseLocalDate()` from `lib/domain/date`. Never `date.toISOString().split("T")[0]` (UTC drift) or `new Date("YYYY-MM-DD")` for stored dates (UTC-midnight parsing).
+- **Currency:** `formatPhpCurrency()` from `lib/domain/format.ts` only. Never inline `Intl.NumberFormat`.
+- **Storage:** `useLocalStorage` only. Never direct `localStorage` calls.
+- **Yield calc:** all logic in `lib/domain/yield-engine.ts`. Never duplicate it.
+- **Tokens:** semantic `@theme inline` tokens only. Never hardcode palette classes (`text-indigo-700`), raw spacing (`gap-2`), or `bg-[var(--token)]`. Add tokens to `:root` AND `.dark`.
+- **shadcn/ui:** new components via `npx shadcn@latest add`. Never modify shadcn files for look-and-feel — extract CVA variants to `components/ui/variants.ts`.
+- **Testing:** every feature/page needs unit/integration (Vitest + RTL in `src/**/__tests__/`), E2E (Playwright in `tests/flows/`), and a11y (axe in `tests/a11y/basic.a11y.spec.ts`).
 
 ## Commands
 
 - `npm run lint` — ESLint + typecheck
 - `npm run test` — unit/integration
+- `npm run test:all` — unit + E2E + a11y
 - `npm run build` — production build
 - `npx playwright test` — E2E/a11y (needs `npx playwright install chromium` first)
