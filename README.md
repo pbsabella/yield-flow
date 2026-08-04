@@ -26,7 +26,7 @@ YieldFlow is a work in progress, transitioning from a client-side proof of conce
 
 - **Frontend:** Next.js 16+ (App Router), Tailwind CSS
 - **UI Components:** Radix UI / Shadcn
-- **State Management:** React Context API with a custom initialization guard to prevent layout flickering.
+- **State Management:** React Context (portfolio) + Zustand (wizard/UI state).
 - **Storage:** Browser-native LocalStorage (Interim solution for prototype phase).
 
 ---
@@ -36,7 +36,7 @@ YieldFlow is a work in progress, transitioning from a client-side proof of conce
 1. **Clone the repository:**
 
    ```bash
-   git clone [https://github.com/pbsabella/yieldflow.git](https://github.com/pbsabella/yieldflow.git)
+   git clone [https://github.com/pbsabella/yield-flow.git](https://github.com/pbsabella/yield-flow.git)
    ```
 
 2. **Install dependencies:**
