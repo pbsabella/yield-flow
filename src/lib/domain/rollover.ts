@@ -9,6 +9,10 @@ import type { TimeDeposit } from "@/types";
  * - TD monthly (payoutFrequency === "monthly"): interest was already distributed
  *   each month. At maturity the user only receives the original principal back.
  */
+const trimToCents = (value: number) => Math.round(value * 100) / 100;
+
 export function getRolloverPrincipal(deposit: TimeDeposit, netTotal: number): number {
-  return deposit.payoutFrequency === "monthly" ? deposit.principal : netTotal;
+  return deposit.payoutFrequency === "monthly"
+    ? trimToCents(deposit.principal)
+    : trimToCents(netTotal);
 }

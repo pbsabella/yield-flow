@@ -41,4 +41,11 @@ describe("getRolloverPrincipal", () => {
     const deposit: TimeDeposit = { ...BASE, payoutFrequency: "maturity" };
     expect(getRolloverPrincipal(deposit, 100_000)).toBe(100_000);
   });
+
+  it("TD maturity: rounds fractional proceeds to 2 decimals", () => {
+    const deposit: TimeDeposit = { ...BASE, payoutFrequency: "maturity" };
+    expect(getRolloverPrincipal(deposit, 103_249.999)).toBe(103_250);
+    expect(getRolloverPrincipal(deposit, 103_249.994)).toBe(103_249.99);
+    expect(getRolloverPrincipal(deposit, 103_249.995)).toBe(103_250);
+  });
 });
