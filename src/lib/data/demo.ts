@@ -1,3 +1,4 @@
+import { toISODate } from "@/lib/domain/date";
 import type { Bank, TimeDeposit } from "@/types";
 
 const today = new Date();
@@ -5,20 +6,20 @@ const today = new Date();
 function daysAgo(days: number): string {
   const d = new Date(today);
   d.setDate(d.getDate() - days);
-  return d.toISOString().split("T")[0];
+  return toISODate(d);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function daysFromNow(days: number): string {
   const d = new Date(today);
   d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
+  return toISODate(d);
 }
 
 function monthsAgo(months: number): string {
   const d = new Date(today);
   d.setMonth(d.getMonth() - months);
-  return d.toISOString().split("T")[0];
+  return toISODate(d);
 }
 
 export const banks: Bank[] = [

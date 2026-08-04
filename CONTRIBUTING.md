@@ -11,7 +11,7 @@ By participating in this project, you agree to maintain a professional and respe
 - **Framework:** Next.js 16 (App Router)
 - **Styling:** Tailwind CSS
 - **Components:** Radix UI / shadcn/ui
-- **State:** React Context API
+- **State:** React Context (portfolio) + Zustand (wizard/UI state)
 
 ## How to Contribute
 
@@ -40,7 +40,7 @@ To maintain financial accuracy across timezones, we avoid the "JavaScript Date T
 
 - **Never** use `toISOString()` or `new Date(isoString)` for stored records.
 - **Always** use our custom primitives: `toISODate(date)` and `parseLocalDate(str)`.
-- Refer to `ENGINEERING.md` for the full technical specification.
+- Refer to `.claude/skills/yieldflow/references/ENGINEERING.md` for the full technical specification.
 
 ## Pull Request Guidelines
 

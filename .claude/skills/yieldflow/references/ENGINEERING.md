@@ -8,21 +8,61 @@
 ## Stack
 
 Next.js App Router · TypeScript · Tailwind CSS v4 · shadcn/ui + Radix UI · lucide-react
-Storage: `useLocalStorage` · Calc: `lib/domain/yield-engine.ts` · Templates: `lib/data/banks-config.ts`
+Storage: `useLocalStorage` (via `usePersistedDeposits` / `usePreferences`) · Calc: `lib/domain/yield-engine.ts` + delegating modules · Wizard state: `store/wizardStore.ts`
+
+---
+
+## Yield Calculation
+
+Core math lives in `lib/domain/yield-engine.ts` (`calculateNetYield`). Never duplicate or fork it. Summaries are built by delegating modules, all of which route through the engine:
+
+| Module | Export | Builds |
+| ------ | ------ | ------ |
+| `lib/domain/interest.ts` | `buildDepositSummary` | Per-deposit summary (status, days, net interest) |
+| `lib/domain/accrued-interest.ts` | `calculateAccruedToDate` | Accrued interest up to a date (pro-rated by `termDays = daysHeld`) |
+| `lib/domain/rollover.ts` | `getRolloverPrincipal` | Rollover principal (principal + net total) |
+| `lib/domain/cashflow.ts` | `buildCashFlowProjection`, `buildCashFlowLedger`, `buildMonthlyAllowance` | Cash-flow tables, ledger entries, per-month allowance |
+| `lib/domain/ai-context.ts` | `buildAiContext` | Prompt + tables for Export for AI |
+
+Engine details worth preserving: day-count formula per `dayCountConvention`; `rate / dayCountConvention` (daily compounding) vs `rate / 12` (monthly); effective rate = `taxRateOverride ?? bank.taxRate`; open-ended deposits project `OPEN_ENDED_PROJECTION_MONTHS` (12) months forward.
 
 ---
 
 ## Storage
 
 `useLocalStorage` only. No direct `localStorage` calls.
-`usePersistedDeposits` = single helper on top of the hook.
-`usePortfolioData` synthesizes a `Bank` object when `bankMap.get(deposit.bankId)` misses — supports free-text bank names.
+Helpers: `usePersistedDeposits` (deposits) and `usePreferences` (currency + insurance limit) on top of the hook.
+`setValueSync` (on the hook) writes synchronously, bypassing the async persist effect — use it only when a write must survive an imminent unmount (e.g. `importPreferences` before navigation).
+
+**BankId semantics:** a deposit's `bankId` is the free-text name typed by the user. When `bankMap.get(deposit.bankId)` misses, `usePortfolioData` synthesizes a `Bank` with `taxRate = taxRateOverride ?? 0.2`. The wizard always writes `taxRateOverride` on a deposit.
+
+---
+
+## Runtime Status (effectiveStatus)
+
+`effectiveStatus` is derived at runtime by `usePortfolioData` (`src/features/portfolio/hooks/usePortfolioData.ts`) — it is **never stored**. Rules:
+
+- `active` → `matured` once `maturityDate` passes (may be `overdue` in presentation, but "overdue" is not a status).
+- `settled` and `closed` are terminal and stored.
+- Re-checked every 60s (setInterval) and on each recompute.
+
+It drives badges, grouping, ladder colors, cash-flow projection, and AI context. Never persist it or write it back to a deposit.
+
+---
+
+## Wizard State
+
+Two pieces, do not conflate:
+
+- `src/features/portfolio/hooks/useWizardState.ts` — form state + validation (dirty tracking via `JSON.stringify` snapshot).
+- `src/store/wizardStore.ts` (zustand) — orchestration: `wizardOpen`, `editTarget`, `rolloverConfig`, `highlightedId` (auto-clears after 2.5s), `exportAiOpen`. `PortfolioContext` mutates it via `useWizardStore.getState()`.
 
 ---
 
 ## Formatting
 
-`formatPhpCurrency(value: number): string` from `lib/domain/format.ts`
+`formatCurrency(value: number, currency: string)` from `lib/domain/format.ts` — the only formatter.
+Multi-currency is display-only ("vanity"): numbers are stored and computed currency-free; the currency just changes formatting. Use `getLocaleCurrency()` (region → currency, SSR-safe, USD fallback) for the default, `SUPPORTED_CURRENCIES` (9 codes) for the picker, and `getCurrencySymbol()` for addons. Never convert.
 Never add inline `Intl.NumberFormat`.
 
 ---
@@ -63,7 +103,7 @@ They represent a day in the user's local timezone — not a UTC timestamp.
 No `tailwind.config.ts` for colors. No `@layer utilities` for color tokens.
 `@theme inline` generates Tailwind classes automatically.
 
-**Token naming:** `--color-{role}-{variant}-{property}`
+**Token naming:** `--color-{role}-{variant}-{property}` (some tokens deviate — e.g. `--color-accent-fg`, `--color-input-bg`, `--color-table-frozen-bg`, `--color-banner-bg`; `--spacing-*` for spacing). Check `globals.css` before assuming a name.
 
 **To add a token:** Add to `:root` + `.dark` → expose in `@theme inline` → use generated class.
 
@@ -150,7 +190,7 @@ Every new feature or page requires coverage across all three layers:
 - Direct `localStorage` calls
 - Inline `Intl.NumberFormat`
 - Hardcode palette classes
-- Duplicate yield calc logic outside `yield-engine.ts`
+- Duplicate or fork yield calc logic — always route through `yield-engine.ts` / the delegating modules
 - Modify shadcn files for look-and-feel — rewrite or CVA
 - Add a token to `:root` without a matching entry in `.dark`
 - Use `date.toISOString()` for local date storage — always use `toISODate()`
