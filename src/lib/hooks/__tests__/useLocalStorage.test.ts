@@ -4,6 +4,10 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 
 const KEY = "test:key";
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
 beforeEach(() => {
   localStorage.clear();
 });
@@ -140,12 +144,6 @@ describe("useLocalStorage — persistWhen", () => {
 });
 
 describe("useLocalStorage — QuotaExceededError", () => {
-  beforeEach(() => {
-    vi.mock("sonner", () => ({
-      toast: { success: vi.fn(), error: vi.fn() },
-    }));
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
