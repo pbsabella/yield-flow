@@ -85,6 +85,32 @@ describe("useLocalStorage — writing to storage", () => {
   });
 });
 
+describe("useLocalStorage — setValueSync", () => {
+  it("persists synchronously before effects run", () => {
+    const { result } = renderHook(() => useLocalStorage(KEY, "initial"));
+
+    act(() => {
+      result.current.setValueSync("sync-value");
+    });
+
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toBe("sync-value");
+    expect(result.current.value).toBe("sync-value");
+  });
+
+  it("supports functional updaters that merge against the latest value", async () => {
+    const { result } = renderHook(() =>
+      useLocalStorage<{ a: number; b?: number }>(KEY, { a: 1 }),
+    );
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    act(() => {
+      result.current.setValueSync((prev) => ({ ...prev, b: 2 }));
+    });
+
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual({ a: 1, b: 2 });
+  });
+});
+
 describe("useLocalStorage — remove", () => {
   it("removes the key from localStorage", async () => {
     localStorage.setItem(KEY, JSON.stringify("to-remove"));

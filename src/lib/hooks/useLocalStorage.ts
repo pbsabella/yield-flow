@@ -24,6 +24,7 @@ export function useLocalStorage<T>(
   const [value, setValue] = useState<T>(initialValue);
   const [isReady, setIsReady] = useState(false);
   const hasHandledInitialWrite = useRef(false);
+  const latestValueRef = useRef<T>(initialValue);
   const persistWhen = options?.persistWhen;
   const hydrate = options?.hydrate ?? true;
   const skipInitialWrite = options?.skipInitialWrite ?? false;
@@ -43,6 +44,10 @@ export function useLocalStorage<T>(
     }
     setIsReady(true);
   }, [key, hydrate]);
+
+  useEffect(() => {
+    latestValueRef.current = value;
+  }, [value]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -66,5 +71,23 @@ export function useLocalStorage<T>(
     window.localStorage.removeItem(key);
   }, [key]);
 
-  return { value, setValue, isReady, remove } as const;
+  // Synchronous write that bypasses the async persist effect. Used when the
+  // value must survive an imminent unmount (e.g. persisting preferences before
+  // navigation during import), since effects may not flush in time.
+  const setValueSync = useCallback(
+    (next: T | ((prev: T) => T)) => {
+      if (typeof window === "undefined") return;
+      const resolved =
+        typeof next === "function" ? (next as (prev: T) => T)(latestValueRef.current) : next;
+      try {
+        window.localStorage.setItem(key, JSON.stringify(resolved));
+      } catch {
+        toast.error("Couldn't save — your browser storage may be full");
+      }
+      setValue(resolved);
+    },
+    [key],
+  );
+
+  return { value, setValue, setValueSync, isReady, remove } as const;
 }
