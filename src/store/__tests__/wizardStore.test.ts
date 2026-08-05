@@ -28,7 +28,7 @@ beforeEach(() => {
   useWizardStore.setState({
     wizardOpen: false,
     editTarget: null,
-    rolloverConfig: null,
+    renewalConfig: null,
     highlightedId: null,
     exportAiOpen: false,
   });
@@ -58,11 +58,11 @@ describe("wizardStore — wizard state", () => {
     expect(useWizardStore.getState().editTarget?.id).toBe(deposit.id);
   });
 
-  it("openWizard() clears any existing rolloverConfig", () => {
-    useWizardStore.setState({ rolloverConfig: { sourceId: "x", deposit: makeDeposit(), proceedsPrincipal: 100, startDate: "2026-01-01" } });
+  it("openWizard() clears any existing renewalConfig", () => {
+    useWizardStore.setState({ renewalConfig: { sourceId: "x", deposit: makeDeposit(), proceedsPrincipal: 100, startDate: "2026-01-01" } });
     act(() => useWizardStore.getState().openWizard());
 
-    expect(useWizardStore.getState().rolloverConfig).toBeNull();
+    expect(useWizardStore.getState().renewalConfig).toBeNull();
   });
 
   it("closeWizard() resets wizardOpen=false and clears editTarget", () => {
@@ -75,26 +75,26 @@ describe("wizardStore — wizard state", () => {
     expect(useWizardStore.getState().editTarget).toBeNull();
   });
 
-  it("closeWizard() clears rolloverConfig", () => {
-    useWizardStore.setState({ wizardOpen: true, rolloverConfig: { sourceId: "x", deposit: makeDeposit(), proceedsPrincipal: 100, startDate: "2026-01-01" } });
+  it("closeWizard() clears renewalConfig", () => {
+    useWizardStore.setState({ wizardOpen: true, renewalConfig: { sourceId: "x", deposit: makeDeposit(), proceedsPrincipal: 100, startDate: "2026-01-01" } });
     act(() => useWizardStore.getState().closeWizard());
 
-    expect(useWizardStore.getState().rolloverConfig).toBeNull();
+    expect(useWizardStore.getState().renewalConfig).toBeNull();
   });
 });
 
-// ─── Rollover state ───────────────────────────────────────────────────────────
+// ─── Renewal state ───────────────────────────────────────────────────────────
 
-describe("wizardStore — rollover state", () => {
-  it("openRollover() sets wizardOpen=true with rolloverConfig and clears editTarget", () => {
+describe("wizardStore — renewal state", () => {
+  it("openRenewal() sets wizardOpen=true with renewalConfig and clears editTarget", () => {
     const deposit = makeDeposit();
     const config = { sourceId: deposit.id, deposit, proceedsPrincipal: 105_000, startDate: "2027-01-01" };
 
-    act(() => useWizardStore.getState().openRollover(config));
+    act(() => useWizardStore.getState().openRenewal(config));
 
     expect(useWizardStore.getState().wizardOpen).toBe(true);
-    expect(useWizardStore.getState().rolloverConfig?.sourceId).toBe(deposit.id);
-    expect(useWizardStore.getState().rolloverConfig?.proceedsPrincipal).toBe(105_000);
+    expect(useWizardStore.getState().renewalConfig?.sourceId).toBe(deposit.id);
+    expect(useWizardStore.getState().renewalConfig?.proceedsPrincipal).toBe(105_000);
     expect(useWizardStore.getState().editTarget).toBeNull();
   });
 });

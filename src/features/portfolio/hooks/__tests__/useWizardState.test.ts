@@ -969,7 +969,7 @@ describe("depositToFormState — days mode", () => {
   });
 });
 
-// ─── loadRollover ──────────────────────────────────────────────────────────────
+// ─── loadRenewal ──────────────────────────────────────────────────────────────
 
 const MATURED_DEPOSIT: TimeDeposit = {
   ...BASE_DEPOSIT,
@@ -983,12 +983,12 @@ const MONTHLY_DEPOSIT: TimeDeposit = {
   status: "matured",
 };
 
-describe("useWizardState — loadRollover", () => {
+describe("useWizardState — loadRenewal", () => {
   it("seeds principal from proceedsPrincipal, not from deposit.principal", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+      result.current.loadRenewal(MATURED_DEPOSIT, 103_200, "2025-07-01");
     });
 
     expect(result.current.formState.principal).toBe("103200");
@@ -998,7 +998,7 @@ describe("useWizardState — loadRollover", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+      result.current.loadRenewal(MATURED_DEPOSIT, 103_200, "2025-07-01");
     });
 
     expect(result.current.formState.startDate).toBe("2025-07-01");
@@ -1008,7 +1008,7 @@ describe("useWizardState — loadRollover", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+      result.current.loadRenewal(MATURED_DEPOSIT, 103_200, "2025-07-01");
     });
 
     const s = result.current.formState;
@@ -1020,21 +1020,21 @@ describe("useWizardState — loadRollover", () => {
     expect(s.productType).toBe("td-maturity");
   });
 
-  it("isDirty is false immediately after loadRollover (opens clean)", () => {
+  it("isDirty is false immediately after loadRenewal (opens clean)", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+      result.current.loadRenewal(MATURED_DEPOSIT, 103_200, "2025-07-01");
     });
 
     expect(result.current.isDirty).toBe(false);
   });
 
-  it("isDirty becomes true after modifying a field post-rollover-load", () => {
+  it("isDirty becomes true after modifying a field post-renewal-load", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MATURED_DEPOSIT, 103_200, "2025-07-01");
+      result.current.loadRenewal(MATURED_DEPOSIT, 103_200, "2025-07-01");
     });
 
     act(() => {
@@ -1048,7 +1048,7 @@ describe("useWizardState — loadRollover", () => {
     const { result } = renderHook(() => useWizardState());
 
     act(() => {
-      result.current.loadRollover(MONTHLY_DEPOSIT, 500_000, "2025-07-01");
+      result.current.loadRenewal(MONTHLY_DEPOSIT, 500_000, "2025-07-01");
     });
 
     expect(result.current.formState.principal).toBe("500000");

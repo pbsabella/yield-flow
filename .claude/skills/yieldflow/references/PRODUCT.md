@@ -8,7 +8,7 @@
 ## Non-negotiables
 
 - **Net-only display.** Never show gross values in any primary view.
-- **Explicit settle.** Never auto-settle investments; matured TDs may still earn via rollover.
+- **Explicit settle.** Never auto-settle investments; matured TDs may still earn via renewal.
 - **Fix the label, not a tooltip.** Add tooltips only as a last resort — make the UI self-explanatory.
 - **Wizard integrity.** No skipped steps, no outside-click close (ESC asks before discarding).
 
@@ -85,7 +85,7 @@ Controls: bank filter select, single **Show inactive** toggle (hides closed + se
 
 **Days to Maturity pill:** neutral `{N}d` (>30) → amber `{N}d` (1–30) → `Today` → `{N}d ago` (overdue) / open-ended and settled/closed show `—`. The pill text is the only amber cue — there is no row-level highlight. Post-mutation highlight (ring/bg) comes from `highlightedId`, which auto-clears after 2.5s.
 
-**Actions:** Edit (opens wizard), Settle (confirmation dialog), Delete (confirmation dialog), Close early / Withdraw & close (··· menu, active rows only), Undo settle (··· menu, settled rows only), Reopen (··· menu, closed rows only), Roll over (inside Settle dialog, matured rows only).
+**Actions:** Edit (opens wizard), Settle (opens maturity decision dialog), Delete (confirmation dialog), Close early / Withdraw & close (··· menu, active rows only), Undo settle (··· menu, settled rows only), Reopen (··· menu, closed rows only).
 
 #### Withdraw & close / Close early
 
@@ -101,15 +101,23 @@ Reverts a `closed` deposit back to `active`. In the `···` menu on closed rows
 
 Reverts a `settled` deposit back to `matured`. Available in the `···` menu on settled rows when "Show inactive" is toggled on. Pure status revert — no math. Mirrors the Settle handler in reverse.
 
-#### Roll over
+#### Renew (maturity decision)
 
-Available as a secondary action inside the Settle confirmation dialog (matured deposits only). The dialog shows: `[ Cancel ] [ Roll over ] [ Settle <currency>X ]` — amount only on Settle since Roll over opens an editable wizard.
+The Settle button on a matured deposit opens a **decision dialog**, not a confirmation: it shows the proceeds table (Principal | Net interest | Total proceeds) plus mutually-exclusive options and `[ Cancel ] [ Continue ]`. Continue is disabled until a choice is made.
 
-On Roll over click: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
+| Option | Result |
+| --- | --- |
+| **Withdraw** | Marks the deposit as settled — full proceeds received. |
+| **Renew everything** | Wizard opens pre-filled with principal = principal + net interest (full proceeds). |
+| **Renew principal only** | Wizard opens pre-filled with principal = original principal; net interest taken out. |
+
+TD Monthly deposits collapse to **Withdraw / Renew** — interest is already paid monthly, so both renew variants are identical (principal only). The dialog never shows a choice that doesn't exist.
+
+On Renew: dialog closes, wizard opens pre-filled. Fields copied from original deposit: bank, product type, interest rate, tax rate, term, day-count, compounding, interest mode. Fields overridden:
 
 | Field | Value |
 | --- | --- |
-| Principal | TD maturity → principal + net interest (full proceeds). TD Monthly → original principal (interest already distributed monthly). |
+| Principal | Selected option — full proceeds or original principal. |
 | Start date | Original deposit's maturity date (not today). Editable. |
 
 On wizard submit: original deposit is settled atomically and new deposit is created as active. On wizard discard: no changes; original remains matured.
@@ -236,5 +244,5 @@ Settings also surfaces a collapsible **caveats** block (local-only storage, no b
 
 - **Free-text bank names:** Avoids a stale registry. Datalist autocomplete handles repeat entries.
 - **Net-only:** Represents spendable reality. Gross creates false expectations.
-- **Explicit settle:** Matured TDs may still earn via rollover. Auto-settling misrepresents position.
+- **Explicit settle:** Matured TDs may still earn via renewal. Auto-settling misrepresents position.
 - **No backend:** Zero-friction to try. localStorage is honest about its constraints; the app surfaces caveats in Settings, not as a persistent nag.

@@ -11,10 +11,10 @@ import { useWizardStore } from "@/store/wizardStore";
 import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit, Bank } from "@/types";
 
-// ─── Rollover config ───────────────────────────────────────────────────────────
+// ─── Renewal config ───────────────────────────────────────────────────────────
 
-export type RolloverConfig = {
-  /** ID of the deposit being rolled over (will be settled on wizard submit). */
+export type RenewalConfig = {
+  /** ID of the deposit being renewed (will be settled on wizard submit). */
   sourceId: string;
   /** Source deposit — used to pre-fill the wizard. */
   deposit: TimeDeposit;
@@ -71,7 +71,7 @@ interface PortfolioContextValue {
   handleUnsettle: (id: string) => void;
   handleClose: (id: string, closeDate: string) => void;
   handleReopen: (id: string) => void;
-  handleRollOver: (oldId: string, newDeposit: TimeDeposit) => void;
+  handleRenew: (oldId: string, newDeposit: TimeDeposit) => void;
   handleDelete: (id: string) => void;
   handleEdit: (deposit: TimeDeposit) => void;
 
@@ -233,7 +233,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     [updateDeposits],
   );
 
-  const handleRollOver = useCallback(
+  const handleRenew = useCallback(
     (oldId: string, newDeposit: TimeDeposit) => {
       updateDeposits((prev) => [
         ...prev.map((d) => (d.id === oldId ? { ...d, status: "settled" as const } : d)),
@@ -301,7 +301,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleUnsettle,
       handleClose,
       handleReopen,
-      handleRollOver,
+      handleRenew,
       handleDelete,
       handleEdit,
       importDeposits,
@@ -326,7 +326,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
       handleUnsettle,
       handleClose,
       handleReopen,
-      handleRollOver,
+      handleRenew,
       handleDelete,
       handleEdit,
       importDeposits,

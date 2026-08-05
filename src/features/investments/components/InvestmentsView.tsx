@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { toISODate } from "@/lib/domain/date";
-import { getRolloverPrincipal } from "@/lib/domain/rollover";
+import { getRenewalPrincipal, type RenewalMode } from "@/lib/domain/renew";
 import { createColumns } from "./columns";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
@@ -52,7 +52,7 @@ import { LadderView } from "./LadderView";
 import { BankActiveSummary } from "./BankActiveSummary";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
-import type { RolloverConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/features/portfolio/context/PortfolioContext";
 import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ type Props = {
   onReopen: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (deposit: TimeDeposit) => void;
-  onRollOver: (config: RolloverConfig) => void;
+  onRenew: (config: RenewalConfig) => void;
   highlightedId?: string | null;
 };
 
@@ -101,13 +101,18 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onReopen, onDelete, onEdit, onRollOver, highlightedId }: Props) {
+export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onReopen, onDelete, onEdit, onRenew, highlightedId }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
+  // Increments every time the Settle dialog opens, so the dialog (which owns the
+  // choice selection) remounts fresh instead of re-opening with a stale choice.
+  // Keyed by this counter (not by the target) so closing keeps the key stable and
+  // the exit animation plays.
+  const [settleOpenSeq, setSettleOpenSeq] = useState(0);
   const [closeTarget, setCloseTarget] = useState<EnrichedSummary | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EnrichedSummary | null>(null);
   const [sorting, setSorting] = useState<SortingState>([{ id: "daysToMaturity", desc: false }]);
@@ -175,6 +180,7 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
 
   const handleSettleClick = useCallback((summary: EnrichedSummary) => {
     setSettleTarget(summary);
+    setSettleOpenSeq((n) => n + 1);
   }, []);
 
   const handleCloseClick = useCallback((summary: EnrichedSummary) => {
@@ -197,20 +203,20 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
     [onClose, onReopen, closeTarget],
   );
 
-  const handleRollOverRequest = useCallback(
-    (summary: EnrichedSummary) => {
+  const handleRenewRequest = useCallback(
+    (summary: EnrichedSummary, mode: RenewalMode = "all") => {
       setSettleTarget(null);
-      const proceedsPrincipal = getRolloverPrincipal(summary.deposit, summary.netTotal);
-      onRollOver({
+      const proceedsPrincipal = getRenewalPrincipal(summary.deposit, summary.netTotal, mode);
+      onRenew({
         sourceId: summary.deposit.id,
         deposit: summary.deposit,
         proceedsPrincipal,
-        // Always use the original maturity date — roll over means "continue from maturity".
+        // Always use the original maturity date — renew means "continue from maturity".
         // The wizard is editable if the user wants a different start date.
         startDate: summary.maturityDate ?? toISODate(new Date()),
       });
     },
-    [onRollOver],
+    [onRenew],
   );
 
   const handleSettleConfirm = useCallback(
@@ -473,13 +479,14 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
 
       {/* Settle dialog */}
       <SettleConfirmDialog
+        key={settleOpenSeq}
         summary={settleTarget}
         open={settleTarget !== null}
         onOpenChange={(open) => {
           if (!open) setSettleTarget(null);
         }}
         onConfirm={handleSettleConfirm}
-        onRollOver={handleRollOverRequest}
+        onRenew={handleRenewRequest}
       />
 
       {/* Close account dialog — only mounts when a target is selected */}

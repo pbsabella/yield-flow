@@ -202,10 +202,10 @@ Each card footer has a joined button group — Settle button + kebab trigger vis
 | Status    | Settle button                  | Kebab items  |
 | --------- | ------------------------------ | ------------ |
 | `active`  | Not shown                      | Edit, Delete |
-| `matured` | Shown, triggers confirm dialog | Edit, Delete |
+| `matured` | Shown, triggers decision dialog | Edit, Delete |
 | `settled` | Not shown                      | Edit, Delete |
 
-**Settle confirmation dialog:** Shows deposit name, net interest, and total proceeds. Confirm requires a second click — prevents accidental settlement of a one-way financial action.
+**Maturity decision dialog:** Shows deposit name, net interest, and total proceeds, then asks what to do with the proceeds — **Withdraw**, **Renew everything** (principal + interest), or **Renew principal only** (interest taken out). Continue is disabled until a choice is made — an explicit decision, not a confirmation, since the outcomes differ. Prevents accidental settlement or renewal of a one-way financial action. TD Monthly deposits collapse to Withdraw / Renew (interest is already paid monthly, so the two renew variants are identical).
 
 **Delete confirmation dialog:** Destructive `AlertDialog`. No undo.
 

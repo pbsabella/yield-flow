@@ -20,7 +20,7 @@ Core math lives in `lib/domain/yield-engine.ts` (`calculateNetYield`). Never dup
 | ------ | ------ | ------ |
 | `lib/domain/interest.ts` | `buildDepositSummary` | Per-deposit summary (status, days, net interest) |
 | `lib/domain/accrued-interest.ts` | `calculateAccruedToDate` | Accrued interest up to a date (pro-rated by `termDays = daysHeld`) |
-| `lib/domain/rollover.ts` | `getRolloverPrincipal` | Rollover principal (principal + net total) |
+| `lib/domain/renew.ts` | `getRenewalPrincipal` | Renew principal (full proceeds or principal only; monthly = principal) |
 | `lib/domain/cashflow.ts` | `buildCashFlowProjection`, `buildCashFlowLedger`, `buildMonthlyAllowance` | Cash-flow tables, ledger entries, per-month allowance |
 | `lib/domain/ai-context.ts` | `buildAiContext` | Prompt + tables for Export for AI |
 
@@ -55,7 +55,7 @@ It drives badges, grouping, ladder colors, cash-flow projection, and AI context.
 Two pieces, do not conflate:
 
 - `src/features/portfolio/hooks/useWizardState.ts` — form state + validation (dirty tracking via `JSON.stringify` snapshot).
-- `src/store/wizardStore.ts` (zustand) — orchestration: `wizardOpen`, `editTarget`, `rolloverConfig`, `highlightedId` (auto-clears after 2.5s), `exportAiOpen`. `PortfolioContext` mutates it via `useWizardStore.getState()`.
+- `src/store/wizardStore.ts` (zustand) — orchestration: `wizardOpen`, `editTarget`, `renewalConfig`, `highlightedId` (auto-clears after 2.5s), `exportAiOpen`. `PortfolioContext` mutates it via `useWizardStore.getState()`.
 
 ---
 

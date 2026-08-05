@@ -36,7 +36,7 @@ beforeEach(() => {
   useWizardStore.setState({
     wizardOpen: false,
     editTarget: null,
-    rolloverConfig: null,
+    renewalConfig: null,
     highlightedId: null,
     exportAiOpen: false,
   });

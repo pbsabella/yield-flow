@@ -260,13 +260,13 @@ export function useWizardState() {
   }, []);
 
   /**
-   * Pre-fill the wizard for a roll-over operation.
+   * Pre-fill the wizard for a renewal operation.
    * Copies all fields from the source deposit but overrides:
    *  - principal: maturity proceeds (caller computes based on product type)
    *  - startDate: the source deposit's maturity date
    * Opens clean (isDirty = false) so discarding doesn't warn unnecessarily.
    */
-  const loadRollover = useCallback(
+  const loadRenewal = useCallback(
     (deposit: TimeDeposit, proceedsPrincipal: number, startDate: string) => {
       const base = depositToFormState(deposit);
       const state: WizardFormState = {
@@ -408,7 +408,7 @@ export function useWizardState() {
     canSubmit,
     reset,
     loadDeposit,
-    loadRollover,
+    loadRenewal,
     deriveYieldInput,
     buildDeposit,
   } as const;

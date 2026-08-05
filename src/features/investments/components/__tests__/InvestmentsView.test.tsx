@@ -99,7 +99,7 @@ function renderView(overrides?: Partial<Parameters<typeof InvestmentsView>[0]>) 
     onReopen: vi.fn(),
     onDelete: vi.fn(),
     onEdit: vi.fn(),
-    onRollOver: vi.fn(),
+    onRenew: vi.fn(),
     highlightedId: null,
   };
   return render(
@@ -125,7 +125,8 @@ describe("InvestmentsView — settle toast", () => {
 
     // Scope to the alertdialog so the query is resilient to other "settle" buttons
     const dialog = await screen.findByRole("alertdialog");
-    fireEvent.click(within(dialog).getByRole("button", { name: /settle/i }));
+    fireEvent.click(within(dialog).getByLabelText(/withdraw/i));
+    fireEvent.click(within(dialog).getByRole("button", { name: /continue/i }));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
@@ -228,7 +229,8 @@ describe("InvestmentsView — aria-live region", () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /settle my bank td/i }));
     const dialog = await screen.findByRole("alertdialog");
-    fireEvent.click(within(dialog).getByRole("button", { name: /settle/i }));
+    fireEvent.click(within(dialog).getByLabelText(/withdraw/i));
+    fireEvent.click(within(dialog).getByRole("button", { name: /continue/i }));
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(/marked as settled/i);
     });

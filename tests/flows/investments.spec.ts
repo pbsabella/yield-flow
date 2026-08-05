@@ -123,6 +123,45 @@ const seedDeposits: TimeDeposit[] = [
     isOpenEnded: false,
     status: "active",
   },
+  // Matured — clean numbers for renew pre-fill assertions:
+  // principal 100,000 · rate 10% · 12 months · 20% tax → net 8,000 · total 108,000
+  {
+    id: "inv-matured-renew",
+    bankId: "Meridian Savings Bank",
+    name: "Renew 12M TD",
+    principal: 100000,
+    startDate: "2026-01-01",
+    termMonths: 12,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.1,
+    tiers: [{ upTo: null, rate: 0.1 }],
+    payoutFrequency: "maturity",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "active",
+  },
+  // Matured — monthly payout (renew variants collapse to principal only)
+  {
+    id: "inv-matured-monthly",
+    bankId: "Horizon Digital Bank",
+    name: "Monthly Renew TD",
+    principal: 100000,
+    startDate: "2025-01-01",
+    termMonths: 12,
+    interestMode: "simple",
+    interestTreatment: "payout",
+    compounding: "daily",
+    taxRateOverride: 0.2,
+    flatRate: 0.055,
+    tiers: [{ upTo: null, rate: 0.055 }],
+    payoutFrequency: "monthly",
+    dayCountConvention: 365,
+    isOpenEnded: false,
+    status: "active",
+  },
   // Settled
   {
     id: "inv-settled",
@@ -328,4 +367,95 @@ test("investments ladder — today marker visible when range spans today", async
 
   // The month axis and today label are rendered in the timeline header
   await expect(page.getByText("Today", { exact: true }).first()).toBeVisible();
+});
+
+// ─── Maturity decision dialog (Withdraw / Renew) ──────────────────────────────
+
+test("investments — settle dialog shows the maturity decision options", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle renew 12m td/i }).click();
+
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog.getByText(/what would you like to do with renew 12m td\?/i)).toBeVisible();
+  await expect(dialog.getByLabel(/^withdraw/i)).toBeVisible();
+  await expect(dialog.getByLabel(/renew everything/i)).toBeVisible();
+  await expect(dialog.getByLabel(/renew principal only/i)).toBeVisible();
+
+  // Continue is disabled until a choice is made
+  await expect(dialog.getByRole("button", { name: /continue/i })).toBeDisabled();
+
+  // Percy: capture the selected state — radio-card highlight + enabled Continue
+  await dialog.getByLabel(/renew principal only/i).click();
+  await expect(dialog.getByRole("button", { name: /continue/i })).toBeEnabled();
+  await snap(page, "Investments - settle decision dialog - selected");
+});
+
+test("investments — renew everything pre-fills the wizard with full proceeds", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle renew 12m td/i }).click();
+  const dialog = page.getByRole("alertdialog");
+  await dialog.getByLabel(/renew everything/i).click();
+  await dialog.getByRole("button", { name: /continue/i }).click();
+
+  // Wizard opens in renew mode with principal = principal + net interest
+  await expect(page.getByRole("heading", { name: "Renew" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Principal" })).toHaveValue(/108,000/);
+});
+
+test("investments — renew principal only pre-fills the wizard with original principal", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle renew 12m td/i }).click();
+  const dialog = page.getByRole("alertdialog");
+  await dialog.getByLabel(/renew principal only/i).click();
+  await dialog.getByRole("button", { name: /continue/i }).click();
+
+  // Wizard opens in renew mode with principal = original principal only
+  await expect(page.getByRole("heading", { name: "Renew" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Principal" })).toHaveValue(/100,000/);
+});
+
+test("investments — withdraw settles the deposit", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle renew 12m td/i }).click();
+  const dialog = page.getByRole("alertdialog");
+  await dialog.getByLabel(/^withdraw/i).click();
+  await dialog.getByRole("button", { name: /continue/i }).click();
+
+  // The sr-only status region announces the settlement
+  await expect(page.getByRole("status")).toHaveText(/renew 12m td marked as settled/i);
+  // The deposit is settled — no more Settle button on the row
+  await expect(page.getByRole("button", { name: /settle renew 12m td/i })).toHaveCount(0);
+});
+
+test("investments — monthly deposit collapses to Withdraw / Renew", async ({ page }) => {
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle monthly renew td/i }).click();
+
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog.getByLabel(/^withdraw/i)).toBeVisible();
+  await expect(dialog.getByLabel(/^renew/i)).toBeVisible();
+  await expect(dialog.getByLabel(/renew everything/i)).toHaveCount(0);
+  await expect(dialog.getByLabel(/renew principal only/i)).toHaveCount(0);
+});
+
+test("investments — maturity decision dialog works on mobile cards", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedAndGo(page);
+
+  await page.getByRole("button", { name: /settle renew 12m td/i }).click();
+
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog.getByText(/what would you like to do with renew 12m td\?/i)).toBeVisible();
+  await expect(dialog.getByLabel(/^withdraw/i)).toBeVisible();
+  await expect(dialog.getByLabel(/renew everything/i)).toBeVisible();
+  await expect(dialog.getByLabel(/renew principal only/i)).toBeVisible();
+
+  await dialog.getByLabel(/renew principal only/i).click();
+  await dialog.getByRole("button", { name: /continue/i }).click();
+  await expect(page.getByRole("heading", { name: "Renew" })).toBeVisible();
 });

@@ -16,14 +16,14 @@ import { Toaster } from "@/components/ui/sonner";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { status, hasSidebar, isDemoMode, exitDemo, handleSave, handleRollOver, existingBankNames, portfolio, preferences } = usePortfolioContext();
+  const { status, hasSidebar, isDemoMode, exitDemo, handleSave, handleRenew, existingBankNames, portfolio, preferences } = usePortfolioContext();
 
   // Wizard and export dialog state live in the Zustand store.
   // Each selector subscribes to only one slice, so AppShell only re-renders
   // when that specific value changes — not when deposits or portfolio update.
   const wizardOpen     = useWizardStore((s) => s.wizardOpen);
   const editTarget     = useWizardStore((s) => s.editTarget);
-  const rolloverConfig = useWizardStore((s) => s.rolloverConfig);
+  const renewalConfig = useWizardStore((s) => s.renewalConfig);
   const closeWizard    = useWizardStore((s) => s.closeWizard);
   const exportAiOpen   = useWizardStore((s) => s.exportAiOpen);
   const closeExportAi  = useWizardStore((s) => s.closeExportAi);
@@ -85,10 +85,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           open={wizardOpen}
           onOpenChange={(open) => { if (!open) closeWizard(); }}
           onSave={handleSave}
-          onRollOver={handleRollOver}
+          onRenew={handleRenew}
           existingBankNames={existingBankNames}
           initialDeposit={editTarget ?? undefined}
-          rolloverConfig={rolloverConfig ?? undefined}
+          renewalConfig={renewalConfig ?? undefined}
         />
       )}
 

@@ -216,3 +216,25 @@ test("settings page has no critical a11y issues", async ({ page }) => {
   );
   expect(blocking).toEqual([]);
 });
+
+test("settle decision dialog has no critical/serious a11y issues", async ({ page }) => {
+  // Matured deposit (maturity 2026-09-01, before the frozen "today" of 2027-03-06)
+  const maturedDeposit = makeActiveTimeDeposit({ id: "a11y-matured", startDate: "2026-03-01" });
+
+  await page.clock.setFixedTime(FROZEN_TEST_DATE);
+  await page.addInitScript((deposit: TimeDeposit) => {
+    localStorage.setItem("yf:deposits", JSON.stringify([deposit]));
+  }, maturedDeposit);
+
+  await page.goto("/investments");
+  await expect(page.getByText("Beacon 6M TD")).toBeVisible();
+
+  await page.getByRole("button", { name: /settle beacon 6m td/i }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter(
+    (v) => v.impact === "critical" || v.impact === "serious",
+  );
+  expect(blocking).toEqual([]);
+});
