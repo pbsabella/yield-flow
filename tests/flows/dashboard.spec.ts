@@ -57,7 +57,7 @@ test("dashboard page — with portfolio data", async ({ page }) => {
   }, seedDeposits);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Portfolio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 
   // KPI cards should be visible
   await expect(page.getByText("Total principal")).toBeVisible();

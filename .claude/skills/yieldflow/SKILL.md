@@ -13,6 +13,7 @@ metadata:
 >
 > - Building UI or features → read references/PRODUCT.md
 > - Writing code or tokens → read references/ENGINEERING.md
+> - Weighing tradeoffs, writing prompts, or touching a contested feature → read references/DECISIONS.md
 > - Simple tasks → this file is enough
 
 Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts.
@@ -23,6 +24,7 @@ Portfolio-grade yield ladder tracker. Net-only display, local-first, no accounts
 | ------------------------------------------------------------ | --------------------------------------------- |
 | `references/PRODUCT.md`                                      | What to build and why                         |
 | `references/ENGINEERING.md`                                  | How to build it                               |
+| `references/DECISIONS.md`                                    | Why decisions were made (pruned ADR archive)  |
 | `src/app/globals.css`                                        | Token source of truth                         |
 | `src/lib/domain/yield-engine.ts`                             | Interest calc core — do not duplicate         |
 | `src/lib/domain/interest.ts`, `cashflow.ts`, `ai-context.ts` | Delegating summary builders                   |

@@ -6,6 +6,7 @@ YieldFlow is a net-only, local-first yield ladder tracker (Next.js App Router, T
 
 - `.claude/skills/yieldflow/references/ENGINEERING.md` — read before writing code or tokens
 - `.claude/skills/yieldflow/references/PRODUCT.md` — read before UI, features, or product decisions
+- `.claude/skills/yieldflow/references/DECISIONS.md` — read when weighing tradeoffs or touching a contested feature
 
 ## Hard rules
 
@@ -16,6 +17,7 @@ YieldFlow is a net-only, local-first yield ladder tracker (Next.js App Router, T
 - **Tokens:** semantic `@theme inline` tokens only. Never hardcode palette classes (`text-indigo-700`), raw spacing (`gap-2`), or `bg-[var(--token)]`. Add tokens to `:root` AND `.dark`.
 - **shadcn/ui:** new components via `npx shadcn@latest add`. Never modify shadcn files for look-and-feel — extract CVA variants to `components/ui/variants.ts`.
 - **Testing:** every feature/page needs unit/integration (Vitest + RTL in `src/**/__tests__/`), E2E (Playwright in `tests/flows/`), and a11y (axe in `tests/a11y/basic.a11y.spec.ts`).
+- **Docs stay current:** any behavior change must update `references/PRODUCT.md`, `references/ENGINEERING.md`, or `references/DECISIONS.md` in the same change.
 
 ## Commands
 

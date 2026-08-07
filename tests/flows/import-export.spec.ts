@@ -102,7 +102,7 @@ test("import JSON backup — deposits load and page redirects to dashboard", asy
 
   // Should redirect to dashboard with the imported deposits
   await expect(page).toHaveURL("/");
-  await expect(page.getByRole("heading", { name: "Portfolio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Meridian 6-month TD", { exact: true })).toBeVisible();
 });
 

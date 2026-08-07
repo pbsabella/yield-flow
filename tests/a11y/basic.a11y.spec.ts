@@ -39,7 +39,7 @@ test("dashboard page with data has no critical a11y issues", async ({ page }) =>
   }, seedDeposit);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Portfolio" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   const blocking = results.violations.filter(
