@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { TimeDeposit } from "@/types";
-import type { RenewalConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/lib/domain/renew";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -49,7 +49,6 @@ function renderDialog(props: Partial<Parameters<typeof CloseConfirmDialog>[0]> =
   const defaults = {
     summary,
     closeDate: "2025-12-01",
-    open: true,
     onOpenChange: vi.fn(),
     onConfirm: vi.fn(),
   };

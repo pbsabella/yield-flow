@@ -3,6 +3,25 @@ import type { TimeDeposit } from "@/types";
 /** What to reinvest when renewing a matured deposit. */
 export type RenewalMode = "all" | "principal-only";
 
+/** Pre-fill config when the wizard is opened for a renewal. */
+export type RenewalConfig = {
+  /** ID of the deposit being renewed (will be settled on wizard submit). */
+  sourceId: string;
+  /** Source deposit — used to pre-fill the wizard. */
+  deposit: TimeDeposit;
+  /** Pre-filled principal: full proceeds or original principal. */
+  proceedsPrincipal: number;
+  /** Pre-filled start date: the source deposit's maturity date. */
+  startDate: string;
+};
+
+/** Which renewal modes a deposit offers. TD Monthly already pays interest out
+ * each month, so both variants collapse to principal-only — only `all` is
+ * offered. */
+export function getRenewalOptions(deposit: TimeDeposit): RenewalMode[] {
+  return deposit.payoutFrequency === "monthly" ? ["all"] : ["all", "principal-only"];
+}
+
 /**
  * Compute the principal to pre-fill for a renew wizard.
  *

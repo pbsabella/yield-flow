@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { SettleConfirmDialog } from "../SettleConfirmDialog";
+import { MaturityDecisionDialog } from "../MaturityDecisionDialog";
 import { PortfolioProvider } from "@/features/portfolio/context/PortfolioContext";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 import type { Bank, TimeDeposit } from "@/types";
@@ -41,11 +41,10 @@ function makeSummary(deposit: TimeDeposit): EnrichedSummary {
   };
 }
 
-function renderDialog(props: Partial<Parameters<typeof SettleConfirmDialog>[0]> = {}) {
+function renderDialog(props: Partial<Parameters<typeof MaturityDecisionDialog>[0]> = {}) {
   const summary = props.summary ?? makeSummary(makeDeposit());
   const defaults = {
     summary,
-    open: true,
     onOpenChange: vi.fn(),
     onConfirm: vi.fn(),
     onRenew: vi.fn(),
@@ -53,7 +52,7 @@ function renderDialog(props: Partial<Parameters<typeof SettleConfirmDialog>[0]> 
   return {
     ...render(
       <PortfolioProvider>
-        <SettleConfirmDialog {...defaults} {...props} />
+        <MaturityDecisionDialog {...defaults} {...props} />
       </PortfolioProvider>,
     ),
     summary,
@@ -61,7 +60,7 @@ function renderDialog(props: Partial<Parameters<typeof SettleConfirmDialog>[0]> 
   };
 }
 
-describe("SettleConfirmDialog — TD maturity decision", () => {
+describe("MaturityDecisionDialog — TD maturity decision", () => {
   it("asks what to do with the deposit by name", () => {
     renderDialog();
     expect(
@@ -128,27 +127,23 @@ describe("SettleConfirmDialog — TD maturity decision", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("starts with no selection when remounted via key (fresh open session)", () => {
+  it("starts with no selection when remounted (fresh open session)", () => {
     const onConfirm = vi.fn();
-    const summary = makeSummary(makeDeposit());
-    const { rerender, props } = renderDialog({ summary, onConfirm });
+    const { unmount } = renderDialog({ onConfirm });
 
     fireEvent.click(screen.getByLabelText(/withdraw/i));
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
     expect(onConfirm).toHaveBeenCalledWith("dep-1");
 
-    // The parent keys the dialog by an open-session counter — a new key
-    // remounts it and the selection starts null again.
-    rerender(
-      <PortfolioProvider>
-        <SettleConfirmDialog key={2} {...props} />
-      </PortfolioProvider>,
-    );
+    // The parent only mounts the dialog while a target is selected — closing
+    // unmounts it, so a re-open starts with a fresh selection.
+    unmount();
+    renderDialog({ onConfirm });
     expect(screen.getByRole("button", { name: /continue/i })).toBeDisabled();
   });
 });
 
-describe("SettleConfirmDialog — TD Monthly", () => {
+describe("MaturityDecisionDialog — TD Monthly", () => {
   it("collapses to Withdraw and Renew only", () => {
     renderDialog({ summary: makeSummary(makeDeposit({ payoutFrequency: "monthly" })) });
     expect(screen.getByLabelText(/withdraw/i)).toBeInTheDocument();

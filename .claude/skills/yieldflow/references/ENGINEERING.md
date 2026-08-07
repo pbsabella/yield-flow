@@ -20,7 +20,7 @@ Core math lives in `lib/domain/yield-engine.ts` (`calculateNetYield`). Never dup
 | ------ | ------ | ------ |
 | `lib/domain/interest.ts` | `buildDepositSummary` | Per-deposit summary (status, days, net interest) |
 | `lib/domain/accrued-interest.ts` | `calculateAccruedToDate` | Accrued interest up to a date (pro-rated by `termDays = daysHeld`) |
-| `lib/domain/renew.ts` | `getRenewalPrincipal` | Renew principal (full proceeds or principal only; monthly = principal) |
+| `lib/domain/renew.ts` | `getRenewalOptions`, `getRenewalPrincipal` | Renew modes + principal (full proceeds or principal only; monthly = principal) |
 | `lib/domain/cashflow.ts` | `buildCashFlowProjection`, `buildCashFlowLedger`, `buildMonthlyAllowance` | Cash-flow tables, ledger entries, per-month allowance |
 | `lib/domain/ai-context.ts` | `buildAiContext` | Prompt + tables for Export for AI |
 

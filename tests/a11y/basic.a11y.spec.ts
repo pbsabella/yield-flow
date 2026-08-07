@@ -232,7 +232,11 @@ test("settle decision dialog has no critical/serious a11y issues", async ({ page
   await page.getByRole("button", { name: /settle beacon 6m td/i }).click();
   await expect(page.getByRole("alertdialog")).toBeVisible();
 
-  const results = await new AxeBuilder({ page }).analyze();
+  // Scope to the dialog — the background list is hidden via aria-hidden while
+  // the modal is open.
+  const results = await new AxeBuilder({ page })
+    .include('[role="alertdialog"]')
+    .analyze();
   const blocking = results.violations.filter(
     (v) => v.impact === "critical" || v.impact === "serious",
   );

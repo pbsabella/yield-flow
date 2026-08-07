@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRenewalPrincipal } from "../renew";
+import { getRenewalOptions, getRenewalPrincipal } from "../renew";
 import type { TimeDeposit } from "@/types";
 
 const BASE: TimeDeposit = {
@@ -63,5 +63,17 @@ describe("getRenewalPrincipal", () => {
     expect(getRenewalPrincipal(deposit, 103_249.999)).toBe(103_250);
     expect(getRenewalPrincipal(deposit, 103_249.994)).toBe(103_249.99);
     expect(getRenewalPrincipal(deposit, 103_249.995)).toBe(103_250);
+  });
+});
+
+describe("getRenewalOptions", () => {
+  it("TD maturity: offers both all and principal-only", () => {
+    const deposit: TimeDeposit = { ...BASE, payoutFrequency: "maturity" };
+    expect(getRenewalOptions(deposit)).toEqual(["all", "principal-only"]);
+  });
+
+  it("TD monthly: collapses to all (principal only, interest already paid out)", () => {
+    const deposit: TimeDeposit = { ...BASE, payoutFrequency: "monthly" };
+    expect(getRenewalOptions(deposit)).toEqual(["all"]);
   });
 });

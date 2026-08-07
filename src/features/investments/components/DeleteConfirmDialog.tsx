@@ -13,19 +13,16 @@ import {
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
 
 type Props = {
-  summary: EnrichedSummary | null;
-  open: boolean;
+  summary: EnrichedSummary;
   onOpenChange: (open: boolean) => void;
   onConfirm: (id: string) => void;
 };
 
-export function DeleteConfirmDialog({ summary, open, onOpenChange, onConfirm }: Props) {
-  if (!summary) return null;
-
+export function DeleteConfirmDialog({ summary, onOpenChange, onConfirm }: Props) {
   const { deposit } = summary;
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {deposit.name}?</AlertDialogTitle>

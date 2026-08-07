@@ -10,19 +10,6 @@ import { usePortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import { useWizardStore } from "@/store/wizardStore";
 import type { PortfolioData } from "@/features/portfolio/hooks/usePortfolioData";
 import type { TimeDeposit, Bank } from "@/types";
-
-// ─── Renewal config ───────────────────────────────────────────────────────────
-
-export type RenewalConfig = {
-  /** ID of the deposit being renewed (will be settled on wizard submit). */
-  sourceId: string;
-  /** Source deposit — used to pre-fill the wizard. */
-  deposit: TimeDeposit;
-  /** Pre-filled principal: full proceeds for TD maturity, original principal for TD monthly. */
-  proceedsPrincipal: number;
-  /** Pre-filled start date: the source deposit's maturity date. */
-  startDate: string;
-};
 import type { Preferences } from "@/lib/hooks/usePreferences";
 
 // ─── Formatter context (stable — only invalidates on currency pref change) ─────

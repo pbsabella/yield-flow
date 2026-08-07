@@ -45,14 +45,14 @@ import { createColumns } from "./columns";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
-import { SettleConfirmDialog } from "./SettleConfirmDialog";
+import { MaturityDecisionDialog } from "./MaturityDecisionDialog";
 import { CloseConfirmDialog } from "./CloseConfirmDialog";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import { LadderView } from "./LadderView";
 import { BankActiveSummary } from "./BankActiveSummary";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
-import type { RenewalConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/lib/domain/renew";
 import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -108,11 +108,6 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
   const [showSettled, setShowSettled] = useState(false);
   const [bankFilter, setBankFilter] = useState("all");
   const [settleTarget, setSettleTarget] = useState<EnrichedSummary | null>(null);
-  // Increments every time the Settle dialog opens, so the dialog (which owns the
-  // choice selection) remounts fresh instead of re-opening with a stale choice.
-  // Keyed by this counter (not by the target) so closing keeps the key stable and
-  // the exit animation plays.
-  const [settleOpenSeq, setSettleOpenSeq] = useState(0);
   const [closeTarget, setCloseTarget] = useState<EnrichedSummary | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EnrichedSummary | null>(null);
   const [sorting, setSorting] = useState<SortingState>([{ id: "daysToMaturity", desc: false }]);
@@ -180,7 +175,6 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
 
   const handleSettleClick = useCallback((summary: EnrichedSummary) => {
     setSettleTarget(summary);
-    setSettleOpenSeq((n) => n + 1);
   }, []);
 
   const handleCloseClick = useCallback((summary: EnrichedSummary) => {
@@ -204,7 +198,7 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
   );
 
   const handleRenewRequest = useCallback(
-    (summary: EnrichedSummary, mode: RenewalMode = "all") => {
+    (summary: EnrichedSummary, mode: RenewalMode) => {
       setSettleTarget(null);
       const proceedsPrincipal = getRenewalPrincipal(summary.deposit, summary.netTotal, mode);
       onRenew({
@@ -477,24 +471,23 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
         </div>
       )}
 
-      {/* Settle dialog */}
-      <SettleConfirmDialog
-        key={settleOpenSeq}
-        summary={settleTarget}
-        open={settleTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setSettleTarget(null);
-        }}
-        onConfirm={handleSettleConfirm}
-        onRenew={handleRenewRequest}
-      />
+      {/* Maturity decision dialog — only mounts when a target is selected */}
+      {settleTarget !== null && (
+        <MaturityDecisionDialog
+          summary={settleTarget}
+          onOpenChange={(open) => {
+            if (!open) setSettleTarget(null);
+          }}
+          onConfirm={handleSettleConfirm}
+          onRenew={handleRenewRequest}
+        />
+      )}
 
       {/* Close account dialog — only mounts when a target is selected */}
       {closeTarget !== null && (
         <CloseConfirmDialog
           summary={closeTarget}
           closeDate={toISODate(new Date())}
-          open
           onOpenChange={(open) => {
             if (!open) setCloseTarget(null);
           }}
@@ -502,15 +495,16 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
         />
       )}
 
-      {/* Delete dialog */}
-      <DeleteConfirmDialog
-        summary={deleteTarget}
-        open={deleteTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        onConfirm={handleDeleteConfirm}
-      />
+      {/* Delete dialog — only mounts when a target is selected */}
+      {deleteTarget !== null && (
+        <DeleteConfirmDialog
+          summary={deleteTarget}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
 
       {/* Live region for screen reader announcements */}
       <div role="status" aria-live="polite" className="sr-only">

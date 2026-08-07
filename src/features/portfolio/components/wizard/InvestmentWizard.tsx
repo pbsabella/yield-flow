@@ -25,7 +25,7 @@ import { useWizardState } from "@/features/portfolio/hooks/useWizardState";
 import { InvestmentForm } from "./InvestmentForm";
 import { LiveCalcPreview } from "./LiveCalcPreview";
 import type { TimeDeposit } from "@/types";
-import type { RenewalConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/lib/domain/renew";
 import { XIcon } from 'lucide-react';
 
 // ─── Props ────────────────────────────────────────────────────────────────────

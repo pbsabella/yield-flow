@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Banknote, CircleDollarSign, Repeat } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,61 +13,56 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { RadioCard } from "@/components/ui/radio-card";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
-import { cn } from "@/lib/utils";
+import { getRenewalOptions, type RenewalMode } from "@/lib/domain/renew";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
-import type { RenewalMode } from "@/lib/domain/renew";
 
-type Choice = "withdraw" | "renew-all" | "renew-principal";
+type Choice = "withdraw" | RenewalMode;
+
+type ChoiceOption = { value: Choice; label: string; subtitle: string; icon: LucideIcon };
 
 type Props = {
-  summary: EnrichedSummary | null;
-  open: boolean;
+  summary: EnrichedSummary;
   onOpenChange: (open: boolean) => void;
   onConfirm: (id: string) => void;
   onRenew: (summary: EnrichedSummary, mode: RenewalMode) => void;
 };
 
-export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, onRenew }: Props) {
+export function MaturityDecisionDialog({ summary, onOpenChange, onConfirm, onRenew }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const [choice, setChoice] = useState<Choice | null>(null);
-
-  if (!summary) return null;
 
   const { deposit, netInterest, netTotal } = summary;
   const isMonthly = deposit.payoutFrequency === "monthly";
 
-  const options: { value: Choice; label: string; subtitle: string }[] = isMonthly
-    ? [
-        {
-          value: "withdraw",
-          label: "Withdraw",
-          subtitle: `Take the full proceeds out — ${fmtCurrency(netTotal)}`,
-        },
-        {
-          value: "renew-all",
-          label: "Renew",
-          subtitle: "Interest is already paid monthly — renew the principal for a new term",
-        },
-      ]
-    : [
-        {
-          value: "withdraw",
-          label: "Withdraw",
-          subtitle: `Take the full proceeds out — ${fmtCurrency(netTotal)}`,
-        },
-        {
-          value: "renew-all",
-          label: "Renew everything",
-          subtitle: `Reinvest ${fmtCurrency(netTotal)} for a new term`,
-        },
-        {
-          value: "renew-principal",
-          label: "Renew principal only",
-          subtitle: `Reinvest ${fmtCurrency(deposit.principal)}; take ${fmtCurrency(netInterest)} now`,
-        },
-      ];
+  const options: ChoiceOption[] = [
+    {
+      value: "withdraw",
+      label: "Withdraw",
+      subtitle: `Take the full proceeds out — ${fmtCurrency(netTotal)}`,
+      icon: Banknote,
+    },
+    ...getRenewalOptions(deposit).map(
+      (mode): ChoiceOption =>
+        mode === "all"
+          ? {
+              value: "all",
+              label: isMonthly ? "Renew" : "Renew everything",
+              subtitle: isMonthly
+                ? "Interest is already paid monthly — renew the principal for a new term"
+                : `Reinvest ${fmtCurrency(netTotal)} for a new term`,
+              icon: Repeat,
+            }
+          : {
+              value: "principal-only",
+              label: "Renew principal only",
+              subtitle: `Reinvest ${fmtCurrency(deposit.principal)}; take ${fmtCurrency(netInterest)} now`,
+              icon: CircleDollarSign,
+            },
+    ),
+  ];
 
   const handleContinue = () => {
     if (!choice) return;
@@ -73,11 +70,11 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, on
       onConfirm(deposit.id);
       return;
     }
-    onRenew(summary, choice === "renew-all" ? "all" : "principal-only");
+    onRenew(summary, choice);
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-h-[85dvh] overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>What would you like to do with {deposit.name}?</AlertDialogTitle>
@@ -106,24 +103,20 @@ export function SettleConfirmDialog({ summary, open, onOpenChange, onConfirm, on
         <RadioGroup
           value={choice ?? ""}
           onValueChange={(value) => setChoice(value as Choice)}
-          className="gap-2"
+          className="gap-stack-xs"
           aria-label="Maturity decision"
         >
-          {options.map(({ value, label, subtitle }) => (
-            <label
+          {options.map(({ value, label, subtitle, icon }) => (
+            <RadioCard
               key={value}
-              htmlFor={`maturity-choice-${value}`}
-              className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent-hover-bg/50 min-h-11",
-                choice === value ? "border-primary bg-primary/5" : "border-border",
-              )}
-            >
-              <RadioGroupItem id={`maturity-choice-${value}`} value={value} className="mt-0.5 shrink-0" />
-              <div className="min-w-0 text-left">
-                <p className="text-sm font-medium leading-tight">{label}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground text-balance">{subtitle}</p>
-              </div>
-            </label>
+              id={`maturity-choice-${value}`}
+              value={value}
+              selected={choice === value}
+              label={label}
+              description={subtitle}
+              icon={icon}
+              className="min-h-11"
+            />
           ))}
         </RadioGroup>
 
