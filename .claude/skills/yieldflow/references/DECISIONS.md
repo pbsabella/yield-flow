@@ -32,7 +32,9 @@ Storage limitations are surfaced in a collapsible section in Settings ("What you
 
 ---
 
-## Portfolio / Dashboard
+## Dashboard
+
+Landing page. With no deposits it shows the `EmptyLanding` gate (add first / demo / import backup); with data it renders KPI cards, this-month payouts, and bank exposure. The KPI cards:
 
 ### Three KPIs
 

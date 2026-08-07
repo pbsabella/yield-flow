@@ -45,9 +45,9 @@ Product radios use these exact labels:
 
 ---
 
-## Portfolio (`/`)
+## Dashboard (`/`)
 
-The page is titled **Portfolio** (route `/`). The dashboard KPIs:
+Landing page. With no deposits it shows the `EmptyLanding` gate (add first / demo / import backup); with data it renders KPI cards, this-month payouts, and bank exposure. The KPI cards:
 
 ### KPI
 
@@ -189,7 +189,7 @@ Payout frequency and interest treatment are **implicit** from the product type â
 
 ## Export for AI
 
-Triggered from the Portfolio, Cash Flow, and Investments page headers. Opens a dialog that assembles a Markdown context via `buildAiContext`:
+Triggered from the Dashboard, Cash Flow, and Investments page headers. Opens a dialog that assembles a Markdown context via `buildAiContext`:
 
 - Editable **prompt** (defaults to a "suggest next best actions" prompt with **Principal Replacement Logic**), optional **market rates** note
 - Snapshot header with currency + insurance limit
@@ -217,7 +217,7 @@ Settings also surfaces a collapsible **caveats** block (local-only storage, no b
 
 ## Demo Mode
 
-- Entry: empty Portfolio landing CTA **"Explore with demo data"**.
+- Entry: empty Dashboard landing CTA **"Explore with demo data"**.
 - Persisted via `yf:demo-mode`. Demo deposits live in React state only â€” **never written to `yf:deposits`**. Demo banks come from `src/lib/data/demo.ts` (7 banks).
 - Exit via the demo banner or Settings. Export/Import disabled while in demo.
 
@@ -233,14 +233,14 @@ Settings also surfaces a collapsible **caveats** block (local-only storage, no b
 ## Layout
 
 - **AppShell + RouteGuard** wrap all pages. Sidebar renders only once the portfolio is ready.
-- Desktop **sidebar** nav: Dashboard (`/`), Investments (`/investments`, with a **matured-count badge**), Cash Flow (`/cashflow`), Settings (`/settings`). "beta" badge next to the logo. Note: the nav item for `/` is labeled "Dashboard", while the page header is titled "Portfolio".
+- Desktop **sidebar** nav: Dashboard (`/`), Investments (`/investments`, with a **matured-count badge**), Cash Flow (`/cashflow`), Settings (`/settings`). "beta" badge next to the logo.
 - Mobile **bottom tab bar** with a center `+` that opens the wizard.
 - Global **Toaster**, **InvestmentWizard**, and **ExportAiDialog** mounted at the app level.
 - **PrototypeBanner** on every page; **DemoBanner** additionally when in demo mode.
 
 ---
 
-## Portfolio Rationale
+## Dashboard Rationale
 
 - **Free-text bank names:** Avoids a stale registry. Datalist autocomplete handles repeat entries.
 - **Net-only:** Represents spendable reality. Gross creates false expectations.

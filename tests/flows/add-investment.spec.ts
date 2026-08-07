@@ -35,7 +35,7 @@ test("add an investment via wizard — empty state → portfolio visible", async
 
   // Dialog should close and portfolio view should be visible
   await expect(page.getByRole("dialog")).not.toBeVisible();
-  await expect(page.getByRole("heading", { name: "Portfolio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 
   // The new investment should appear in the bank exposure section on the dashboard
   await expect(page.getByText("Meridian Savings Bank", { exact: true })).toBeVisible();

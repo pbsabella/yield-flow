@@ -142,7 +142,7 @@ export default function DashboardShell() {
         {status === "ready" && (
           <>
             <PageHeader
-              title="Portfolio"
+              title="Dashboard"
               subtitle="Consolidated view of active yields"
               action={{ onClick: () => openWizard() }}
               secondaryAction={
