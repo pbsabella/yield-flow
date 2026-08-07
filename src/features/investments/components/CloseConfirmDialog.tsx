@@ -18,12 +18,11 @@ import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioDat
 type Props = {
   summary: EnrichedSummary;
   closeDate: string;
-  open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (id: string, closeDate: string) => void;
 };
 
-export function CloseConfirmDialog({ summary, closeDate, open, onOpenChange, onConfirm }: Props) {
+export function CloseConfirmDialog({ summary, closeDate, onOpenChange, onConfirm }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const { deposit, bank, maturityDate } = summary;
 
@@ -40,7 +39,7 @@ export function CloseConfirmDialog({ summary, closeDate, open, onOpenChange, onC
     : `Close ${deposit.name} early?`;
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

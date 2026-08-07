@@ -14,7 +14,7 @@ export function InvestmentsShell() {
   // UI state from the store — only re-renders when these specific slices change.
   const highlightedId = useWizardStore((s) => s.highlightedId);
   const openWizard    = useWizardStore((s) => s.openWizard);
-  const openRollover  = useWizardStore((s) => s.openRollover);
+  const openRenewal = useWizardStore((s) => s.openRenewal);
   const openExportAi  = useWizardStore((s) => s.openExportAi);
 
   return (
@@ -49,7 +49,7 @@ export function InvestmentsShell() {
             onReopen={handleReopen}
             onDelete={handleDelete}
             onEdit={handleEdit}
-            onRollOver={openRollover}
+            onRenew={openRenewal}
             highlightedId={highlightedId}
           />
         </Container>

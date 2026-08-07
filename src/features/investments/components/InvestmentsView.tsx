@@ -40,19 +40,19 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { toISODate } from "@/lib/domain/date";
-import { getRolloverPrincipal } from "@/lib/domain/rollover";
+import { getRenewalPrincipal, type RenewalMode } from "@/lib/domain/renew";
 import { createColumns } from "./columns";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { DepositCard } from "./DepositCard";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
-import { SettleConfirmDialog } from "./SettleConfirmDialog";
+import { MaturityDecisionDialog } from "./MaturityDecisionDialog";
 import { CloseConfirmDialog } from "./CloseConfirmDialog";
 import { EmptyState } from "@/features/dashboard/components/EmptyState";
 import { LadderView } from "./LadderView";
 import { BankActiveSummary } from "./BankActiveSummary";
 import { cn } from "@/lib/utils";
 import type { EnrichedSummary } from "@/features/portfolio/hooks/usePortfolioData";
-import type { RolloverConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/lib/domain/renew";
 import type { TimeDeposit } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ type Props = {
   onReopen: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (deposit: TimeDeposit) => void;
-  onRollOver: (config: RolloverConfig) => void;
+  onRenew: (config: RenewalConfig) => void;
   highlightedId?: string | null;
 };
 
@@ -101,7 +101,7 @@ function sortSummaries(list: EnrichedSummary[]): EnrichedSummary[] {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onReopen, onDelete, onEdit, onRollOver, highlightedId }: Props) {
+export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onReopen, onDelete, onEdit, onRenew, highlightedId }: Props) {
   const { fmtCurrency } = useFormatterContext();
   const columns = useMemo(() => createColumns(fmtCurrency), [fmtCurrency]);
   const [view, setView] = useState<"list" | "ladder">("list");
@@ -197,20 +197,20 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
     [onClose, onReopen, closeTarget],
   );
 
-  const handleRollOverRequest = useCallback(
-    (summary: EnrichedSummary) => {
+  const handleRenewRequest = useCallback(
+    (summary: EnrichedSummary, mode: RenewalMode) => {
       setSettleTarget(null);
-      const proceedsPrincipal = getRolloverPrincipal(summary.deposit, summary.netTotal);
-      onRollOver({
+      const proceedsPrincipal = getRenewalPrincipal(summary.deposit, summary.netTotal, mode);
+      onRenew({
         sourceId: summary.deposit.id,
         deposit: summary.deposit,
         proceedsPrincipal,
-        // Always use the original maturity date — roll over means "continue from maturity".
+        // Always use the original maturity date — renew means "continue from maturity".
         // The wizard is editable if the user wants a different start date.
         startDate: summary.maturityDate ?? toISODate(new Date()),
       });
     },
-    [onRollOver],
+    [onRenew],
   );
 
   const handleSettleConfirm = useCallback(
@@ -471,23 +471,23 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
         </div>
       )}
 
-      {/* Settle dialog */}
-      <SettleConfirmDialog
-        summary={settleTarget}
-        open={settleTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setSettleTarget(null);
-        }}
-        onConfirm={handleSettleConfirm}
-        onRollOver={handleRollOverRequest}
-      />
+      {/* Maturity decision dialog — only mounts when a target is selected */}
+      {settleTarget !== null && (
+        <MaturityDecisionDialog
+          summary={settleTarget}
+          onOpenChange={(open) => {
+            if (!open) setSettleTarget(null);
+          }}
+          onConfirm={handleSettleConfirm}
+          onRenew={handleRenewRequest}
+        />
+      )}
 
       {/* Close account dialog — only mounts when a target is selected */}
       {closeTarget !== null && (
         <CloseConfirmDialog
           summary={closeTarget}
           closeDate={toISODate(new Date())}
-          open
           onOpenChange={(open) => {
             if (!open) setCloseTarget(null);
           }}
@@ -495,15 +495,16 @@ export function InvestmentsView({ summaries, onSettle, onUnsettle, onClose, onRe
         />
       )}
 
-      {/* Delete dialog */}
-      <DeleteConfirmDialog
-        summary={deleteTarget}
-        open={deleteTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        onConfirm={handleDeleteConfirm}
-      />
+      {/* Delete dialog — only mounts when a target is selected */}
+      {deleteTarget !== null && (
+        <DeleteConfirmDialog
+          summary={deleteTarget}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
 
       {/* Live region for screen reader announcements */}
       <div role="status" aria-live="polite" className="sr-only">

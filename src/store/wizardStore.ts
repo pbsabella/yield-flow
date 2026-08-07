@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { TimeDeposit } from "@/types";
-import type { RolloverConfig } from "@/features/portfolio/context/PortfolioContext";
+import type { RenewalConfig } from "@/lib/domain/renew";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,8 +12,8 @@ interface WizardStore {
   wizardOpen: boolean;
   /** Deposit being edited. Null means a new deposit is being created. */
   editTarget: TimeDeposit | null;
-  /** Pre-fill config when the wizard is opened for a rollover. */
-  rolloverConfig: RolloverConfig | null;
+  /** Pre-fill config when the wizard is opened for a renewal. */
+  renewalConfig: RenewalConfig | null;
   /** ID of the row to highlight after a mutation (auto-clears after 2.5s). */
   highlightedId: string | null;
   /** Whether the Export for AI dialog is open. */
@@ -22,8 +22,8 @@ interface WizardStore {
   // ── Actions ────────────────────────────────────────────────────────────────
   /** Open the wizard for a new deposit, or pass an existing one to edit it. */
   openWizard: (target?: TimeDeposit) => void;
-  /** Open the wizard pre-filled for a rollover. */
-  openRollover: (config: RolloverConfig) => void;
+  /** Open the wizard pre-filled for a renewal. */
+  openRenewal: (config: RenewalConfig) => void;
   /** Close the wizard and reset all wizard state. */
   closeWizard: () => void;
   /** Highlight a row by ID, then clear it after 2.5 seconds. */
@@ -53,19 +53,19 @@ export const useWizardStore = create<WizardStore>()((set) => ({
   // Initial state
   wizardOpen: false,
   editTarget: null,
-  rolloverConfig: null,
+  renewalConfig: null,
   highlightedId: null,
   exportAiOpen: false,
 
   // Actions
   openWizard: (target) =>
-    set({ wizardOpen: true, editTarget: target ?? null, rolloverConfig: null }),
+    set({ wizardOpen: true, editTarget: target ?? null, renewalConfig: null }),
 
-  openRollover: (config) =>
-    set({ wizardOpen: true, rolloverConfig: config, editTarget: null }),
+  openRenewal: (config) =>
+    set({ wizardOpen: true, renewalConfig: config, editTarget: null }),
 
   closeWizard: () =>
-    set({ wizardOpen: false, editTarget: null, rolloverConfig: null }),
+    set({ wizardOpen: false, editTarget: null, renewalConfig: null }),
 
   highlight: (id) => {
     // Cancel any in-flight timer before starting a new one, so rapid successive

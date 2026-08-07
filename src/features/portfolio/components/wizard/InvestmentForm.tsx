@@ -1,6 +1,7 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Coins, HandCoins, Landmark, Trash2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Field,
@@ -19,11 +20,11 @@ import { useCurrencyInput } from "@/components/ui/use-currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { RadioCard } from "@/components/ui/radio-card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFormatterContext } from "@/features/portfolio/context/PortfolioContext";
 import { toISODate } from "@/lib/domain/date";
-import { cn } from "@/lib/utils";
 import type { InterestTier } from "@/types";
 import type {
   WizardFormState,
@@ -46,21 +47,24 @@ interface InvestmentFormProps {
 
 // ─── Product type cards ───────────────────────────────────────────────────────
 
-const PRODUCT_TYPES: { value: ProductType; label: string; description: string }[] = [
+const PRODUCT_TYPES: { value: ProductType; label: string; description: string; icon: LucideIcon }[] = [
   {
     value: "td-maturity",
     label: "Time Deposit",
     description: "Fixed term · Principal + interest returned at maturity",
+    icon: Landmark,
   },
   {
     value: "td-monthly",
     label: "TD Monthly Payout",
     description: "Fixed term · Interest paid to you monthly",
+    icon: HandCoins,
   },
   {
     value: "savings",
     label: "Savings",
     description: "No maturity date · Earns interest until you withdraw",
+    icon: Coins,
   },
 ];
 
@@ -306,25 +310,18 @@ export function InvestmentForm({
         <RadioGroup
           value={formState.productType}
           onValueChange={(val) => setField("productType", val as ProductType)}
-          className="gap-2"
+          className="gap-stack-xs"
         >
-          {PRODUCT_TYPES.map(({ value, label, description }) => (
-            <label
+          {PRODUCT_TYPES.map(({ value, label, description, icon }) => (
+            <RadioCard
               key={value}
-              htmlFor={`product-${value}`}
-              className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent-hover-bg/50",
-                formState.productType === value
-                  ? "border-primary bg-primary/5"
-                  : "border-border",
-              )}
-            >
-              <RadioGroupItem id={`product-${value}`} value={value} className="mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium leading-tight">{label}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-              </div>
-            </label>
+              id={`product-${value}`}
+              value={value}
+              selected={formState.productType === value}
+              label={label}
+              description={description}
+              icon={icon}
+            />
           ))}
         </RadioGroup>
       </Field>
