@@ -81,9 +81,9 @@ Controls: bank filter select, single **Show inactive** toggle (hides closed + se
 
 **Desktop table** — horizontally scrollable; Deposit column frozen (sticky left). Sorted by days-to-maturity ASC by default. All columns sortable **except** the row-index (#) and actions columns.
 
-**Mobile cards** — grouped by status: Matured → Active → Open-ended → Settled. Each card shows bank, name, principal, net interest, days-to-maturity badge, and actions.
+**Mobile cards** — grouped by status: Matured → Active → Open-ended → Settled → Closed (closed and settled appear only when "Show inactive" is on). Each card shows bank, name, principal, net interest, days-to-maturity badge, and actions.
 
-**Days to Maturity pill:** neutral `{N}d` (>30) → amber `{N}d` (1–30) → `Today` → `{N}d ago` (overdue) / open-ended and settled/closed show `—`. The pill text is the only amber cue — there is no row-level highlight. Post-mutation highlight (ring/bg) comes from `highlightedId`, which auto-clears after 2.5s.
+**Days to Maturity pill:** neutral beyond 30 days, amber from 30 days out through overdue; open-ended and settled/closed show `—`. The pill is the only amber cue — there is no row-level highlight. Post-mutation highlight (ring/bg) comes from `highlightedId`, which auto-clears after 2.5s.
 
 **Actions:** Edit (opens wizard), Settle (opens maturity decision dialog), Delete (confirmation dialog), Close early / Withdraw & close (··· menu, active rows only), Undo settle (··· menu, settled rows only), Reopen (··· menu, closed rows only).
 
@@ -209,7 +209,7 @@ Actions: **Copy to clipboard** or **Download** as `yieldflow-context-<date>.md`.
 
 **Import JSON** — validates required deposit fields, shows a **replace-all preview** (all current data replaced) with a confirm dialog, then applies deposits + preferences + theme. Never merges.
 
-**Clear all data** — confirm dialog; wipes deposits and preferences (keeps theme). **Exit Demo** shown instead in demo mode.
+**Clear all data** — confirm dialog; clears deposits only (preferences and theme are kept). **Exit Demo** shown instead in demo mode.
 
 Settings also surfaces a collapsible **caveats** block (local-only storage, no backup, etc.).
 
@@ -218,7 +218,7 @@ Settings also surfaces a collapsible **caveats** block (local-only storage, no b
 ## Demo Mode
 
 - Entry: empty Portfolio landing CTA **"Explore with demo data"**.
-- Persisted via `yf:demo-mode`. Demo deposits live in React state only — **never written to `yf:deposits`**. Demo banks come from `lib/data/demo.ts` (7 banks).
+- Persisted via `yf:demo-mode`. Demo deposits live in React state only — **never written to `yf:deposits`**. Demo banks come from `src/lib/data/demo.ts` (7 banks).
 - Exit via the demo banner or Settings. Export/Import disabled while in demo.
 
 ---
@@ -233,7 +233,7 @@ Settings also surfaces a collapsible **caveats** block (local-only storage, no b
 ## Layout
 
 - **AppShell + RouteGuard** wrap all pages. Sidebar renders only once the portfolio is ready.
-- Desktop **sidebar** nav: Portfolio (`/`), Investments (`/investments`, with a **matured-count badge**), Cash Flow (`/cashflow`), Settings (`/settings`). "beta" badge next to the logo.
+- Desktop **sidebar** nav: Dashboard (`/`), Investments (`/investments`, with a **matured-count badge**), Cash Flow (`/cashflow`), Settings (`/settings`). "beta" badge next to the logo. Note: the nav item for `/` is labeled "Dashboard", while the page header is titled "Portfolio".
 - Mobile **bottom tab bar** with a center `+` that opens the wizard.
 - Global **Toaster**, **InvestmentWizard**, and **ExportAiDialog** mounted at the app level.
 - **PrototypeBanner** on every page; **DemoBanner** additionally when in demo mode.
